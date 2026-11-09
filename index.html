@@ -4,543 +4,572 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>YSCMT Enterprise | IT & Digital Solutions</title>
-
-<meta name="description" content="YSCMT Enterprise delivers software development, cybersecurity, IT training and digital solutions. Learn. Build. Innovate.">
-<meta name="theme-color" content="#071426">
+<meta name="theme-color" content="#08213b">
+<meta name="description" content="YSCMT Enterprise — software development, cybersecurity, IT training and digital solutions.">
+<title>YSCMT Enterprise | Learn. Build. Innovate.</title>
 
 <style>
 :root {
-  --bg: #071426;
-  --panel: #102741;
-  --blue: #39d5ff;
-  --text: #ffffff;
-  --muted: #b9cadd;
+  --navy:#08213b;
+  --blue:#19bde8;
+  --gold:#f0b84b;
+  --light:#f2f6fa;
+  --muted:#637487;
+  --white:#fff;
 }
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:110px}
+body{font-family:Arial,sans-serif;color:#182b3d;line-height:1.65}
+a{text-decoration:none;color:inherit}
+.container{width:min(1160px,92%);margin:auto}
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* TOP BAR */
+.topbar{background:#041322;color:white;font-size:12px}
+.topbar .container{display:flex;justify-content:flex-end;flex-wrap:wrap}
+.topbar a{padding:9px 13px;border-left:1px solid #ffffff25}
+.topbar a:hover{background:#174568}
+
+/* BRAND */
+.brand-area{background:white}
+.brand-area .container{
+ min-height:105px;display:flex;align-items:center;
+ justify-content:space-between;gap:20px
 }
+.brand{display:flex;align-items:center;gap:14px}
+.brand img{width:72px;height:72px;object-fit:contain}
+.brand-name strong{font-size:25px;color:var(--navy);display:block}
+.brand-name span{font-size:11px;letter-spacing:2px;color:#60758a}
+.brand-side{text-align:right;color:#60758a;font-size:13px}
+.brand-side strong{display:block;color:var(--navy)}
 
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 90px;
+/* NAVIGATION */
+.navbar{background:var(--navy);color:white;position:sticky;top:0;z-index:100}
+.navbar .container{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.nav-links{display:flex;list-style:none;align-items:center}
+.nav-links a{display:block;padding:15px 13px;font-size:13px;font-weight:bold;border-bottom:3px solid transparent}
+.nav-links a:hover{background:#164366;border-color:var(--gold)}
+.menu-toggle{display:none;background:none;border:1px solid #ffffff66;color:white;padding:7px 12px;font-size:20px;border-radius:4px}
+.search{display:flex;gap:5px;padding:6px 0}
+.search input{width:155px;padding:8px;border:0;border-radius:3px}
+.search button{background:var(--blue);border:0;padding:8px 12px;font-weight:bold;cursor:pointer}
+
+/* HERO SLIDER */
+.hero{background:var(--navy);color:white}
+.slides{position:relative;min-height:420px;overflow:hidden}
+.slide{
+ display:none;min-height:420px;align-items:center;
+ background:linear-gradient(110deg,#08213b,#15577b);
+ position:relative
 }
+.slide.active{display:flex}
+.slide:nth-child(2){background:linear-gradient(110deg,#102c49,#087b9b)}
+.slide:nth-child(3){background:linear-gradient(110deg,#09233d,#194f6b)}
+.slide-content{padding:75px 0;max-width:700px}
+.eyebrow{color:#80e4ff;font-size:12px;letter-spacing:3px;font-weight:bold}
+.slide h1{font-size:clamp(36px,5vw,58px);line-height:1.15;margin:17px 0}
+.slide h1 span{color:#65ddff}
+.slide p{font-size:17px;color:#e0edf5;max-width:620px}
+.buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}
+.btn{display:inline-block;background:var(--gold);color:#172b3c;padding:12px 20px;border-radius:4px;font-size:13px;font-weight:bold}
+.btn.outline{background:transparent;color:white;border:1px solid white}
+.slider-controls{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center}
+.dot{width:11px;height:11px;border-radius:50%;border:1px solid white;background:transparent;cursor:pointer}
+.dot.active{background:var(--gold);border-color:var(--gold)}
+.play{background:#071c31;color:white;border:1px solid #ffffff66;padding:5px 10px;cursor:pointer}
 
-body {
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.7;
+/* QUICK LINKS */
+.quick-links{background:#f3f7fa;border-bottom:1px solid #dce5ed}
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.quick-grid a{text-align:center;padding:20px 10px;border-right:1px solid #dce5ed;color:var(--navy);font-weight:bold;font-size:14px}
+.quick-grid span{display:block;color:var(--muted);font-size:11px;font-weight:normal}
+.quick-grid a:hover{background:#e4f4fa}
+
+/* GENERAL SECTIONS */
+section.content{padding:65px 0}
+.soft{background:var(--light)}
+.heading{margin-bottom:27px}
+.heading .tag{font-size:11px;letter-spacing:2px;color:#078db7;font-weight:bold}
+.heading h2{font-size:29px;color:var(--navy);margin:5px 0}
+.heading p{font-size:14px;color:var(--muted)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:35px}
+.copy p{font-size:14px;color:#526679;margin-bottom:14px}
+.info-box{background:white;border-left:4px solid var(--blue);padding:25px;box-shadow:0 8px 25px #08213b12}
+.info-box h3{color:var(--navy);margin-bottom:8px}
+.info-box p{font-size:14px;color:#586d80}
+
+/* NEWS */
+.news-layout{display:grid;grid-template-columns:1.4fr .9fr;gap:28px}
+.news-box{border-top:3px solid var(--navy);box-shadow:0 8px 25px #08213b12}
+.news-title{padding:13px 17px;background:#f4f7fa;color:var(--navy);font-weight:bold}
+.news-item{padding:15px 17px;border-bottom:1px solid #e1e8ee;display:grid;grid-template-columns:65px 1fr;gap:14px}
+.news-date{background:#eaf5fa;text-align:center;color:#078db7;padding:8px;font-size:11px}
+.news-date strong{display:block;font-size:20px;color:var(--navy)}
+.news-item h3{font-size:14px;color:var(--navy)}
+.news-item p{font-size:12px;color:var(--muted)}
+.founder{background:var(--navy);padding:28px;color:white}
+.founder h2{font-size:25px;margin:8px 0 14px}
+.founder p{font-size:14px;color:#d5e2ed}
+.founder strong{display:block;color:var(--gold);margin-top:18px}
+
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
+.card{background:white;padding:23px;border:1px solid #dce5ed;border-radius:4px}
+.card .icon{font-size:28px}
+.card h3{font-size:16px;color:var(--navy);margin:8px 0}
+.card p{font-size:13px;color:var(--muted)}
+.service-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.service{background:white;border:1px solid #dce5ed;border-top:3px solid var(--blue);padding:22px}
+.service .icon{font-size:27px}
+.service h3{font-size:16px;color:var(--navy);margin:8px 0}
+.service p{font-size:13px;color:var(--muted)}
+
+/* ANNOUNCEMENTS */
+.announcements{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
+.announcement{background:white;border:1px solid #dce5ed;padding:21px}
+.announcement small{color:#078db7;font-weight:bold;letter-spacing:1px}
+.announcement h3{font-size:16px;color:var(--navy);margin:8px 0}
+.announcement p{font-size:13px;color:var(--muted)}
+.announcement a{display:inline-block;color:#078db7;font-size:12px;font-weight:bold;margin-top:12px}
+
+/* PARTNERS */
+.partners{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.partner{background:white;border:1px solid #dce5ed;padding:20px;text-align:center;color:#60758a;font-weight:bold;font-size:13px}
+
+/* CTA & FOOTER */
+.cta{background:linear-gradient(110deg,#08213b,#12577b);color:white;padding:42px 0}
+.cta .container{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.cta h2{font-size:27px}
+.cta p{font-size:14px;color:#d5e7f2}
+footer{background:#041322;color:#d0dce6;padding:45px 0 18px}
+.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:25px}
+footer h3{font-size:15px;color:white;margin-bottom:12px}
+footer p,footer li{font-size:12px;color:#aebdca}
+footer ul{list-style:none}
+footer li{margin:7px 0}
+footer a:hover{color:var(--blue)}
+.footer-brand{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.footer-brand img{width:48px;height:48px;object-fit:contain}
+.copyright{text-align:center;border-top:1px solid #ffffff22;margin-top:28px;padding-top:15px;font-size:11px;color:#91a4b5}
+.no-results{display:none;padding:20px;background:#fff;color:#526679}
+
+@media(max-width:900px){
+ .menu-toggle{display:block}
+ .navbar .container{flex-wrap:wrap;padding:8px 0}
+ .nav-links{display:none;order:3;width:100%;flex-direction:column;align-items:stretch}
+ .nav-links.open{display:flex}
+ .nav-links a{padding:11px;border-bottom:1px solid #ffffff22}
+ .search{margin-left:auto}
+ .service-grid{grid-template-columns:repeat(2,1fr)}
+ .footer-grid{grid-template-columns:repeat(2,1fr)}
 }
-
-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: #091a2df2;
-  backdrop-filter: blur(12px);
-  padding: 14px 7%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #ffffff12;
+@media(max-width:650px){
+ .brand-area .container{min-height:85px}
+ .brand img{width:54px;height:54px}
+ .brand-name strong{font-size:17px}
+ .brand-name span{font-size:9px;letter-spacing:1px}
+ .brand-side{display:none}
+ .topbar .container{justify-content:center}
+ .topbar a{padding:8px}
+ .search input{width:115px}
+ .slides,.slide{min-height:390px}
+ .slide-content{padding:60px 0}
+ .slide p{font-size:15px}
+ .quick-grid{grid-template-columns:repeat(2,1fr)}
+ .quick-grid a{border-bottom:1px solid #dce5ed}
+ section.content{padding:48px 0}
+ .news-layout,.two-col{grid-template-columns:1fr}
+ .cards,.announcements{grid-template-columns:1fr}
+ .service-grid{grid-template-columns:1fr 1fr}
+ .partners{grid-template-columns:repeat(2,1fr)}
+ .cta .container{display:block}
+ .cta .btn{margin-top:17px}
+ .footer-grid{grid-template-columns:1fr 1fr}
 }
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  color: var(--blue);
-  font-size: 21px;
-  font-weight: 800;
-  letter-spacing: .5px;
-}
-
-.logo img {
-  width: 49px;
-  height: 49px;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
-nav {
-  display: flex;
-  gap: 23px;
-  align-items: center;
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
-  font-size: 14px;
-  transition: .2s;
-}
-
-nav a:hover {
-  color: var(--blue);
-}
-
-.menu {
-  display: none;
-  background: none;
-  color: white;
-  border: 0;
-  font-size: 27px;
-  cursor: pointer;
-}
-
-.hero {
-  min-height: 620px;
-  padding: 110px 8%;
-  display: flex;
-  align-items: center;
-  background:
-    radial-gradient(circle at 85% 40%, #14517a 0, transparent 35%),
-    linear-gradient(120deg, #071426, #10334f);
-}
-
-.tag {
-  color: var(--blue);
-  font-weight: bold;
-  letter-spacing: 3px;
-  font-size: 13px;
-}
-
-.hero h1 {
-  font-size: clamp(42px, 7vw, 72px);
-  line-height: 1.12;
-  max-width: 850px;
-  margin: 22px 0;
-}
-
-.hero h1 span {
-  color: var(--blue);
-}
-
-.hero p {
-  color: var(--muted);
-  max-width: 650px;
-  font-size: 18px;
-}
-
-.buttons {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-top: 30px;
-}
-
-.btn {
-  display: inline-block;
-  background: var(--blue);
-  color: #061426;
-  padding: 13px 23px;
-  border-radius: 7px;
-  text-decoration: none;
-  font-weight: bold;
-  transition: .25s;
-}
-
-.btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px #39d5ff35;
-}
-
-.btn.outline {
-  background: transparent;
-  color: white;
-  border: 1px solid var(--blue);
-}
-
-section {
-  padding: 85px 8%;
-}
-
-.heading {
-  text-align: center;
-  margin-bottom: 38px;
-}
-
-.heading h2 {
-  font-size: 36px;
-  margin-bottom: 10px;
-}
-
-.heading p,
-.muted {
-  color: var(--muted);
-}
-
-.about-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 35px;
-  align-items: center;
-}
-
-.about-panel {
-  background: linear-gradient(145deg, #123c5c, #0b2038);
-  padding: 35px;
-  border-radius: 16px;
-  border: 1px solid #244765;
-}
-
-.about-panel h3 {
-  color: var(--blue);
-  font-size: 25px;
-  margin-bottom: 12px;
-}
-
-.services,
-.projects,
-.reasons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-}
-
-.card {
-  background: var(--panel);
-  border: 1px solid #244565;
-  padding: 28px;
-  border-radius: 13px;
-  transition: .25s;
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  border-color: var(--blue);
-}
-
-.card .symbol {
-  font-size: 32px;
-  margin-bottom: 15px;
-}
-
-.card h3 {
-  color: var(--blue);
-  margin-bottom: 10px;
-}
-
-.card p {
-  color: var(--muted);
-  font-size: 15px;
-}
-
-.alt {
-  background: #0b1e32;
-}
-
-.project-label {
-  font-size: 12px;
-  color: var(--blue);
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-
-.cta {
-  background: linear-gradient(120deg, #0e3857, #12628a);
-  text-align: center;
-}
-
-.cta p {
-  max-width: 650px;
-  margin: 10px auto;
-  color: #d4e7f4;
-}
-
-footer {
-  padding: 35px 8%;
-  background: #040d18;
-  text-align: center;
-  color: #9db1c8;
-}
-
-footer .logo {
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-footer a {
-  color: var(--blue);
-}
-
-@media(max-width:700px) {
-  header {
-    padding: 12px 5%;
-  }
-
-  .logo {
-    font-size: 17px;
-    gap: 8px;
-  }
-
-  .logo img {
-    width: 42px;
-    height: 42px;
-  }
-
-  .menu {
-    display: block;
-  }
-
-  nav {
-    display: none;
-    position: absolute;
-    top: 68px;
-    left: 0;
-    width: 100%;
-    background: #091a2c;
-    padding: 22px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 18px;
-  }
-
-  nav.open {
-    display: flex;
-  }
-
-  .hero {
-    min-height: 550px;
-    padding: 85px 7%;
-  }
-
-  section {
-    padding: 65px 7%;
-  }
-
-  .about-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .heading h2 {
-    font-size: 29px;
-  }
+@media(max-width:390px){
+ .service-grid,.footer-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <a class="logo" href="#home">
-    <img src="YSCMT_Enterprise_Logo.png" alt="YSCMT Enterprise Logo">
-    <span>YSCMT ENTERPRISE</span>
+<div class="topbar">
+ <div class="container">
+  <a href="#contact">Client Support</a>
+  <a href="#training">Training</a>
+  <a href="#careers">Careers</a>
+  <a href="#partners">Partners</a>
+  <a href="#contact">Contact</a>
+ </div>
+</div>
+
+<div class="brand-area">
+ <div class="container">
+  <a href="#home" class="brand">
+   <img src="YSCMT_Enterprise_Logo.png" alt="YSCMT Enterprise Logo"
+        onerror="this.style.display='none'">
+   <div class="brand-name">
+    <strong>YSCMT ENTERPRISE</strong>
+    <span>LEARN. BUILD. INNOVATE.</span>
+   </div>
   </a>
+  <div class="brand-side">
+   <strong>Technology for a Smarter Future</strong>
+   Software • Cybersecurity • Digital Skills
+  </div>
+ </div>
+</div>
 
-  <button class="menu"
-    onclick="document.querySelector('nav').classList.toggle('open')"
-    aria-label="Toggle navigation"
-    aria-expanded="false"
-    onclick="this.setAttribute('aria-expanded', document.querySelector('nav').classList.contains('open'))">
-    ☰
-  </button>
+<nav class="navbar">
+ <div class="container">
+  <button class="menu-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
+  <ul class="nav-links">
+   <li><a href="#home">Home</a></li>
+   <li><a href="#about">About</a></li>
+   <li><a href="#services">Services</a></li>
+   <li><a href="#training">Training</a></li>
+   <li><a href="#projects">Projects</a></li>
+   <li><a href="#news">News</a></li>
+   <li><a href="#contact">Contact</a></li>
+  </ul>
+  <form class="search" id="search-form">
+   <input type="search" id="search-input" placeholder="Search website..." aria-label="Search website">
+   <button type="submit">Search</button>
+  </form>
+ </div>
+</nav>
 
-  <nav>
-    <a href="#home">Home</a>
-    <a href="#about">About</a>
-    <a href="#services">Services</a>
-    <a href="#projects">Projects</a>
-    <a href="#contact">Contact</a>
-  </nav>
-</header>
+<main id="home">
 
-<main>
-
-<section class="hero" id="home">
-  <div>
-    <div class="tag">LEARN. BUILD. INNOVATE.</div>
-
+<section class="hero">
+ <div class="slides">
+  <article class="slide active">
+   <div class="container slide-content">
+    <div class="eyebrow">WELCOME TO YSCMT ENTERPRISE</div>
     <h1>Building a <span>Smarter Digital Future.</span></h1>
-
-    <p>
-      We create technology solutions, develop digital skills
-      and help businesses turn bold ideas into meaningful results.
-    </p>
-
+    <p>We create technology solutions, develop digital skills and help businesses turn bold ideas into meaningful results.</p>
     <div class="buttons">
-      <a class="btn" href="#services">Explore Services</a>
-      <a class="btn outline" href="#contact">Work With Us</a>
+     <a class="btn" href="#services">Explore Services</a>
+     <a class="btn outline" href="#contact">Work With Us</a>
     </div>
+   </div>
+  </article>
+  <article class="slide">
+   <div class="container slide-content">
+    <div class="eyebrow">TECHNOLOGY • INNOVATION • OPPORTUNITY</div>
+    <h1>Learn Skills. <span>Build Solutions.</span></h1>
+    <p>Practical IT training and digital solutions designed to help individuals, startups and organizations move forward.</p>
+    <div class="buttons">
+     <a class="btn" href="#training">Discover Training</a>
+     <a class="btn outline" href="#about">About YSCMT</a>
+    </div>
+   </div>
+  </article>
+  <article class="slide">
+   <div class="container slide-content">
+    <div class="eyebrow">YOUR DIGITAL GROWTH PARTNER</div>
+    <h1>Ideas Into <span>Digital Impact.</span></h1>
+    <p>From software development to cybersecurity awareness, we help transform ideas into useful digital experiences.</p>
+    <div class="buttons">
+     <a class="btn" href="#projects">Explore Projects</a>
+     <a class="btn outline" href="mailto:yscmtenterprise@gmail.com">Email Us</a>
+    </div>
+   </div>
+  </article>
+  <div class="slider-controls">
+   <button class="dot active" aria-label="Slide 1"></button>
+   <button class="dot" aria-label="Slide 2"></button>
+   <button class="dot" aria-label="Slide 3"></button>
+   <button class="play">Pause</button>
   </div>
+ </div>
 </section>
 
-<section id="about">
-  <div class="about-grid">
-    <div>
-      <div class="tag">WHO WE ARE</div>
+<div class="quick-links">
+ <div class="container quick-grid">
+  <a href="#training">Learning & Training<span>Build practical digital skills</span></a>
+  <a href="#services">Our Services<span>Technology solutions for you</span></a>
+  <a href="#projects">Projects & Innovation<span>Explore our work</span></a>
+  <a href="#contact">Get in Touch<span>Start a conversation</span></a>
+ </div>
+</div>
 
-      <h2 style="font-size:36px;margin:15px 0">
-        About YSCMT Enterprise
-      </h2>
-
-      <p class="muted">
-        YSCMT Enterprise is a technology-driven business focused
-        on software development, cybersecurity, IT education
-        and digital transformation.
-      </p>
-
-      <p class="muted" style="margin-top:15px">
-        Our goal is to make technology accessible, practical
-        and valuable for individuals, businesses and communities.
-      </p>
-    </div>
-
-    <div class="about-panel">
-      <h3>Our Mission</h3>
-      <p>
-        To empower people and organizations through innovation,
-        knowledge and reliable digital solutions.
-      </p>
-
-      <h3 style="margin-top:25px">Our Vision</h3>
-      <p>
-        To contribute to a future where technology creates
-        opportunity and positive change for everyone.
-      </p>
-    </div>
+<section class="content" id="news">
+ <div class="container news-layout">
+  <div class="news-box">
+   <div class="news-title">LATEST NEWS & UPDATES</div>
+   <article class="news-item">
+    <div class="news-date"><strong>01</strong>UPDATE</div>
+    <div><h3>Welcome to YSCMT Enterprise</h3><p>Explore our technology services, learning areas and digital initiatives.</p></div>
+   </article>
+   <article class="news-item">
+    <div class="news-date"><strong>02</strong>TRAINING</div>
+    <div><h3>Practical IT Learning Opportunities</h3><p>Discover technology skills and training areas offered by YSCMT.</p></div>
+   </article>
+   <article class="news-item">
+    <div class="news-date"><strong>03</strong>PROJECTS</div>
+    <div><h3>Building Useful Digital Experiences</h3><p>Explore the areas where we develop and build digital products.</p></div>
+   </article>
   </div>
+
+  <aside class="founder">
+   <div class="eyebrow">A MESSAGE FROM OUR FOUNDER</div>
+   <h2>Founder’s Brief</h2>
+   <p>At YSCMT Enterprise, we believe technology should create opportunities, solve real problems and empower people. Our commitment is to keep learning, building useful solutions and supporting digital progress.</p>
+   <strong>Yusufa Sani Saleh<br>Founder & CEO, YSCMT Enterprise</strong>
+  </aside>
+ </div>
 </section>
 
-<section class="alt" id="services">
+<section class="content soft" id="about">
+ <div class="container two-col">
+  <div class="copy">
+   <div class="heading">
+    <div class="tag">WHO WE ARE</div>
+    <h2>About YSCMT Enterprise</h2>
+    <p>Learn. Build. Innovate.</p>
+   </div>
+   <p>YSCMT Enterprise is a technology-focused business working across software development, cybersecurity, IT education and digital solutions.</p>
+   <p>Our goal is to make technology accessible, practical and valuable for individuals, businesses and communities. We are committed to continuous learning, responsible innovation and solutions that respond to real needs.</p>
+   <a class="btn" href="#contact">Connect With Us</a>
+  </div>
+  <div class="info-box">
+   <h3>Our Mission</h3>
+   <p>To empower individuals and organizations through technology, practical knowledge, innovation and reliable digital solutions.</p>
+   <h3 style="margin-top:22px">Our Vision</h3>
+   <p>To contribute to a future where digital skills and technology create opportunity, improve lives and support sustainable progress.</p>
+  </div>
+ </div>
+</section>
+
+<section class="content">
+ <div class="container">
   <div class="heading">
-    <div class="tag">WHAT WE DO</div>
-    <h2>Our Services</h2>
-    <p>Practical technology services designed for growth and progress.</p>
+   <div class="tag">WHY CHOOSE YSCMT</div>
+   <h2>Technology With Purpose</h2>
+   <p>We focus on useful skills, thoughtful solutions and meaningful outcomes.</p>
   </div>
-
-  <div class="services">
-    <div class="card">
-      <div class="symbol">💻</div>
-      <h3>Software Development</h3>
-      <p>Modern websites, web applications and custom software solutions.</p>
-    </div>
-
-    <div class="card">
-      <div class="symbol">🛡️</div>
-      <h3>Cybersecurity</h3>
-      <p>Security awareness, digital protection and responsible security guidance.</p>
-    </div>
-
-    <div class="card">
-      <div class="symbol">🎓</div>
-      <h3>IT Training</h3>
-      <p>Programming, computer skills and practical technology education.</p>
-    </div>
-
-    <div class="card">
-      <div class="symbol">🚀</div>
-      <h3>Digital Solutions</h3>
-      <p>Digital tools and technology support to help businesses work smarter.</p>
-    </div>
+  <div class="cards">
+   <article class="card"><div class="icon">💡</div><h3>Innovation</h3><p>We explore creative ideas and modern technology to address real challenges.</p></article>
+   <article class="card"><div class="icon">🎯</div><h3>Practical Solutions</h3><p>We value work that is useful, accessible and focused on results.</p></article>
+   <article class="card"><div class="icon">📚</div><h3>Continuous Learning</h3><p>We believe in developing knowledge and skills as technology evolves.</p></article>
   </div>
+ </div>
 </section>
 
-<section id="projects">
+<section class="content soft" id="services">
+ <div class="container">
   <div class="heading">
-    <div class="tag">OUR WORK</div>
-    <h2>Projects & Innovation</h2>
-    <p>We believe in turning ideas into useful digital experiences.</p>
+   <div class="tag">WHAT WE DO</div>
+   <h2>Our Services</h2>
+   <p>Technology services designed to help people and businesses grow.</p>
   </div>
-
-  <div class="projects">
-    <div class="card">
-      <div class="project-label">DIGITAL PLATFORMS</div>
-      <h3>Web Development</h3>
-      <p>Building responsive websites and online platforms for modern needs.</p>
-    </div>
-
-    <div class="card">
-      <div class="project-label">TECHNOLOGY EDUCATION</div>
-      <h3>Learning Solutions</h3>
-      <p>Supporting learners with practical technology and digital skills.</p>
-    </div>
-
-    <div class="card">
-      <div class="project-label">INNOVATION</div>
-      <h3>Digital Transformation</h3>
-      <p>Exploring technology-driven ways to solve everyday challenges.</p>
-    </div>
+  <div class="service-grid">
+   <article class="service"><div class="icon">💻</div><h3>Software Development</h3><p>Websites, web applications, business platforms and custom software solutions.</p></article>
+   <article class="service"><div class="icon">🛡️</div><h3>Cybersecurity</h3><p>Security awareness, digital protection guidance and responsible cybersecurity learning.</p></article>
+   <article class="service"><div class="icon">🎓</div><h3>IT Training</h3><p>Programming, computer skills and practical technology education.</p></article>
+   <article class="service"><div class="icon">🚀</div><h3>Digital Solutions</h3><p>Digital tools, technology support and process improvements for organizations.</p></article>
   </div>
+ </div>
 </section>
 
-<section class="alt">
+<section class="content" id="training">
+ <div class="container two-col">
+  <div class="copy">
+   <div class="heading">
+    <div class="tag">BUILD YOUR SKILLS</div>
+    <h2>Learning & Training</h2>
+    <p>Practical knowledge for a digital world.</p>
+   </div>
+   <p>YSCMT Enterprise supports digital learning through practical technology topics and skill development.</p>
+   <p>Training areas may include computer fundamentals, web development, programming, cybersecurity awareness and digital productivity.</p>
+   <a class="btn" href="mailto:yscmtenterprise@gmail.com?subject=Training%20Enquiry">Ask About Training</a>
+  </div>
+  <div class="info-box">
+   <h3>Areas of Learning</h3>
+   <p>• Computer and digital literacy</p>
+   <p>• Website and software development</p>
+   <p>• Programming fundamentals</p>
+   <p>• Cybersecurity awareness</p>
+   <p>• Digital tools for business</p>
+  </div>
+ </div>
+</section>
+
+<section class="content soft" id="projects">
+ <div class="container">
   <div class="heading">
-    <div class="tag">WHY WORK WITH US</div>
-    <h2>Technology With Purpose</h2>
+   <div class="tag">OUR WORK</div>
+   <h2>Projects & Innovation</h2>
+   <p>Turning ideas into useful digital experiences.</p>
   </div>
-
-  <div class="reasons">
-    <div class="card">
-      <h3>Innovation</h3>
-      <p>We embrace creative ideas and modern technology.</p>
-    </div>
-
-    <div class="card">
-      <h3>Practical Learning</h3>
-      <p>We value skills and solutions that make a real difference.</p>
-    </div>
-
-    <div class="card">
-      <h3>Commitment</h3>
-      <p>We focus on meaningful results and continuous improvement.</p>
-    </div>
+  <div class="cards">
+   <article class="card"><div class="icon">🌐</div><h3>Digital Platforms</h3><p>Responsive websites and online platforms for modern needs.</p></article>
+   <article class="card"><div class="icon">🧠</div><h3>Learning Solutions</h3><p>Digital learning experiences that support practical technology skills.</p></article>
+   <article class="card"><div class="icon">⚙️</div><h3>Business Technology</h3><p>Exploring tools and workflows that help organizations work smarter.</p></article>
   </div>
+ </div>
+</section>
+
+<section class="content" id="announcements">
+ <div class="container">
+  <div class="heading">
+   <div class="tag">PUBLIC INFORMATION</div>
+   <h2>Announcements & Notices</h2>
+   <p>Updates from YSCMT Enterprise.</p>
+  </div>
+  <div class="announcements">
+   <article class="announcement"><small>COMPANY UPDATE</small><h3>Welcome to YSCMT Enterprise</h3><p>Learn about our technology services, learning areas and digital initiatives.</p><a href="#about">ABOUT US →</a></article>
+   <article class="announcement"><small>SERVICES</small><h3>Explore Our Digital Services</h3><p>Find out how software development, cybersecurity and digital solutions can support your goals.</p><a href="#services">OUR SERVICES →</a></article>
+   <article class="announcement"><small>ENQUIRIES</small><h3>Work With YSCMT</h3><p>Have a project, partnership idea or training enquiry? Get in touch.</p><a href="#contact">CONTACT US →</a></article>
+  </div>
+ </div>
+</section>
+
+<section class="content soft" id="partners">
+ <div class="container">
+  <div class="heading">
+   <div class="tag">COLLABORATION</div>
+   <h2>Stakeholders & Partners</h2>
+   <p>We welcome meaningful partnerships and shared innovation.</p>
+  </div>
+  <div class="partners">
+   <div class="partner">Technology Partners</div>
+   <div class="partner">Education Partners</div>
+   <div class="partner">Business Community</div>
+   <div class="partner">Innovation Network</div>
+  </div>
+ </div>
 </section>
 
 <section class="cta" id="contact">
-  <div class="tag">LET'S CONNECT</div>
-
-  <h2 style="font-size:36px;margin:12px 0">
-    Let's Build Something Great
-  </h2>
-
-  <p>
-    Have a project, business idea or training inquiry?
-    Contact YSCMT Enterprise and let's explore what's possible.
-  </p>
-
-  <div class="buttons" style="justify-content:center">
-    <a class="btn" href="mailto:yscmtenterprise@gmail.com">Email Us</a>
+ <div class="container">
+  <div>
+   <h2>Let’s Build Something Great</h2>
+   <p>Contact YSCMT Enterprise about a project, service, training or partnership.</p>
+   <p><strong>Email:</strong> yscmtenterprise@gmail.com</p>
   </div>
-
-  <p style="margin-top:20px">yscmtenterprise@gmail.com</p>
+  <a class="btn" href="mailto:yscmtenterprise@gmail.com">Email YSCMT Enterprise</a>
+ </div>
 </section>
 
 </main>
 
-<footer>
-  <a class="logo" href="#home">
-    <img src="YSCMT_Enterprise_Logo.png" alt="YSCMT Enterprise Logo">
-    <span>YSCMT ENTERPRISE</span>
-  </a>
-
-  <p>Learn. Build. Innovate.</p>
-  <p style="margin-top:12px">
-    © 2026 YSCMT Enterprise. All rights reserved.
-  </p>
+<footer id="careers">
+ <div class="container footer-grid">
+  <div>
+   <div class="footer-brand">
+    <img src="YSCMT_Enterprise_Logo.png" alt="YSCMT Enterprise Logo" onerror="this.style.display='none'">
+    <strong>YSCMT ENTERPRISE</strong>
+   </div>
+   <p>Learn. Build. Innovate.</p>
+   <p>Technology, digital skills and solutions for a smarter future.</p>
+  </div>
+  <div>
+   <h3>About</h3>
+   <ul>
+    <li><a href="#about">Who We Are</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#partners">Partners</a></li>
+   </ul>
+  </div>
+  <div>
+   <h3>Services</h3>
+   <ul>
+    <li><a href="#services">Software Development</a></li>
+    <li><a href="#services">Cybersecurity</a></li>
+    <li><a href="#training">IT Training</a></li>
+   </ul>
+  </div>
+  <div>
+   <h3>Contact & Updates</h3>
+   <ul>
+    <li><a href="mailto:yscmtenterprise@gmail.com">Email Us</a></li>
+    <li><a href="#news">Latest News</a></li>
+    <li><a href="#announcements">Announcements</a></li>
+    <li><a href="#careers">Careers</a></li>
+   </ul>
+  </div>
+ </div>
+ <div class="container copyright">
+  © 2026 YSCMT Enterprise. All rights reserved. | Learn. Build. Innovate.
+ </div>
 </footer>
 
-<script>
-const menuButton = document.querySelector('.menu');
-const navigation = document.querySelector('nav');
+<div class="no-results container" id="no-results">No matching content found. Try another search.</div>
 
-menuButton.addEventListener('click', function () {
-  const isOpen = navigation.classList.toggle('open');
-  menuButton.setAttribute('aria-expanded', isOpen);
+<script>
+const menuButton = document.querySelector('.menu-toggle');
+const navigation = document.querySelector('.nav-links');
+
+menuButton.addEventListener('click', () => {
+  const opened = navigation.classList.toggle('open');
+  menuButton.setAttribute('aria-expanded', String(opened));
 });
 
-navigation.querySelectorAll('a').forEach(function (link) {
-  link.addEventListener('click', function () {
+navigation.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
     navigation.classList.remove('open');
     menuButton.setAttribute('aria-expanded', 'false');
   });
+});
+
+// Slideshow
+const slides = [...document.querySelectorAll('.slide')];
+const dots = [...document.querySelectorAll('.dot')];
+const playButton = document.querySelector('.play');
+let current = 0;
+let playing = true;
+let timer;
+
+function showSlide(index) {
+  current = index;
+  slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+  dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+}
+function runSlider() {
+  clearInterval(timer);
+  if (playing) timer = setInterval(() => showSlide((current + 1) % slides.length), 5000);
+  playButton.textContent = playing ? 'Pause' : 'Play';
+}
+dots.forEach((dot, i) => dot.addEventListener('click', () => {
+  showSlide(i);
+  runSlider();
+}));
+playButton.addEventListener('click', () => {
+  playing = !playing;
+  runSlider();
+});
+runSlider();
+
+// Search page content
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
+const searchable = [...document.querySelectorAll(
+  '.news-box,.founder,.copy,.info-box,.card,.service,.announcement,.partner'
+)];
+const noResults = document.getElementById('no-results');
+
+searchForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const query = searchInput.value.trim().toLowerCase();
+  let found = false;
+
+  searchable.forEach(item => {
+    const match = !query || item.textContent.toLowerCase().includes(query);
+    item.style.display = match ? '' : 'none';
+    if (match) found = true;
+  });
+
+  noResults.style.display = query && !found ? 'block' : 'none';
+  document.getElementById('news').scrollIntoView({behavior:'smooth'});
+});
+
+searchInput.addEventListener('input', () => {
+  if (!searchInput.value.trim()) {
+    searchable.forEach(item => item.style.display = '');
+    noResults.style.display = 'none';
+  }
 });
 </script>
 
