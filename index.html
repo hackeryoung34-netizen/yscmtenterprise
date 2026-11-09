@@ -4,70 +4,344 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>YSCMT Enterprise | IT & Digital Solutions</title>
+
 <meta name="description" content="YSCMT Enterprise delivers software development, cybersecurity, IT training and digital solutions. Learn. Build. Innovate.">
+<meta name="theme-color" content="#071426">
+
 <style>
 :root {
-  --bg:#071426;
-  --panel:#102741;
-  --blue:#39d5ff;
-  --text:#fff;
-  --muted:#b9cadd;
+  --bg: #071426;
+  --panel: #102741;
+  --blue: #39d5ff;
+  --text: #ffffff;
+  --muted: #b9cadd;
 }
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
-header{position:sticky;top:0;z-index:10;background:#091a2dcc;backdrop-filter:blur(12px);padding:18px 7%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff12}
-.logo{font-size:23px;font-weight:800;color:var(--blue)}
-nav{display:flex;gap:23px}
-nav a{color:white;text-decoration:none;font-size:14px}
-nav a:hover{color:var(--blue)}
-.menu{display:none;background:none;color:white;border:0;font-size:27px}
-.hero{min-height:620px;padding:110px 8%;display:flex;align-items:center;background:radial-gradient(circle at 85% 40%,#14517a 0,transparent 35%),linear-gradient(120deg,#071426,#10334f)}
-.tag{color:var(--blue);font-weight:bold;letter-spacing:3px;font-size:13px}
-.hero h1{font-size:clamp(42px,7vw,72px);line-height:1.12;max-width:850px;margin:22px 0}
-.hero h1 span{color:var(--blue)}
-.hero p{color:var(--muted);max-width:650px;font-size:18px}
-.buttons{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}
-.btn{display:inline-block;background:var(--blue);color:#061426;padding:13px 23px;border-radius:7px;text-decoration:none;font-weight:bold}
-.btn.outline{background:transparent;color:white;border:1px solid var(--blue)}
-section{padding:85px 8%}
-.heading{text-align:center;margin-bottom:38px}
-.heading h2{font-size:36px;margin-bottom:10px}
-.heading p,.muted{color:var(--muted)}
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:35px;align-items:center}
-.about-panel{background:linear-gradient(145deg,#123c5c,#0b2038);padding:35px;border-radius:16px;border:1px solid #244765}
-.about-panel h3{color:var(--blue);font-size:25px;margin-bottom:12px}
-.services,.projects,.reasons{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
-.card{background:var(--panel);border:1px solid #244565;padding:28px;border-radius:13px;transition:.25s}
-.card:hover{transform:translateY(-6px);border-color:var(--blue)}
-.card .symbol{font-size:32px;margin-bottom:15px}
-.card h3{color:var(--blue);margin-bottom:10px}
-.card p{color:var(--muted);font-size:15px}
-.alt{background:#0b1e32}
-.project-label{font-size:12px;color:var(--blue);font-weight:bold;letter-spacing:2px}
-.cta{background:linear-gradient(120deg,#0e3857,#12628a);text-align:center}
-.cta p{max-width:650px;margin:10px auto;color:#d4e7f4}
-footer{padding:35px 8%;background:#040d18;text-align:center;color:#9db1c8}
-footer .logo{margin-bottom:12px}
-footer a{color:var(--blue);text-decoration:none}
-@media(max-width:700px){
- header{padding:15px 5%}
- .menu{display:block}
- nav{display:none;position:absolute;top:65px;left:0;width:100%;background:#091a2c;padding:22px;flex-direction:column;gap:18px}
- nav.open{display:flex}
- .hero{min-height:550px;padding:85px 7%}
- section{padding:65px 7%}
- .about-grid{grid-template-columns:1fr}
- .heading h2{font-size:29px}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #091a2df2;
+  backdrop-filter: blur(12px);
+  padding: 14px 7%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ffffff12;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--blue);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+
+.logo img {
+  width: 49px;
+  height: 49px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+nav {
+  display: flex;
+  gap: 23px;
+  align-items: center;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  transition: .2s;
+}
+
+nav a:hover {
+  color: var(--blue);
+}
+
+.menu {
+  display: none;
+  background: none;
+  color: white;
+  border: 0;
+  font-size: 27px;
+  cursor: pointer;
+}
+
+.hero {
+  min-height: 620px;
+  padding: 110px 8%;
+  display: flex;
+  align-items: center;
+  background:
+    radial-gradient(circle at 85% 40%, #14517a 0, transparent 35%),
+    linear-gradient(120deg, #071426, #10334f);
+}
+
+.tag {
+  color: var(--blue);
+  font-weight: bold;
+  letter-spacing: 3px;
+  font-size: 13px;
+}
+
+.hero h1 {
+  font-size: clamp(42px, 7vw, 72px);
+  line-height: 1.12;
+  max-width: 850px;
+  margin: 22px 0;
+}
+
+.hero h1 span {
+  color: var(--blue);
+}
+
+.hero p {
+  color: var(--muted);
+  max-width: 650px;
+  font-size: 18px;
+}
+
+.buttons {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.btn {
+  display: inline-block;
+  background: var(--blue);
+  color: #061426;
+  padding: 13px 23px;
+  border-radius: 7px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: .25s;
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px #39d5ff35;
+}
+
+.btn.outline {
+  background: transparent;
+  color: white;
+  border: 1px solid var(--blue);
+}
+
+section {
+  padding: 85px 8%;
+}
+
+.heading {
+  text-align: center;
+  margin-bottom: 38px;
+}
+
+.heading h2 {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.heading p,
+.muted {
+  color: var(--muted);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 35px;
+  align-items: center;
+}
+
+.about-panel {
+  background: linear-gradient(145deg, #123c5c, #0b2038);
+  padding: 35px;
+  border-radius: 16px;
+  border: 1px solid #244765;
+}
+
+.about-panel h3 {
+  color: var(--blue);
+  font-size: 25px;
+  margin-bottom: 12px;
+}
+
+.services,
+.projects,
+.reasons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid #244565;
+  padding: 28px;
+  border-radius: 13px;
+  transition: .25s;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  border-color: var(--blue);
+}
+
+.card .symbol {
+  font-size: 32px;
+  margin-bottom: 15px;
+}
+
+.card h3 {
+  color: var(--blue);
+  margin-bottom: 10px;
+}
+
+.card p {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.alt {
+  background: #0b1e32;
+}
+
+.project-label {
+  font-size: 12px;
+  color: var(--blue);
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.cta {
+  background: linear-gradient(120deg, #0e3857, #12628a);
+  text-align: center;
+}
+
+.cta p {
+  max-width: 650px;
+  margin: 10px auto;
+  color: #d4e7f4;
+}
+
+footer {
+  padding: 35px 8%;
+  background: #040d18;
+  text-align: center;
+  color: #9db1c8;
+}
+
+footer .logo {
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+footer a {
+  color: var(--blue);
+}
+
+@media(max-width:700px) {
+  header {
+    padding: 12px 5%;
+  }
+
+  .logo {
+    font-size: 17px;
+    gap: 8px;
+  }
+
+  .logo img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .menu {
+    display: block;
+  }
+
+  nav {
+    display: none;
+    position: absolute;
+    top: 68px;
+    left: 0;
+    width: 100%;
+    background: #091a2c;
+    padding: 22px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  nav.open {
+    display: flex;
+  }
+
+  .hero {
+    min-height: 550px;
+    padding: 85px 7%;
+  }
+
+  section {
+    padding: 65px 7%;
+  }
+
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .heading h2 {
+    font-size: 29px;
+  }
 }
 </style>
 </head>
+
 <body>
 
 <header>
-  <div class="logo">YSCMT ENTERPRISE</div>
-  <button class="menu" onclick="document.querySelector('nav').classList.toggle('open')" aria-label="Open menu">☰</button>
+  <a class="logo" href="#home">
+    <img src="YSCMT_Enterprise_Logo.png" alt="YSCMT Enterprise Logo">
+    <span>YSCMT ENTERPRISE</span>
+  </a>
+
+  <button class="menu"
+    onclick="document.querySelector('nav').classList.toggle('open')"
+    aria-label="Toggle navigation"
+    aria-expanded="false"
+    onclick="this.setAttribute('aria-expanded', document.querySelector('nav').classList.contains('open'))">
+    ☰
+  </button>
+
   <nav>
     <a href="#home">Home</a>
     <a href="#about">About</a>
@@ -78,89 +352,197 @@ footer a{color:var(--blue);text-decoration:none}
 </header>
 
 <main>
+
 <section class="hero" id="home">
- <div>
-  <div class="tag">LEARN. BUILD. INNOVATE.</div>
-  <h1>Building a <span>Smarter Digital Future.</span></h1>
-  <p>We create technology solutions, develop digital skills and help businesses turn bold ideas into meaningful results.</p>
-  <div class="buttons">
-   <a class="btn" href="#services">Explore Services</a>
-   <a class="btn outline" href="#contact">Work With Us</a>
+  <div>
+    <div class="tag">LEARN. BUILD. INNOVATE.</div>
+
+    <h1>Building a <span>Smarter Digital Future.</span></h1>
+
+    <p>
+      We create technology solutions, develop digital skills
+      and help businesses turn bold ideas into meaningful results.
+    </p>
+
+    <div class="buttons">
+      <a class="btn" href="#services">Explore Services</a>
+      <a class="btn outline" href="#contact">Work With Us</a>
+    </div>
   </div>
- </div>
 </section>
 
 <section id="about">
- <div class="about-grid">
-  <div>
-   <div class="tag">WHO WE ARE</div>
-   <h2 style="font-size:36px;margin:15px 0">About YSCMT Enterprise</h2>
-   <p class="muted">YSCMT Enterprise is a technology-driven business focused on software development, cybersecurity, IT education and digital transformation.</p>
-   <p class="muted" style="margin-top:15px">Our goal is to make technology accessible, practical and valuable for individuals, businesses and communities.</p>
+  <div class="about-grid">
+    <div>
+      <div class="tag">WHO WE ARE</div>
+
+      <h2 style="font-size:36px;margin:15px 0">
+        About YSCMT Enterprise
+      </h2>
+
+      <p class="muted">
+        YSCMT Enterprise is a technology-driven business focused
+        on software development, cybersecurity, IT education
+        and digital transformation.
+      </p>
+
+      <p class="muted" style="margin-top:15px">
+        Our goal is to make technology accessible, practical
+        and valuable for individuals, businesses and communities.
+      </p>
+    </div>
+
+    <div class="about-panel">
+      <h3>Our Mission</h3>
+      <p>
+        To empower people and organizations through innovation,
+        knowledge and reliable digital solutions.
+      </p>
+
+      <h3 style="margin-top:25px">Our Vision</h3>
+      <p>
+        To contribute to a future where technology creates
+        opportunity and positive change for everyone.
+      </p>
+    </div>
   </div>
-  <div class="about-panel">
-   <h3>Our Mission</h3>
-   <p>To empower people and organizations through innovation, knowledge and reliable digital solutions.</p>
-   <h3 style="margin-top:25px">Our Vision</h3>
-   <p>To contribute to a future where technology creates opportunity and positive change for everyone.</p>
-  </div>
- </div>
 </section>
 
 <section class="alt" id="services">
- <div class="heading">
-  <div class="tag">WHAT WE DO</div>
-  <h2>Our Services</h2>
-  <p>Practical technology services designed for growth and progress.</p>
- </div>
- <div class="services">
-  <div class="card"><div class="symbol">💻</div><h3>Software Development</h3><p>Modern websites, web applications and custom software solutions.</p></div>
-  <div class="card"><div class="symbol">🛡️</div><h3>Cybersecurity</h3><p>Security awareness, digital protection and responsible security guidance.</p></div>
-  <div class="card"><div class="symbol">🎓</div><h3>IT Training</h3><p>Programming, computer skills and practical technology education.</p></div>
-  <div class="card"><div class="symbol"></div><h3>Digital Solutions</h3><p>Digital tools and technology support to help businesses work smarter.</p></div>
- </div>
+  <div class="heading">
+    <div class="tag">WHAT WE DO</div>
+    <h2>Our Services</h2>
+    <p>Practical technology services designed for growth and progress.</p>
+  </div>
+
+  <div class="services">
+    <div class="card">
+      <div class="symbol">💻</div>
+      <h3>Software Development</h3>
+      <p>Modern websites, web applications and custom software solutions.</p>
+    </div>
+
+    <div class="card">
+      <div class="symbol">🛡️</div>
+      <h3>Cybersecurity</h3>
+      <p>Security awareness, digital protection and responsible security guidance.</p>
+    </div>
+
+    <div class="card">
+      <div class="symbol">🎓</div>
+      <h3>IT Training</h3>
+      <p>Programming, computer skills and practical technology education.</p>
+    </div>
+
+    <div class="card">
+      <div class="symbol">🚀</div>
+      <h3>Digital Solutions</h3>
+      <p>Digital tools and technology support to help businesses work smarter.</p>
+    </div>
+  </div>
 </section>
 
 <section id="projects">
- <div class="heading">
-  <div class="tag">OUR WORK</div>
-  <h2>Projects & Innovation</h2>
-  <p>We believe in turning ideas into useful digital experiences.</p>
- </div>
- <div class="projects">
-  <div class="card"><div class="project-label">DIGITAL PLATFORMS</div><h3>Web Development</h3><p>Building responsive websites and online platforms for modern needs.</p></div>
-  <div class="card"><div class="project-label">TECHNOLOGY EDUCATION</div><h3>Learning Solutions</h3><p>Supporting learners with practical technology and digital skills.</p></div>
-  <div class="card"><div class="project-label">INNOVATION</div><h3>Digital Transformation</h3><p>Exploring technology-driven ways to solve everyday challenges.</p></div>
- </div>
+  <div class="heading">
+    <div class="tag">OUR WORK</div>
+    <h2>Projects & Innovation</h2>
+    <p>We believe in turning ideas into useful digital experiences.</p>
+  </div>
+
+  <div class="projects">
+    <div class="card">
+      <div class="project-label">DIGITAL PLATFORMS</div>
+      <h3>Web Development</h3>
+      <p>Building responsive websites and online platforms for modern needs.</p>
+    </div>
+
+    <div class="card">
+      <div class="project-label">TECHNOLOGY EDUCATION</div>
+      <h3>Learning Solutions</h3>
+      <p>Supporting learners with practical technology and digital skills.</p>
+    </div>
+
+    <div class="card">
+      <div class="project-label">INNOVATION</div>
+      <h3>Digital Transformation</h3>
+      <p>Exploring technology-driven ways to solve everyday challenges.</p>
+    </div>
+  </div>
 </section>
 
 <section class="alt">
- <div class="heading">
-  <div class="tag">WHY WORK WITH US</div>
-  <h2>Technology With Purpose</h2>
- </div>
- <div class="reasons">
-  <div class="card"><h3>Innovation</h3><p>We embrace creative ideas and modern technology.</p></div>
-  <div class="card"><h3>Practical Learning</h3><p>We value skills and solutions that make a real difference.</p></div>
-  <div class="card"><h3>Commitment</h3><p>We focus on meaningful results and continuous improvement.</p></div>
- </div>
+  <div class="heading">
+    <div class="tag">WHY WORK WITH US</div>
+    <h2>Technology With Purpose</h2>
+  </div>
+
+  <div class="reasons">
+    <div class="card">
+      <h3>Innovation</h3>
+      <p>We embrace creative ideas and modern technology.</p>
+    </div>
+
+    <div class="card">
+      <h3>Practical Learning</h3>
+      <p>We value skills and solutions that make a real difference.</p>
+    </div>
+
+    <div class="card">
+      <h3>Commitment</h3>
+      <p>We focus on meaningful results and continuous improvement.</p>
+    </div>
+  </div>
 </section>
 
 <section class="cta" id="contact">
- <div class="tag">LET'S CONNECT</div>
- <h2 style="font-size:36px;margin:12px 0">Let's Build Something Great</h2>
- <p>Have a project, business idea or training inquiry? Contact YSCMT Enterprise and let's explore what's possible.</p>
- <div class="buttons" style="justify-content:center">
-  <a class="btn" href="mailto:yscmtenterprise@gmail.com">Email Us</a>
- </div>
- <p style="margin-top:20px">yscmtenterprise@gmail.com</p>
+  <div class="tag">LET'S CONNECT</div>
+
+  <h2 style="font-size:36px;margin:12px 0">
+    Let's Build Something Great
+  </h2>
+
+  <p>
+    Have a project, business idea or training inquiry?
+    Contact YSCMT Enterprise and let's explore what's possible.
+  </p>
+
+  <div class="buttons" style="justify-content:center">
+    <a class="btn" href="mailto:yscmtenterprise@gmail.com">Email Us</a>
+  </div>
+
+  <p style="margin-top:20px">yscmtenterprise@gmail.com</p>
 </section>
+
 </main>
 
 <footer>
- <div class="logo">YSCMT ENTERPRISE</div>
- <p>Learn. Build. Innovate.</p>
- <p style="margin-top:12px">© 2026 YSCMT Enterprise. All rights reserved.</p>
+  <a class="logo" href="#home">
+    <img src="YSCMT_Enterprise_Logo.png" alt="YSCMT Enterprise Logo">
+    <span>YSCMT ENTERPRISE</span>
+  </a>
+
+  <p>Learn. Build. Innovate.</p>
+  <p style="margin-top:12px">
+    © 2026 YSCMT Enterprise. All rights reserved.
+  </p>
 </footer>
+
+<script>
+const menuButton = document.querySelector('.menu');
+const navigation = document.querySelector('nav');
+
+menuButton.addEventListener('click', function () {
+  const isOpen = navigation.classList.toggle('open');
+  menuButton.setAttribute('aria-expanded', isOpen);
+});
+
+navigation.querySelectorAll('a').forEach(function (link) {
+  link.addEventListener('click', function () {
+    navigation.classList.remove('open');
+    menuButton.setAttribute('aria-expanded', 'false');
+  });
+});
+</script>
+
 </body>
 </html>
