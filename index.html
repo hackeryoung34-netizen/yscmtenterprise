@@ -220,6 +220,29 @@ footer a:hover{color:var(--blue)}
 .tutorial-compiler-note{color:var(--muted);font-size:13px;margin:0 0 14px}
 .tutorial-language-list{max-height:210px;overflow:auto}
 @media(max-width:700px){.tutorial-workspace{padding:12px}.tutorial-compiler-frame{height:720px}}
+
+/* YSCMT guided learning paths */
+.learning-paths{margin:0 0 22px;background:#fff;border:1px solid #dce5ed;border-radius:8px;overflow:hidden}
+.learning-path-intro{padding:18px 20px;background:#f7fafc;border-bottom:1px solid #e1e8ee}
+.learning-path-intro h3{color:var(--navy);font-size:18px;margin-bottom:4px}
+.learning-path-intro p{font-size:13px;color:var(--muted)}
+.learning-level-tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid #e1e8ee}
+.learning-level-tab{border:1px solid #cbd8e3;background:#fff;color:var(--navy);padding:9px 14px;border-radius:5px;font-weight:bold;cursor:pointer}
+.learning-level-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.learning-path-content{display:grid;grid-template-columns:minmax(190px,.75fr) 1.5fr;gap:18px;padding:18px}
+.learning-lesson-list{display:grid;gap:8px;align-content:start}
+.learning-lesson-button{text-align:left;padding:11px 12px;border:1px solid #dce5ed;background:#fff;border-radius:5px;color:#29465f;cursor:pointer;font-size:13px}
+.learning-lesson-button.active{border-color:var(--blue);background:#edfaff;color:var(--navy);font-weight:bold}
+.learning-lesson-detail{background:#f8fafc;border:1px solid #e1e8ee;border-radius:6px;padding:18px}
+.learning-lesson-detail h4{color:var(--navy);font-size:17px;margin-bottom:8px}
+.learning-lesson-detail p,.learning-lesson-detail li{font-size:13px;color:#526679}
+.learning-lesson-detail ul,.learning-lesson-detail ol{padding-left:20px;margin:9px 0}
+.learning-task{margin-top:14px;padding:13px;background:#fff;border-left:3px solid var(--gold);border-radius:3px}
+.learning-task strong{display:block;color:var(--navy);font-size:13px;margin-bottom:4px}
+.learning-path-footer{padding:0 18px 18px;color:var(--muted);font-size:12px}
+@media(max-width:700px){.learning-path-content{grid-template-columns:1fr;padding:12px}.learning-lesson-list{grid-template-columns:1fr 1fr}.learning-lesson-button{font-size:12px;padding:9px}.learning-lesson-detail{padding:14px}}
+@media(max-width:390px){.learning-lesson-list{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -446,6 +469,25 @@ footer a:hover{color:var(--blue)}
    <h2>What do you want to learn?</h2>
    <p>Choose a programming language, write your code and run it in the YSCMT learning workspace. More than 150 languages are available through the compiler.</p>
   </div>
+  <div class="learning-paths" id="learning-paths">
+   <div class="learning-path-intro">
+    <h3>Guided Programming Learning Paths</h3>
+    <p>Learn step by step with short lessons, practical tasks and projects. Choose your current level to begin.</p>
+   </div>
+   <div class="learning-level-tabs" role="tablist" aria-label="Learning level">
+    <button class="learning-level-tab active" type="button" data-level="beginner" role="tab" aria-selected="true">Beginner</button>
+    <button class="learning-level-tab" type="button" data-level="intermediate" role="tab" aria-selected="false">Intermediate</button>
+    <button class="learning-level-tab" type="button" data-level="advanced" role="tab" aria-selected="false">Advanced</button>
+   </div>
+   <div class="learning-path-content">
+    <div class="learning-lesson-list" id="learning-lesson-list" aria-label="Lessons"></div>
+    <article class="learning-lesson-detail" id="learning-lesson-detail" aria-live="polite">
+     <h4>Welcome to YSCMT Learning</h4>
+     <p>Select a lesson to see what you will learn and what to practise.</p>
+    </article>
+   </div>
+   <div class="learning-path-footer">Tip: Read the lesson, complete the task, then use the compiler below to practise. Start with Beginner if you are new to programming.</div>
+  </div>
   <div class="tutorials-panel">
    <div class="tutorial-language-search"><label for="tutorial-language-search">Find a language</label><input id="tutorial-language-search" type="search" placeholder="Search Python, Java, C++..." autocomplete="off"></div>
    <div class="tutorial-language-list" id="tutorial-language-list" aria-label="Choose a programming language"></div>
@@ -608,6 +650,59 @@ playButton.addEventListener('click', () => {
   runSlider();
 });
 runSlider();
+
+// YSCMT structured lessons and practical exercises.
+(() => {
+ const paths = {
+  beginner: [
+   {title:"1. How the Web Works",goal:"Understand how websites are delivered to a browser.",topics:["A browser requests a page from a web server.","HTML gives a page its structure; CSS styles it; JavaScript adds behaviour."],task:"In your own words, explain the difference between HTML, CSS and JavaScript.",project:"Mini project: sketch a simple personal homepage with a heading, paragraph and navigation."},
+   {title:"2. HTML Foundations",goal:"Build the structure of a simple web page.",topics:["Use <!DOCTYPE html>, html, head and body.","Practise headings, paragraphs, links, images and lists.","Use meaningful elements such as header, main, section and footer."],task:"Create a page with your name as a heading, a short introduction, three interests and one useful link.",project:"Mini project: create a one-page personal profile."},
+   {title:"3. CSS Foundations",goal:"Make a page readable and attractive.",topics:["Connect a stylesheet with a link element.","Use selectors, colours, spacing, borders and fonts.","Use the box model: content, padding, border and margin."],task:"Style your profile page with a background, readable font, spacing and a highlighted heading.",project:"Mini project: create a clean profile card."},
+   {title:"4. JavaScript Basics",goal:"Make a web page respond to user actions.",topics:["Learn variables with const and let.","Practise strings, numbers, conditions and functions.","Select an element and respond to a click event."],task:"Write a function that displays a welcome message when a button is clicked.",project:"Mini project: build a simple click counter."}
+  ],
+  intermediate: [
+   {title:"1. Responsive Web Design",goal:"Create layouts that work on phones, tablets and desktops.",topics:["Use flexible widths, CSS Grid and Flexbox.","Add media queries for smaller screens.","Test navigation, text size and buttons on mobile."],task:"Make your profile card display in one column on phones and two columns on wider screens.",project:"Mini project: build a responsive landing page."},
+   {title:"2. JavaScript DOM & Events",goal:"Update page content without reloading.",topics:["Use querySelector and textContent.","Listen for click, input and submit events.","Validate simple form values before displaying results."],task:"Create a form that reads a visitor's name and displays a personalised greeting.",project:"Mini project: build a task list with add and remove actions."},
+   {title:"3. Python Functions & Data",goal:"Organise Python programs into reusable parts.",topics:["Write functions with parameters and return values.","Work with lists, dictionaries and loops.","Handle invalid input with try and except."],task:"Write a Python function that calculates the average of a list of scores and handles an empty list.",project:"Mini project: create a command-line grade calculator."},
+   {title:"4. SQL & Databases",goal:"Store and retrieve structured information.",topics:["Understand tables, rows, columns and primary keys.","Practise SELECT, INSERT, UPDATE and DELETE.","Filter results with WHERE and sort with ORDER BY."],task:"Write SQL statements to create a students table and retrieve students whose score is at least 70.",project:"Mini project: design a small student-record database."}
+  ],
+  advanced: [
+   {title:"1. Software Architecture & Git",goal:"Plan code that can grow and be maintained.",topics:["Separate user interface, business logic and data access.","Use Git commits and branches to track changes.","Write clear README files and document setup steps."],task:"Take one earlier project and divide it into clear files or modules. Write a README explaining how to run it.",project:"Mini project: prepare a version-controlled project repository."},
+   {title:"2. APIs & Backend Development",goal:"Build services that exchange data with applications.",topics:["Understand HTTP methods, status codes and JSON.","Design REST endpoints and validate incoming data.","Use environment variables for configuration and protect secrets."],task:"Design endpoints for listing, creating and viewing courses. State the method, URL and expected response for each.",project:"Mini project: build a small course catalogue API."},
+   {title:"3. Testing, Debugging & Security",goal:"Improve reliability and reduce common vulnerabilities.",topics:["Write unit tests for important functions.","Validate and sanitise untrusted input.","Apply least privilege and never expose passwords or API keys."],task:"Write test cases for valid, missing and invalid input to a registration form. Identify what data must never be logged.",project:"Mini project: add tests and a basic security checklist to an app."},
+   {title:"4. Capstone: Build & Deploy",goal:"Combine planning, coding, testing and release skills.",topics:["Define the user problem and a small first release.","Build the core feature and test it on mobile and desktop.","Deploy, document limitations and plan the next improvement."],task:"Write a one-page project plan with the problem, target users, three core features and test checklist.",project:"Capstone: build and publish a responsive learning or business application."}
+  ]
+ };
+ const tabs=[...document.querySelectorAll(".learning-level-tab")];
+ const lessonList=document.getElementById("learning-lesson-list");
+ const detail=document.getElementById("learning-lesson-detail");
+ if(!lessonList||!detail||!tabs.length)return;
+ let activeLevel="beginner",activeLesson=0;
+ function showLesson(index){
+  activeLesson=index;
+  const lesson=paths[activeLevel][index];
+  [...lessonList.querySelectorAll("button")].forEach((b,i)=>b.classList.toggle("active",i===index));
+  detail.innerHTML="<h4></h4><p></p><strong>What you will learn</strong><ul></ul><div class='learning-task'><strong>Practice task</strong><p></p><strong style='margin-top:10px'>Mini project</strong><p></p></div>";
+  detail.querySelector("h4").textContent=lesson.title;
+  detail.querySelector("p").textContent=lesson.goal;
+  const ul=detail.querySelector("ul");
+  lesson.topics.forEach(topic=>{const li=document.createElement("li");li.textContent=topic;ul.appendChild(li);});
+  const task=detail.querySelectorAll(".learning-task p");
+  task[0].textContent=lesson.task;task[1].textContent=lesson.project;
+ }
+ function showLevel(level){
+  activeLevel=level;activeLesson=0;
+  tabs.forEach(tab=>{const active=tab.dataset.level===level;tab.classList.toggle("active",active);tab.setAttribute("aria-selected",String(active));});
+  lessonList.innerHTML="";
+  paths[level].forEach((lesson,index)=>{
+   const button=document.createElement("button");button.type="button";button.className="learning-lesson-button";button.textContent=lesson.title;
+   button.addEventListener("click",()=>showLesson(index));lessonList.appendChild(button);
+  });
+  showLesson(0);
+ }
+ tabs.forEach(tab=>tab.addEventListener("click",()=>showLevel(tab.dataset.level)));
+ showLevel("beginner");
+})();
 
 // Additive interactive tutorials and embedded online compilers.
 (() => {
