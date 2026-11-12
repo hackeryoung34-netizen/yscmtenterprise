@@ -136,15 +136,17 @@ section.content{padding:65px 0}
 
 /* CARDS */
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
-.card{background:white;padding:23px;border:1px solid #dce5ed;border-radius:4px}
-.card .icon{font-size:28px}
-.card h3{font-size:16px;color:var(--navy);margin:8px 0}
+.card,.service{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.card{background:white;padding:23px;border:1px solid #dce5ed;border-radius:8px}
+.card:hover,.service:hover{transform:translateY(-4px);box-shadow:0 12px 28px #08213b16;border-color:#9bdcf0}
+.card .icon,.service .icon{display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;border-radius:12px;background:#eaf7fb;font-size:26px}
+.card h3{font-size:16px;color:var(--navy);margin:12px 0 8px}
 .card p{font-size:13px;color:var(--muted)}
 .service-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.service{background:white;border:1px solid #dce5ed;border-top:3px solid var(--blue);padding:22px}
-.service .icon{font-size:27px}
-.service h3{font-size:16px;color:var(--navy);margin:8px 0}
+.service{background:white;border:1px solid #dce5ed;border-top:3px solid var(--blue);border-radius:7px;padding:22px}
+.service h3{font-size:16px;color:var(--navy);margin:12px 0 8px}
 .service p{font-size:13px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){.card,.service{transition:none}.card:hover,.service:hover{transform:none}}
 
 /* ANNOUNCEMENTS */
 .announcements{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
@@ -451,8 +453,8 @@ footer a:hover{color:var(--blue)}
    <p>We focus on useful skills, thoughtful solutions and meaningful outcomes.</p>
   </div>
   <div class="cards">
-   <article class="card"><div class="icon"></div><h3>Innovation</h3><p>We explore creative ideas and modern technology to address real challenges.</p></article>
-   <article class="card"><div class="icon"></div><h3>Practical Solutions</h3><p>We value work that is useful, accessible and focused on results.</p></article>
+   <article class="card"><div class="icon" aria-hidden="true">💡</div><h3>Innovation</h3><p>We explore creative ideas and modern technology to address real challenges.</p></article>
+   <article class="card"><div class="icon" aria-hidden="true">🧩</div><h3>Practical Solutions</h3><p>We value work that is useful, accessible and focused on results.</p></article>
    <article class="card"><div class="icon">📚</div><h3>Continuous Learning</h3><p>We believe in developing knowledge and skills as technology evolves.</p></article>
   </div>
  </div>
@@ -469,7 +471,7 @@ footer a:hover{color:var(--blue)}
    <article class="service"><div class="icon">💻</div><h3>Software Development</h3><p>Websites, web applications, business platforms and custom software solutions.</p></article>
    <article class="service"><div class="icon">🛡️</div><h3>Cybersecurity</h3><p>Security awareness, digital protection guidance and responsible cybersecurity learning.</p></article>
    <article class="service"><div class="icon">🎓</div><h3>IT Training</h3><p>Programming, computer skills and practical technology education.</p></article>
-   <article class="service"><div class="icon"></div><h3>Digital Solutions</h3><p>Digital tools, technology support and process improvements for organizations.</p></article>
+   <article class="service"><div class="icon" aria-hidden="true">⚙️</div><h3>Digital Solutions</h3><p>Digital tools, technology support and process improvements for organizations.</p></article>
   </div>
  </div>
 </section>
