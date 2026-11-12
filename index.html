@@ -265,6 +265,37 @@ footer a:hover{color:var(--blue)}
 @media(max-width:700px){.learning-path-content{grid-template-columns:1fr;padding:12px}.learning-lesson-list{grid-template-columns:1fr 1fr}.learning-lesson-button{font-size:12px;padding:9px}.learning-lesson-detail{padding:14px}}
 @media(max-width:390px){.learning-lesson-list{grid-template-columns:1fr}}
 
+
+/* Mobile usability and accessibility refinements */
+img,iframe{max-width:100%}
+button,a,input{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f0b84b;outline-offset:3px}
+@media(max-width:650px){
+ body{overflow-x:hidden}
+ .container{width:min(100% - 30px,1160px)}
+ .navbar .container{gap:9px}
+ .menu-toggle{min-width:44px;min-height:44px}
+ .search{flex:1;min-width:0;gap:5px}
+ .search input{width:100%;min-width:0;min-height:40px}
+ .search button{min-height:40px;padding:8px 10px}
+ .nav-links a{min-height:44px;display:flex;align-items:center}
+ .corporate-banner-pills span{font-size:10px}
+ .slide h1{font-size:clamp(30px,8vw,42px)}
+ .buttons .btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+ .quick-grid a{min-height:76px;display:flex;flex-direction:column;justify-content:center}
+ .tutorial-language{min-height:40px}
+ .learning-level-tab{min-height:42px}
+ .tutorial-compiler-frame{width:100%;max-width:100%}
+ .cta .btn{min-height:44px;display:inline-flex;align-items:center}
+}
+@media(max-width:360px){
+ .container{width:calc(100% - 24px)}
+ .search button{font-size:11px;padding:7px}
+ .brand-name strong{font-size:15px}
+ .corporate-banner h1{font-size:32px}
+ .corporate-banner-pills{gap:6px}
+}
+
 </style>
 </head>
 
@@ -667,7 +698,8 @@ const slides = [...document.querySelectorAll('.slide')];
 const dots = [...document.querySelectorAll('.dot')];
 const playButton = document.querySelector('.play');
 let current = 0;
-let playing = true;
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let playing = !prefersReducedMotion;
 let timer;
 
 function showSlide(index) {
