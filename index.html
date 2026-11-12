@@ -210,7 +210,11 @@ footer a:hover{color:var(--blue)}
 @media(max-width:700px){.tutorial-workspace{grid-template-columns:1fr;padding:15px}.tutorial-code,.tutorial-preview-frame{min-height:240px;height:260px}.tutorial-language-list{gap:6px;padding:13px}.tutorial-language{padding:7px 10px}}
 
 
-/* YSCMT embedded multi-language compiler */
+/* YSCMT embedded multi-language compiler */.tutorial-language-search{display:flex;align-items:center;gap:12px;padding:14px 18px;background:#f7fafc;border-bottom:1px solid #e1e8ee}
+.tutorial-language-search label{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap}
+.tutorial-language-search input{width:100%;max-width:420px;border:1px solid #cbd8e3;border-radius:5px;padding:10px 12px;font:inherit}
+.tutorial-language-search input:focus{outline:2px solid #078db7;outline-offset:1px}
+
 .tutorial-workspace{display:block;padding:22px}
 .tutorial-compiler-frame{display:block;width:100%;height:650px;border:1px solid #cbd8e3;border-radius:8px;background:#071c31}
 .tutorial-compiler-note{color:var(--muted);font-size:13px;margin:0 0 14px}
@@ -443,6 +447,7 @@ footer a:hover{color:var(--blue)}
    <p>Choose a programming language, write your code and run it in the YSCMT learning workspace. More than 150 languages are available through the compiler.</p>
   </div>
   <div class="tutorials-panel">
+   <div class="tutorial-language-search"><label for="tutorial-language-search">Find a language</label><input id="tutorial-language-search" type="search" placeholder="Search Python, Java, C++..." autocomplete="off"></div>
    <div class="tutorial-language-list" id="tutorial-language-list" aria-label="Choose a programming language"></div>
    <div class="tutorial-workspace">
     <div class="tutorial-example">
@@ -619,6 +624,7 @@ runSlider();
   ['D','d'],['Zig','zig']
  ];
  const list=document.getElementById('tutorial-language-list');
+ const languageSearch=document.getElementById('tutorial-language-search');
  const frame=document.getElementById('tutorial-compiler');
  const title=document.getElementById('tutorial-example-title');
  const description=document.getElementById('tutorial-description');
@@ -643,6 +649,12 @@ runSlider();
   button.textContent=name;button.dataset.language=name;
   button.addEventListener('click',()=>chooseLanguage(name,id));
   list.appendChild(button);
+ });
+ if(languageSearch)languageSearch.addEventListener('input',()=>{
+  const query=languageSearch.value.trim().toLowerCase();
+  [...list.querySelectorAll('button')].forEach(button=>{
+   button.hidden=!button.dataset.language.toLowerCase().includes(query);
+  });
  });
  chooseLanguage('Python','python');
 })();
