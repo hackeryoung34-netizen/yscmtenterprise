@@ -45,6 +45,8 @@ html{scroll-behavior:smooth;scroll-padding-top:110px}
 body{font-family:Arial,sans-serif;color:#182b3d;line-height:1.65}
 a{text-decoration:none;color:inherit}
 .container{width:min(1160px,92%);margin:auto}
+.skip-link{position:absolute;left:12px;top:-60px;z-index:1000;background:#f0b84b;color:#08213b;padding:10px 14px;border-radius:4px;font-weight:bold}
+.skip-link:focus{top:12px}
 
 
 /* YSCMT Enterprise corporate homepage banner */
@@ -323,6 +325,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f0b8
 </head>
 
 <body>
+<a class="skip-link" href="#home">Skip to main content</a>
 
 <div class="topbar">
  <div class="container">
@@ -351,10 +354,10 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f0b8
  </div>
 </div>
 
-<nav class="navbar">
+<nav class="navbar" aria-label="Main navigation">
  <div class="container">
-  <button class="menu-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
-  <ul class="nav-links">
+  <button class="menu-toggle" type="button" aria-label="Open menu" aria-controls="primary-navigation" aria-expanded="false">☰</button>
+  <ul class="nav-links" id="primary-navigation">
    <li><a href="#home">Home</a></li>
    <li><a href="#about">About</a></li>
    <li><a href="#services">Services</a></li>
@@ -369,7 +372,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f0b8
    <li><a href="#careers">Careers</a></li>
    <li><a href="#contact">Contact</a></li>
   </ul>
-  <form class="search" id="search-form">
+  <form class="search" id="search-form" role="search" aria-label="Search this website">
    <input type="search" id="search-input" placeholder="Search website..." aria-label="Search website">
    <button type="submit">Search</button>
   </form>
@@ -431,10 +434,10 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f0b8
    </div>
   </article>
   <div class="slider-controls">
-   <button class="dot active" aria-label="Slide 1"></button>
-   <button class="dot" aria-label="Slide 2"></button>
-   <button class="dot" aria-label="Slide 3"></button>
-   <button class="play">Pause</button>
+   <button class="dot active" type="button" aria-label="Show slide 1 of 3" aria-pressed="true"></button>
+   <button class="dot" type="button" aria-label="Show slide 2 of 3" aria-pressed="false"></button>
+   <button class="dot" type="button" aria-label="Show slide 3 of 3" aria-pressed="false"></button>
+   <button class="play" type="button" aria-label="Pause automatic slides" aria-pressed="true">Pause</button>
   </div>
  </div>
 </section>
@@ -707,12 +710,14 @@ const navigation = document.querySelector('.nav-links');
 menuButton.addEventListener('click', () => {
   const opened = navigation.classList.toggle('open');
   menuButton.setAttribute('aria-expanded', String(opened));
+  menuButton.setAttribute('aria-label', opened ? 'Close menu' : 'Open menu');
 });
 
 navigation.querySelectorAll('a').forEach(link => {
   link.addEventListener('click', () => {
     navigation.classList.remove('open');
     menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.setAttribute('aria-label', 'Open menu');
   });
 });
 
@@ -728,12 +733,18 @@ let timer;
 function showSlide(index) {
   current = index;
   slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
-  dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+  dots.forEach((dot, i) => {
+    const active = i === index;
+    dot.classList.toggle('active', active);
+    dot.setAttribute('aria-pressed', String(active));
+  });
 }
 function runSlider() {
   clearInterval(timer);
   if (playing) timer = setInterval(() => showSlide((current + 1) % slides.length), 5000);
   playButton.textContent = playing ? 'Pause' : 'Play';
+  playButton.setAttribute('aria-label', playing ? 'Pause automatic slides' : 'Play automatic slides');
+  playButton.setAttribute('aria-pressed', String(playing));
 }
 dots.forEach((dot, i) => dot.addEventListener('click', () => {
   showSlide(i);
