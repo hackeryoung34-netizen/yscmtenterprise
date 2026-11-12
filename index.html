@@ -209,6 +209,13 @@ footer a:hover{color:var(--blue)}
 .tutorial-links a{color:#078db7;font-weight:bold;font-size:13px;text-decoration:underline}
 @media(max-width:700px){.tutorial-workspace{grid-template-columns:1fr;padding:15px}.tutorial-code,.tutorial-preview-frame{min-height:240px;height:260px}.tutorial-language-list{gap:6px;padding:13px}.tutorial-language{padding:7px 10px}}
 
+
+/* YSCMT embedded multi-language compiler */
+.tutorial-workspace{display:block;padding:22px}
+.tutorial-compiler-frame{display:block;width:100%;height:650px;border:1px solid #cbd8e3;border-radius:8px;background:#071c31}
+.tutorial-compiler-note{color:var(--muted);font-size:13px;margin:0 0 14px}
+.tutorial-language-list{max-height:210px;overflow:auto}
+@media(max-width:700px){.tutorial-workspace{padding:12px}.tutorial-compiler-frame{height:720px}}
 </style>
 </head>
 
@@ -431,34 +438,26 @@ footer a:hover{color:var(--blue)}
 <section class="content soft" id="tutorials">
  <div class="container">
   <div class="heading">
-   <div class="tag">TUTORIALS</div>
+   <div class="tag">TUTORIALS & ONLINE COMPILERS</div>
    <h2>What do you want to learn?</h2>
-   <p>Choose a language, explore a practical example and start building your digital skills. Edit the code and run supported examples right here.</p>
+   <p>Choose a programming language, write your code and run it in the YSCMT learning workspace. More than 150 languages are available through the compiler.</p>
   </div>
   <div class="tutorials-panel">
    <div class="tutorial-language-list" id="tutorial-language-list" aria-label="Choose a programming language"></div>
    <div class="tutorial-workspace">
     <div class="tutorial-example">
-     <h3 id="tutorial-example-title">HTML example</h3>
-     <textarea class="tutorial-code" id="tutorial-code" spellcheck="false" aria-label="Code editor"></textarea>
-     <div class="tutorial-actions">
-      <button class="tutorial-action" id="tutorial-run" type="button">Run Code ▶</button>
-      <button class="tutorial-action secondary" id="tutorial-reset" type="button">Reset example</button>
-     </div>
-    </div>
-    <div class="tutorial-preview">
-     <h3>Live result / learning guide</h3>
-     <iframe class="tutorial-preview-frame" id="tutorial-preview" title="Tutorial code result" sandbox="allow-scripts"></iframe>
+     <h3 id="tutorial-example-title">Python Online Compiler</h3>
+     <p class="tutorial-compiler-note">Write your code in the editor below, then press <strong>Run</strong> to see the output. The compiler is provided by OneCompiler.</p>
+     <iframe class="tutorial-compiler-frame" id="tutorial-compiler" title="YSCMT online programming compiler" src="https://onecompiler.org/embed/python?theme=dark" loading="lazy" allow="clipboard-read; clipboard-write"></iframe>
     </div>
    </div>
    <div class="tutorial-description" id="tutorial-description" aria-live="polite">
-    Edit the HTML example and select Run Code to see your result. Browser preview is available for HTML, CSS and JavaScript.
-    <div class="tutorial-links" id="tutorial-links"></div>
+    Start with Python or choose another language above. You can use the compiler's editor, terminal and output panel.
+    <div class="tutorial-links" id="tutorial-links"><a href="https://onecompiler.org/" target="_blank" rel="noopener noreferrer">Open OneCompiler</a><a href="https://www.w3schools.com/" target="_blank" rel="noopener noreferrer">Explore tutorials</a></div>
    </div>
   </div>
  </div>
 </section>
-
 <section class="content soft" id="projects">
  <div class="container">
   <div class="heading">
@@ -605,58 +604,47 @@ playButton.addEventListener('click', () => {
 });
 runSlider();
 
-// Additive interactive tutorials: isolated from the existing website features.
+// Additive interactive tutorials and embedded online compilers.
 (() => {
- const tutorials = {
-  HTML:{code:'<!DOCTYPE html>\n<html>\n<head>\n  <title>My First Page</title>\n</head>\n<body>\n  <h1>This is a heading</h1>\n  <p>This is a paragraph.</p>\n</body>\n</html>',description:'HTML creates the structure and content of web pages. This example runs directly in your browser.',url:'https://www.w3schools.com/html/default.asp',run:true},
-  CSS:{code:'body {\n  font-family: Arial, sans-serif;\n  background: #eef6ff;\n  padding: 30px;\n}\nh1 { color: #08213b; }\np { color: #087fa5; }',description:'CSS controls the appearance of web pages. The editor wraps your CSS in a sample HTML page.',url:'https://www.w3schools.com/css/default.asp',run:true},
-  JavaScript:{code:'const message = "Hello from YSCMT!";\ndocument.getElementById("result").textContent = message;\nconsole.log(message);',description:'JavaScript adds interaction to websites. This sample runs in the preview panel.',url:'https://www.w3schools.com/js/default.asp',run:true},
-  Python:{code:'name = "YSCMT Student"\nprint("Hello,", name)\n\nfor number in range(1, 4):\n    print("Lesson", number)',description:'Python is a beginner-friendly language used in automation, data, AI and web development. This page shows the code; use the learning link to run Python online.',url:'https://www.w3schools.com/python/default.asp'},
-  SQL:{code:'CREATE TABLE students (\n  id INTEGER,\n  name VARCHAR(100)\n);\n\nSELECT * FROM students;',description:'SQL is used to create, read and manage information in relational databases.',url:'https://www.w3schools.com/sql/default.asp'},
-  Java:{code:'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello, YSCMT!");\n  }\n}',description:'Java is widely used for enterprise software, backend systems and Android development.',url:'https://www.w3schools.com/java/default.asp'},
-  C:{code:'#include <stdio.h>\n\nint main(void) {\n  printf("Hello, YSCMT!\\\n");\n  return 0;\n}',description:'C is a foundational programming language used in systems and embedded development.',url:'https://www.w3schools.com/c/index.php'},
-  'C++':{code:'#include <iostream>\nusing namespace std;\n\nint main() {\n  cout << "Hello, YSCMT!" << endl;\n  return 0;\n}',description:'C++ is used in performance-focused applications, games and systems programming.',url:'https://www.w3schools.com/cpp/default.asp'},
-  'C#':{code:'using System;\n\nclass Program {\n  static void Main() {\n    Console.WriteLine("Hello, YSCMT!");\n  }\n}',description:'C# is used for .NET applications, services and game development with Unity.',url:'https://www.w3schools.com/cs/index.php'},
-  PHP:{code:'<?php\n$name = "YSCMT Student";\necho "Hello, " . $name;\n?>',description:'PHP is a server-side language commonly used to build dynamic websites and web APIs.',url:'https://www.w3schools.com/php/default.asp'},
-  React:{code:'function Welcome() {\n  return <h1>Hello, YSCMT!</h1>;\n}\n\nexport default Welcome;',description:'React is a JavaScript library for building component-based user interfaces.',url:'https://www.w3schools.com/react/default.asp'},
-  'W3.CSS':{code:'<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">\n<div class="w3-container w3-blue">\n  <h2>Welcome to YSCMT</h2>\n  <p>Learn. Build. Innovate.</p>\n</div>',description:'W3.CSS is a lightweight CSS framework for responsive web design.',url:'https://www.w3schools.com/w3css/default.asp'},
-  'Bootstrap 5':{code:'<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">\n<div class="container py-4">\n  <h1 class="text-primary">Hello, YSCMT!</h1>\n  <button class="btn btn-success">Start learning</button>\n</div>',description:'Bootstrap provides ready-made responsive layout and interface components.',url:'https://www.w3schools.com/bootstrap5/index.php'},
-  MySQL:{code:'CREATE DATABASE yscmt_learning;\nUSE yscmt_learning;\n\nCREATE TABLE courses (\n  id INT PRIMARY KEY,\n  title VARCHAR(100)\n);',description:'MySQL is a relational database system used to store and query application data.',url:'https://www.w3schools.com/mysql/default.asp'},
-  jQuery:{code:'$(document).ready(function() {\n  $("#message").text("Welcome to YSCMT!");\n});',description:'jQuery is a JavaScript library that simplifies common DOM and event tasks.',url:'https://www.w3schools.com/jquery/default.asp'},
-  DSA:{code:'# Linear search example\ndef search(items, target):\n    for index, item in enumerate(items):\n        if item == target:\n            return index\n    return -1\n\nprint(search([4, 8, 12], 8))',description:'Data Structures and Algorithms (DSA) teach you how to organize data and solve problems efficiently.',url:'https://www.w3schools.com/dsa/index.php'},
-  TypeScript:{code:'type Student = { name: string; level: number };\n\nconst student: Student = {\n  name: "YSCMT Student",\n  level: 1\n};\n\nconsole.log(student.name);',description:'TypeScript adds static types to JavaScript to help build and maintain larger applications.',url:'https://www.w3schools.com/typescript/index.php'},
-  Swift:{code:'import Foundation\n\nlet name = "YSCMT Student"\nprint("Hello, \\(name)!")',description:'Swift is Apple’s programming language for iOS, macOS and other Apple-platform apps.',url:'https://www.w3schools.com/swift/default.asp'},
-  AngularJS:{code:'<div ng-app="" ng-init="name=\'YSCMT Student\'">\n  <h2>Hello {{ name }}!</h2>\n</div>',description:'AngularJS is a legacy JavaScript framework. For new projects, consider modern Angular.',url:'https://www.w3schools.com/angular/default.asp'},
-  R:{code:'students <- c("Amina", "Yusuf", "Musa")\nprint(students)\n\n scores <- c(75, 82, 91)\nmean(scores)',description:'R is used for statistics, data analysis and visualisation.',url:'https://www.w3schools.com/r/default.asp'},
-  Rust:{code:'fn main() {\n    let message = "Hello, YSCMT!";\n    println!("{}", message);\n}',description:'Rust is a systems programming language focused on performance and memory safety.',url:'https://www.w3schools.com/rust/index.php'}
- };
+ const languages = [
+  ['HTML','html'],['CSS','css'],['JavaScript','javascript'],['Python','python'],
+  ['SQL','mysql'],['MySQL','mysql'],['Java','java'],['C','c'],['C++','cpp'],
+  ['C#','csharp'],['PHP','php'],['React','react'],['TypeScript','typescript'],
+  ['Go','go'],['Rust','rust'],['Ruby','ruby'],['Swift','swift'],['Kotlin','kotlin'],
+  ['Dart','dart'],['R','r'],['Bash','bash'],['Perl','perl'],['Scala','scala'],
+  ['Lua','lua'],['Assembly','assembly'],['Clojure','clojure'],['Haskell','haskell'],
+  ['F#','fsharp'],['Objective-C','objectivec'],['Fortran','fortran'],
+  ['Pascal','pascal'],['COBOL','cobol'],['Elixir','elixir'],['Erlang','erlang'],
+  ['Groovy','groovy'],['Julia','julia'],['Octave','octave'],['Prolog','prolog'],
+  ['D','d'],['Zig','zig']
+ ];
  const list=document.getElementById('tutorial-language-list');
- const editor=document.getElementById('tutorial-code');
+ const frame=document.getElementById('tutorial-compiler');
  const title=document.getElementById('tutorial-example-title');
  const description=document.getElementById('tutorial-description');
- const preview=document.getElementById('tutorial-preview');
  const links=document.getElementById('tutorial-links');
- if(!list||!editor||!preview)return;
- let selected='HTML';
- function renderLanguage(name){
-  selected=name; const item=tutorials[name]; editor.value=item.code; title.textContent=name+' example';
-  description.firstChild.textContent=item.description+' ';
-  links.innerHTML='<a href="'+item.url+'" target="_blank" rel="noopener noreferrer">Learn '+name+'</a><a href="https://www.w3schools.com/" target="_blank" rel="noopener noreferrer">Explore tutorials</a>';
-  [...list.querySelectorAll('button')].forEach(button=>{const active=button.dataset.language===name;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
-  runCode();
+ if(!list||!frame||!title)return;
+ let selected='Python';
+ function chooseLanguage(name,id){
+  selected=name;
+  title.textContent=name+' Online Compiler';
+  frame.src='https://onecompiler.org/embed/'+encodeURIComponent(id)+'?theme=dark';
+  if(description)description.firstChild.textContent='You are using the '+name+' compiler. Write your code in the editor and press Run to execute it. ';
+  if(links)links.innerHTML='<a href="https://onecompiler.com/'+encodeURIComponent(id)+'" target="_blank" rel="noopener noreferrer">Open '+name+' compiler in a new tab</a><a href="https://www.w3schools.com/" target="_blank" rel="noopener noreferrer">Explore tutorials</a>';
+  [...list.querySelectorAll('button')].forEach(button=>{
+   const active=button.dataset.language===name;
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active));
+  });
  }
- function runCode(){
-  const item=tutorials[selected]; let html='';
-  if(selected==='HTML'||selected==='W3.CSS'||selected==='Bootstrap 5')html=editor.value;
-  else if(selected==='CSS')html='<!doctype html><html><head><style>'+editor.value.replace(/<\\/style/gi,'<\\\\/style')+'</style></head><body><h1>YSCMT Tutorials</h1><p>Change the CSS and run again to see your design.</p></body></html>';
-  else if(selected==='JavaScript')html='<!doctype html><html><body><h2>JavaScript result</h2><p id="result">Edit the code and run it.</p><script>'+editor.value.replace(/<\\/script/gi,'<\\\\/script')+'<\\/script></body></html>';
-  else {preview.srcdoc='<!doctype html><html><body style="font-family:Arial;padding:22px;color:#526679"><h3>Code sample ready</h3><p>This language needs its own runtime or compiler, so it cannot execute inside this browser preview yet.</p><p>Use the <b>Learn '+selected+'</b> link for the full tutorial.</p></body></html>';return;}
-  preview.srcdoc=html;
- }
- Object.keys(tutorials).forEach(name=>{const button=document.createElement('button');button.type='button';button.className='tutorial-language';button.textContent=name;button.dataset.language=name;button.addEventListener('click',()=>renderLanguage(name));list.appendChild(button);});
- document.getElementById('tutorial-run').addEventListener('click',runCode);
- document.getElementById('tutorial-reset').addEventListener('click',()=>renderLanguage(selected));
- renderLanguage('HTML');
+ languages.forEach(([name,id])=>{
+  const button=document.createElement('button');
+  button.type='button';button.className='tutorial-language';
+  button.textContent=name;button.dataset.language=name;
+  button.addEventListener('click',()=>chooseLanguage(name,id));
+  list.appendChild(button);
+ });
+ chooseLanguage('Python','python');
 })();
 
 // Search page content
