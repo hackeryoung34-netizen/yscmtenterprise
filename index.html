@@ -23,6 +23,26 @@ body{font-family:Arial,sans-serif;color:#182b3d;line-height:1.65}
 a{text-decoration:none;color:inherit}
 .container{width:min(1160px,92%);margin:auto}
 
+
+/* YSCMT Enterprise corporate homepage banner */
+.corporate-banner{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(112deg,#061c42 0%,#0b3f82 48%,#087db6 100%);color:#fff;border-bottom:5px solid #f2b632}
+.corporate-banner:before,.corporate-banner:after{content:"";position:absolute;z-index:-1;border-radius:50%;pointer-events:none}
+.corporate-banner:before{width:430px;height:430px;right:-95px;top:-260px;border:54px solid #ffffff12}
+.corporate-banner:after{width:270px;height:270px;right:19%;bottom:-235px;border:38px solid #f2b63230}
+.corporate-banner-inner{width:min(1160px,92%);margin:auto;min-height:270px;padding:38px 0;display:grid;grid-template-columns:1.35fr .9fr;align-items:center;gap:35px}
+.corporate-banner-kicker{color:#ffd46a;font-size:12px;font-weight:bold;letter-spacing:3px;text-transform:uppercase}
+.corporate-banner h1{font-size:clamp(32px,4.5vw,54px);line-height:1.08;margin:10px 0 8px;letter-spacing:-1px}
+.corporate-banner h1 span{color:#79e3ff}
+.corporate-banner-tagline{font-size:clamp(17px,2vw,23px);font-weight:bold;color:#fff;margin-bottom:12px}
+.corporate-banner-copy{max-width:650px;color:#e1efff;font-size:14px}
+.corporate-banner-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:19px}
+.corporate-banner-pills span{border:1px solid #ffffff55;background:#ffffff12;border-radius:30px;padding:7px 11px;font-size:11px;font-weight:bold}
+.corporate-banner-side{justify-self:end;width:min(100%,350px);background:#ffffff12;border:1px solid #ffffff3b;border-radius:14px;padding:22px;box-shadow:0 18px 45px #00132b40;backdrop-filter:blur(5px)}
+.corporate-banner-side strong{display:block;color:#ffd46a;font-size:14px;letter-spacing:1px;margin-bottom:10px}
+.corporate-banner-side p{font-size:13px;color:#edf7ff;margin-bottom:15px}
+.corporate-banner-side .banner-cta{display:inline-block;background:#f2b632;color:#10294b;font-weight:bold;font-size:12px;padding:11px 17px;border-radius:5px}
+@media(max-width:700px){.corporate-banner-inner{grid-template-columns:1fr;gap:20px;padding:30px 0;min-height:0}.corporate-banner-side{justify-self:stretch;width:100%;padding:17px}.corporate-banner h1{font-size:36px}.corporate-banner-copy{font-size:13px}}
+
 /* TOP BAR */
 .topbar{background:#041322;color:white;font-size:12px}
 .topbar .container{display:flex;justify-content:flex-end;flex-wrap:wrap}
@@ -301,6 +321,23 @@ footer a:hover{color:var(--blue)}
 </nav>
 
 <main id="home">
+
+<section class="corporate-banner" aria-label="YSCMT Enterprise company banner">
+ <div class="corporate-banner-inner">
+  <div>
+   <div class="corporate-banner-kicker">Empowering People Through Technology</div>
+   <h1>YSCMT <span>Enterprise</span></h1>
+   <div class="corporate-banner-tagline">Learn. Build. Innovate.</div>
+   <p class="corporate-banner-copy">Education, technology and innovation for a smarter future. We help people and businesses grow through practical digital skills, secure technology and useful software solutions.</p>
+   <div class="corporate-banner-pills"><span>Online Learning</span><span>Microsoft 365</span><span>Cybersecurity</span><span>Programming</span><span>Business Solutions</span></div>
+  </div>
+  <aside class="corporate-banner-side">
+   <strong>YOUR SUCCESS, OUR PRIORITY</strong>
+   <p>Explore YSCMT services, join our learning community or talk with us about your next digital project.</p>
+   <a class="banner-cta" href="#services">Explore Our Services →</a>
+  </aside>
+ </div>
+</section>
 
 <section class="hero">
  <div class="slides">
