@@ -49,13 +49,19 @@ a{text-decoration:none;color:inherit}
 .skip-link:focus{top:12px}
 
 
-/* Responsive YSCMT promotional advert */
-.yscmt-promo-ad{background:#eef4fb;padding:18px 0;text-align:center}
-.yscmt-promo-ad .container{max-width:1160px}
-.yscmt-promo-ad img{display:block;width:100%;height:auto;max-height:760px;object-fit:contain;border-radius:10px;box-shadow:0 10px 30px #08213b20}
-.yscmt-promo-ad a{display:block;border-radius:10px}
-.yscmt-promo-ad a:focus-visible{outline:3px solid #f0b84b;outline-offset:4px}
-@media(max-width:650px){.yscmt-promo-ad{padding:10px 0}.yscmt-promo-ad img{border-radius:6px}}
+/* YSCMT Enterprise founder and work gallery */
+.yscmt-gallery{background:linear-gradient(180deg,#f3f7fb,#eaf1f7);padding:42px 0 48px}
+.yscmt-gallery .gallery-heading{text-align:center;max-width:760px;margin:0 auto 24px}
+.yscmt-gallery .gallery-kicker{color:#078db7;font-size:11px;letter-spacing:2px;font-weight:800}
+.yscmt-gallery h2{color:#08213b;font-size:clamp(24px,3vw,34px);margin:5px 0}
+.yscmt-gallery .gallery-intro{color:#637487;font-size:14px}
+.yscmt-gallery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;max-width:1000px;margin:auto}
+.yscmt-gallery-card{background:#fff;border:1px solid #dce5ed;border-radius:12px;overflow:hidden;box-shadow:0 12px 30px #08213b14}
+.yscmt-gallery-card img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;object-position:center}
+.yscmt-gallery-caption{padding:15px 17px}
+.yscmt-gallery-caption strong{display:block;color:#08213b;font-size:15px}
+.yscmt-gallery-caption span{display:block;color:#637487;font-size:12px;margin-top:3px}
+@media(max-width:650px){.yscmt-gallery{padding:30px 0}.yscmt-gallery-grid{grid-template-columns:1fr;gap:16px}.yscmt-gallery-card img{max-height:520px;object-fit:cover}}
 
 /* YSCMT Enterprise corporate homepage banner */
 .corporate-banner{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(112deg,#061c42 0%,#0b3f82 48%,#087db6 100%);color:#fff;border-bottom:5px solid #f2b632}
@@ -390,11 +396,23 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f0b8
 
 <main id="home">
 
-<section class="yscmt-promo-ad" aria-label="YSCMT Enterprise promotional advertisement">
+<section class="yscmt-gallery" aria-label="YSCMT Enterprise founder and technology gallery">
  <div class="container">
-  <a href="#services" aria-label="Explore YSCMT Enterprise services">
-   <img src="https://lh3.googleusercontent.com/pw/AP1GczNggwhx7RPNGjItkvkb-SED1z6e3o4AABs981BWcZMxO3ejMG-R1x3re07N32h0178YMt9p0hX4UERQv7ia123MVjySxOg-z6QMhNixghAh1jcnJo5ZyLln1FTwFF_s-OAbAOk8pQ5gTHVtItkOgloT=w1125-h726-s-no-gm?authuser=0" alt="YSCMT Enterprise advertisement: online learning, Microsoft Office 365, cybersecurity, programming, cloud solutions and 24/7 support" loading="eager" fetchpriority="high" decoding="async">
-  </a>
+  <div class="gallery-heading">
+   <div class="gallery-kicker">PEOPLE • TECHNOLOGY • PROGRESS</div>
+   <h2>Ideas Become Innovation</h2>
+   <p class="gallery-intro">A glimpse into the focus, learning and practical technology work behind YSCMT Enterprise.</p>
+  </div>
+  <div class="yscmt-gallery-grid">
+   <article class="yscmt-gallery-card">
+    <img src="https://photos.fife.usercontent.google.com/pw/AP1GczMw8mn6rOAoRC25Sz_SxlwQZSu5H4coSNYEXpWM5q45Vsvff2_U3Sd0=w960-h1280-s-no-gm?authuser=0" alt="YSCMT Enterprise founder working on a laptop and technology project" loading="eager" decoding="async">
+    <div class="yscmt-gallery-caption"><strong>Focused on Technology</strong><span>Building practical digital skills and solutions</span></div>
+   </article>
+   <article class="yscmt-gallery-card">
+    <img src="https://photos.fife.usercontent.google.com/pw/AP1GczNe2YVHUIMk7KkIWXGwu2ii3_IvGyBFUqwgOWTSa-vS2Mb0IKXFTihP=w1125-h1302-s-no-gm?authuser=0" alt="YSCMT Enterprise founder in a workspace with a laptop" loading="lazy" decoding="async">
+    <div class="yscmt-gallery-caption"><strong>Learning & Innovation</strong><span>Growing through curiosity, creativity and persistence</span></div>
+   </article>
+  </div>
  </div>
 </section>
 
