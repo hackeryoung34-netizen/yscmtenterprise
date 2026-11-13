@@ -49,6 +49,14 @@ a{text-decoration:none;color:inherit}
 .skip-link:focus{top:12px}
 
 
+/* Responsive YSCMT promotional advert */
+.yscmt-promo-ad{background:#eef4fb;padding:18px 0;text-align:center}
+.yscmt-promo-ad .container{max-width:1160px}
+.yscmt-promo-ad img{display:block;width:100%;height:auto;max-height:760px;object-fit:contain;border-radius:10px;box-shadow:0 10px 30px #08213b20}
+.yscmt-promo-ad a{display:block;border-radius:10px}
+.yscmt-promo-ad a:focus-visible{outline:3px solid #f0b84b;outline-offset:4px}
+@media(max-width:650px){.yscmt-promo-ad{padding:10px 0}.yscmt-promo-ad img{border-radius:6px}}
+
 /* YSCMT Enterprise corporate homepage banner */
 .corporate-banner{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(112deg,#061c42 0%,#0b3f82 48%,#087db6 100%);color:#fff;border-bottom:5px solid #f2b632}
 .corporate-banner:before,.corporate-banner:after{content:"";position:absolute;z-index:-1;border-radius:50%;pointer-events:none}
@@ -381,6 +389,14 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f0b8
 </nav>
 
 <main id="home">
+
+<section class="yscmt-promo-ad" aria-label="YSCMT Enterprise promotional advertisement">
+ <div class="container">
+  <a href="#services" aria-label="Explore YSCMT Enterprise services">
+   <img src="https://lh3.googleusercontent.com/pw/AP1GczNggwhx7RPNGjItkvkb-SED1z6e3o4AABs981BWcZMxO3ejMG-R1x3re07N32h0178YMt9p0hX4UERQv7ia123MVjySxOg-z6QMhNixghAh1jcnJo5ZyLln1FTwFF_s-OAbAOk8pQ5gTHVtItkOgloT=w1125-h726-s-no-gm?authuser=0" alt="YSCMT Enterprise advertisement: online learning, Microsoft Office 365, cybersecurity, programming, cloud solutions and 24/7 support" loading="eager" fetchpriority="high" decoding="async">
+  </a>
+ </div>
+</section>
 
 <section class="corporate-banner" aria-label="YSCMT Enterprise company banner">
  <div class="corporate-banner-inner">
