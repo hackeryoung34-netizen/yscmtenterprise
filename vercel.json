@@ -17,5 +17,12 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/community",
+      "destination": "/community/",
+      "permanent": true
+    }
   ]
 }
