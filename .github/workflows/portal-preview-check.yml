@@ -44,6 +44,9 @@ jobs:
           assert "sb_publishable_" in app
           assert "service_role" not in app.lower()
           assert "REGISTRATION_ENABLED = false" in app
+          assert "PAYMENTS_ENABLED = false" in app
+          assert "service_role" not in app.lower()
+          assert "paystack-payment" in app
           assert "portal_mark_lesson_complete" in app
           assert "portal_get_my_course_progress" in app
           assert "portal_list_course_exams" in app
