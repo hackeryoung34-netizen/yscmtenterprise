@@ -159,7 +159,7 @@ async function openCourse(courseId) {
   const lessonBox=document.querySelector("#lessons");
   if(lessons.error){lessonBox.innerHTML='<div class="empty">Lessons will appear after your enrolment is approved.</div>';return;}
   const rows=Array.isArray(lessons.data)?lessons.data:[];
-  lessonBox.innerHTML=rows.length?rows.map((lesson,i)=>`<article class="lesson"><strong>${i+1}. ${esc(lesson.title || "Lesson")}</strong><p>${esc(lesson.description || "Learning material")}</p></article>`).join(""):'<div class="empty">No lessons are available for this course yet.</div>';
+  lessonBox.innerHTML=rows.length?rows.map((lesson,i)=>`<article class="lesson"><strong>${i+1}. ${esc(lesson.title || "Lesson")}</strong><p>${esc(lesson.content || "Learning material")}</p></article>`).join(""):'<div class="empty">No lessons are available for this course yet.</div>';
 }
 
 async function syncSession(session) {
