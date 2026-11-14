@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="YSCMT Community connects students, teachers and mentors around the world.">
+<title>YSCMT Community</title><link rel="stylesheet" href="theme.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<header class="site-header"><a class="brand" href="./">YSCMT <span>COMMUNITY</span></a><nav><a href="#about">About</a><a href="#members">Members</a><a href="#discussion">Discussion</a><button id="signout" class="quiet" hidden>Sign out</button><a id="signin-link" class="button small" href="#join">Join / Sign in</a></nav></header>
+<main>
+<section class="hero"><div class="hero-copy"><p class="eyebrow">A global learning community</p><h1>Learn together. Build together. Grow together.</h1><p>Connect with students, teachers and mentors, exchange knowledge and create opportunities across borders.</p><a class="button" href="#join">Join YSCMT Community</a></div><div class="hero-panel"><p class="eyebrow">YSCMT COMMUNITY</p><h2>One community. Many possibilities.</h2><div class="pill-grid"><div><b>Students</b><span>Learn and collaborate</span></div><div><b>Teachers</b><span>Share knowledge</span></div><div><b>Mentors</b><span>Guide future talent</span></div><div><b>Partners</b><span>Create opportunities</span></div></div></div></section>
+<section id="about" class="section"><p class="eyebrow">About the community</p><h2>Knowledge grows when it is shared.</h2><p class="lead">YSCMT Community is a space for learners, educators and mentors to meet, support one another and turn ideas into progress.</p></section>
+<section id="join" class="section join"><div><p class="eyebrow">Become a member</p><h2 id="auth-title">Join the global community</h2><p id="auth-copy">Enter your email and we will send you a secure sign-in link.</p></div><form id="auth-form"><label>Email address<input id="email" type="email" required autocomplete="email" placeholder="you@example.com"></label><button class="button" type="submit">Send sign-in link</button><p id="auth-message" class="message" aria-live="polite"></p></form></section>
+<section id="profile" class="section" hidden><p class="eyebrow">Your membership</p><h2>Complete your profile</h2><form id="profile-form" class="profile-form"><label>Full name<input name="display_name" required maxlength="100"></label><label>I am a<select name="role" required><option value="student">Student</option><option value="teacher">Teacher</option><option value="mentor">Mentor</option></select></label><label>Country<input name="country" required maxlength="80"></label><label>Subject or area of interest<input name="field" maxlength="120"></label><label class="wide">Short introduction<textarea name="bio" maxlength="500" rows="3"></textarea></label><button class="button wide" type="submit">Save profile</button><p id="profile-message" class="message wide" aria-live="polite"></p></form></section>
+<section id="members" class="section"><p class="eyebrow">Meet the people</p><h2>Our community members</h2><div id="member-list" class="member-grid"><p class="muted">Member profiles will appear here.</p></div></section>
+<section id="discussion" class="section" hidden><p class="eyebrow">Community discussion</p><h2>Share and learn</h2><form id="post-form"><label>Start a discussion<textarea name="body" rows="3" maxlength="1200" required placeholder="Share a question, idea or learning update"></textarea></label><button class="button" type="submit">Publish discussion</button><p id="post-message" class="message"></p></form><div id="post-list" class="post-list"></div></section>
+</main><footer><a class="brand inverse" href="/">YSCMT <span>COMMUNITY</span></a><p>Connecting students, teachers and mentors through learning and collaboration.</p><small>© <span id="year"></span> YSCMT Enterprise</small></footer>
+<script>
+(() => {
+ const cfg=window.YSCMT_CONFIG||{}, client=window.supabase&&cfg.url&&cfg.anonKey&&!cfg.url.includes("YOUR_")?window.supabase.createClient(cfg.url,cfg.anonKey):null;
+ const $=s=>document.querySelector(s), say=(s,t)=>{const e=$(s);if(e)e.textContent=t||''};
+ $('#year').textContent=new Date().getFullYear();
+ if(!client){say('#auth-message','Setup required: add your Supabase project URL and public anon key in config.js.');$('#auth-form button').disabled=true;return}
+ let currentUser=null;
+ async function loadMembers(){const {data,error}=await client.from('community_profiles').select('display_name,role,country,field,bio').order('created_at',{ascending:false}).limit(60);if(error){say('#member-list',error.message);return}$('#member-list').innerHTML=data.length?data.map(m=>'<article class="member-card"><h3>'+esc(m.display_name)+'</h3><p class="meta">'+esc(m.role)+' · '+esc(m.country)+'</p><p>'+esc(m.field||'YSCMT Community member')+'</p><p class="muted">'+esc(m.bio||'')+'</p></article>').join(''):'<p class="muted">Be the first to join the community.</p>'}
+ async function loadPosts(){const {data,error}=await client.from('community_posts').select('id,body,created_at,community_profiles(display_name,country)').order('created_at',{ascending:false}).limit(50);if(error){say('#post-list',error.message);return}$('#post-list').innerHTML=data.length?data.map(p=>'<article class="post-card"><h3>'+esc(p.community_profiles?.display_name||'Community member')+'</h3><p class="meta">'+esc(p.community_profiles?.country||'')+' · '+new Date(p.created_at).toLocaleString()+'</p><p>'+esc(p.body)+'</p></article>').join(''):'<p class="muted">No discussions yet. Start the first one.</p>'}
+ function esc(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ async function sync(){const {data}=await client.auth.getSession();currentUser=data.session?.user||null;$('#signout').hidden=!currentUser;$('#signin-link').hidden=!!currentUser;$('#profile').hidden=!currentUser;$('#discussion').hidden=!currentUser;if(currentUser){const {data:p}=await client.from('community_profiles').select('*').eq('user_id',currentUser.id).maybeSingle();if(p)for(const [k,v] of Object.entries(p))if($('#profile-form [name="'+k+'"]'))$('#profile-form [name="'+k+'"]').value=v;loadPosts()}loadMembers()}
+ $('#auth-form').addEventListener('submit',async e=>{e.preventDefault();const {error}=await client.auth.signInWithOtp({email:$('#email').value.trim(),options:{emailRedirectTo:location.origin+"/community/"}});say('#auth-message',error?error.message:'Check your email for the secure sign-in link.')});
+ $('#profile-form').addEventListener('submit',async e=>{e.preventDefault();if(!currentUser)return;const form=Object.fromEntries(new FormData(e.currentTarget));const {error}=await client.from('community_profiles').upsert({...form,user_id:currentUser.id},{onConflict:'user_id'});say('#profile-message',error?error.message:'Your profile has been saved.');if(!error)loadMembers()});
+ $('#post-form').addEventListener('submit',async e=>{e.preventDefault();const body=new FormData(e.currentTarget).get('body').trim();const {error}=await client.from('community_posts').insert({body,user_id:currentUser.id});say('#post-message',error?error.message:'Your discussion has been published.');if(!error){e.currentTarget.reset();loadPosts()}});
+ $('#signout').addEventListener('click',async()=>{await client.auth.signOut();location.reload()});
+ client.auth.onAuthStateChange(()=>sync());sync();
+})();
+</script></body></html>
