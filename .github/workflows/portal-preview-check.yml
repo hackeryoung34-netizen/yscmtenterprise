@@ -46,6 +46,10 @@ jobs:
           assert "REGISTRATION_ENABLED = false" in app
           assert "portal_mark_lesson_complete" in app
           assert "portal_get_my_course_progress" in app
+          assert "portal_list_course_exams" in app
+          assert "portal_start_exam" in app
+          assert "portal_get_exam_questions" in app
+          assert "portal_submit_exam" in app
           assert "correct_option" not in app
           assert any(r.get("source") == "/portal" and r.get("destination") == "/portal/index.html" for r in config.get("rewrites", []))
           assert any(r.get("source") == "/portal/:path*" and r.get("destination") == "/portal/index.html" for r in config.get("rewrites", []))
