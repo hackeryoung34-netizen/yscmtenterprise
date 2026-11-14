@@ -1,0 +1,51 @@
+name: Student Portal preview checks
+
+on:
+  push:
+    branches: [migration/student-portal-preview]
+    paths:
+      - "portal/**"
+      - "vercel.json"
+      - ".github/workflows/portal-preview-check.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "portal/**"
+      - "vercel.json"
+      - ".github/workflows/portal-preview-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  portal-static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check portal JavaScript syntax
+        run: node --check --input-type=module < portal/app.js
+      - name: Validate portal HTML and Vercel routes
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          html = Path("portal/index.html").read_text()
+          css = Path("portal/styles.css").read_text()
+          app = Path("portal/app.js").read_text()
+          config = json.loads(Path("vercel.json").read_text())
+
+          assert 'name="robots" content="noindex, nofollow"' in html
+          assert 'src="/portal/app.js"' in html
+          assert 'href="/portal/styles.css"' in html
+          assert "sb_publishable_" in app
+          assert "service_role" not in app.lower()
+          assert "REGISTRATION_ENABLED = false" in app
+          assert any(r.get("source") == "/portal" and r.get("destination") == "/portal/index.html" for r in config.get("rewrites", []))
+          assert any(r.get("source") == "/portal/:path*" and r.get("destination") == "/portal/index.html" for r in config.get("rewrites", []))
+          assert len(css) > 1000
+          print("Portal static checks passed.")
+          PY
