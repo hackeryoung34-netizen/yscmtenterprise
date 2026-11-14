@@ -168,7 +168,8 @@ async function openCourse(courseId) {
     </article>
     <div class="section-title"><h2>Lessons</h2></div>
     <div id="lessons" class="lesson-list"><div class="empty">Checking your lesson access…</div></div>
-    <div id="course-progress"></div>`;
+    <div id="course-progress"></div>
+    <div id="exam-area"></div>`;
   document.querySelector("#close-course").addEventListener("click",()=>{detail.innerHTML="";});
   const enrolButton = document.querySelector("#enrol-course");
   if(enrolButton) enrolButton.addEventListener("click",async()=>{
@@ -195,6 +196,111 @@ async function openCourse(courseId) {
     const p=progress.data[0];
     document.querySelector("#course-progress").innerHTML=`<div class="panel" style="margin-top:16px"><strong>Course progress: ${Number(p.progress_percent)||0}%</strong><p class="muted">${Number(p.completed_lessons)||0} of ${Number(p.total_lessons)||0} lessons completed</p><div style="height:9px;background:#e5edf3;border-radius:10px;overflow:hidden"><div style="height:100%;width:${Math.max(0,Math.min(100,Number(p.progress_percent)||0))}%;background:var(--blue)"></div></div></div>`;
   }
+}
+
+let examTimer = null;
+
+async function loadCourseExams(courseId) {
+  const area = document.querySelector("#exam-area");
+  const result = await supabase.rpc("portal_list_course_exams", {p_course_id: courseId});
+  if (result.error) {
+    area.innerHTML = '<div class="section-title"><h2>Course exams</h2></div><div class="empty">Exams will appear after the secure exam service is activated and your enrolment is approved.</div>';
+    return;
+  }
+  const exams = Array.isArray(result.data) ? result.data : [];
+  if (!exams.length) {
+    area.innerHTML = '<div class="section-title"><h2>Course exams</h2></div><div class="empty">No active exams are available for this course yet.</div>';
+    return;
+  }
+  area.innerHTML = '<div class="section-title"><h2>Course exams</h2></div><div class="course-grid">' +
+    exams.map(exam => '<article class="course"><span class="pill">Assessment</span><h3>' + esc(exam.title || "Course exam") +
+    '</h3><p>' + esc(exam.instructions || "Complete this assessment to check your learning.") +
+    '</p><p class="muted">Time: ' + Number(exam.duration_minutes || 0) + ' minutes · Pass mark: ' +
+    Number(exam.pass_mark || 0) + '%</p><button class="btn" data-start-exam="' + esc(exam.id) + '">Start exam</button></article>').join("") +
+    '</div>';
+  area.querySelectorAll("[data-start-exam]").forEach(button => button.addEventListener("click", () => startCourseExam(button.dataset.startExam)));
+}
+
+async function startCourseExam(examId) {
+  const area = document.querySelector("#exam-area");
+  area.innerHTML = '<div class="empty">Starting your secure exam session…</div>';
+  const started = await supabase.rpc("portal_start_exam", {p_exam_id: examId});
+  const session = Array.isArray(started.data) ? started.data[0] : started.data;
+  if (started.error || !session) {
+    area.innerHTML = '<div class="error">The exam could not be started. Confirm that your enrolment is approved and try again.</div>';
+    return;
+  }
+  const questionResult = await supabase.rpc("portal_get_exam_questions", {p_session_id: session.session_id});
+  const questions = Array.isArray(questionResult.data) ? questionResult.data : [];
+  if (questionResult.error || !questions.length) {
+    area.innerHTML = '<div class="error">Exam questions are not available for this session.</div>';
+    return;
+  }
+  renderTimedExam(session, questions);
+}
+
+function renderTimedExam(session, questions) {
+  const area = document.querySelector("#exam-area");
+  const expiresAt = new Date(session.expires_at).getTime();
+  const questionMarkup = questions.map((question, index) => {
+    const options = Array.isArray(question.options) ? question.options : [];
+    return '<article class="panel" style="margin:12px 0"><strong>' + (index + 1) + '. ' +
+      esc(question.question_text || "Question") + '</strong><div class="field">' +
+      options.map((option, optionIndex) => '<label><input type="radio" required name="q_' +
+        esc(question.id) + '" value="' + optionIndex + '"> ' + esc(option) + '</label>').join("") +
+      '</div></article>';
+  }).join("");
+  area.innerHTML = '<div class="section-title"><h2>Timed examination</h2><span id="exam-countdown" class="pill">Time remaining</span></div>' +
+    '<form id="exam-form">' + questionMarkup +
+    '<button class="btn" id="submit-exam" type="submit">Submit answers</button><div id="exam-result"></div></form>';
+  if (examTimer) clearInterval(examTimer);
+  const updateCountdown = () => {
+    const remaining = Math.max(0, expiresAt - Date.now());
+    const minutes = Math.floor(remaining / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    const timer = document.querySelector("#exam-countdown");
+    if (timer) timer.textContent = minutes + ":" + String(seconds).padStart(2, "0") + " remaining";
+    if (remaining <= 0) {
+      clearInterval(examTimer);
+      const button = document.querySelector("#submit-exam");
+      if (button) button.disabled = true;
+      const result = document.querySelector("#exam-result");
+      if (result) { result.className = "error"; result.textContent = "Time has expired. Return to the exam list to request a new session."; }
+    }
+  };
+  updateCountdown();
+  examTimer = setInterval(updateCountdown, 1000);
+  document.querySelector("#exam-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const answers = {};
+    for (const question of questions) {
+      const selected = event.currentTarget.querySelector('input[name="q_' + question.id + '"]:checked');
+      if (!selected) {
+        const result = document.querySelector("#exam-result");
+        result.className = "error"; result.textContent = "Please answer every question before submitting.";
+        return;
+      }
+      answers[question.id] = Number(selected.value);
+    }
+    const button = document.querySelector("#submit-exam");
+    button.disabled = true; button.textContent = "Submitting securely…";
+    const submitted = await supabase.rpc("portal_submit_exam", {
+      p_session_id: session.session_id,
+      p_answers: answers
+    });
+    const result = document.querySelector("#exam-result");
+    if (submitted.error || !Array.isArray(submitted.data) || !submitted.data[0]) {
+      result.className = "error"; result.textContent = "Your answers could not be submitted. The exam may have expired.";
+      button.disabled = false; button.textContent = "Try submission again";
+      return;
+    }
+    clearInterval(examTimer);
+    const attempt = submitted.data[0];
+    result.className = "success";
+    result.textContent = "Exam submitted. Score: " + attempt.score + "%. " +
+      (attempt.passed ? "You passed." : "You did not reach the pass mark.");
+    button.textContent = "Submitted";
+  });
 }
 
 async function syncSession(session) {
