@@ -156,31 +156,45 @@ async function openCourse(courseId) {
   }
   selectedCourse = data[0];
   const course = selectedCourse;
+  const hasEnrollment = Boolean(course.enrollment_status);
   detail.innerHTML = `
     <div class="section-title"><h2>${esc(course.title || "Course details")}</h2><button class="small-btn" id="close-course">Close</button></div>
     <article class="panel">
       <span class="pill">${esc(course.level || "Course")}</span>
       <p>${esc(course.description || "")}</p>
       <p><strong>Fee: ${money(course.fee_amount,course.fee_currency)}</strong></p>
-      <button class="btn" id="enrol-course">Request enrolment</button>
+      ${hasEnrollment ? `<div class="notice">Enrolment status: ${esc(course.enrollment_status)}</div>` : '<button class="btn" id="enrol-course">Request enrolment</button>'}
       <div id="course-message"></div>
     </article>
     <div class="section-title"><h2>Lessons</h2></div>
-    <div id="lessons" class="lesson-list"><div class="empty">Checking your lesson access…</div></div>`;
+    <div id="lessons" class="lesson-list"><div class="empty">Checking your lesson access…</div></div>
+    <div id="course-progress"></div>`;
   document.querySelector("#close-course").addEventListener("click",()=>{detail.innerHTML="";});
-  document.querySelector("#enrol-course").addEventListener("click",async()=>{
-    const button=document.querySelector("#enrol-course");button.disabled=true;button.textContent="Submitting…";
+  const enrolButton = document.querySelector("#enrol-course");
+  if(enrolButton) enrolButton.addEventListener("click",async()=>{
+    enrolButton.disabled=true;enrolButton.textContent="Submitting…";
     const result=await supabase.rpc("portal_create_enrollment",{p_course_id:courseId});
     const message=document.querySelector("#course-message");
     if(result.error){message.className="error";message.textContent="Enrolment is not open yet. Please try again later.";}
     else{message.className="success";message.textContent="Your enrolment request has been submitted and is awaiting approval.";}
-    button.disabled=false;button.textContent="Request enrolment";
+    enrolButton.disabled=false;enrolButton.textContent="Request enrolment";
   });
   const lessons=await supabase.rpc("portal_get_course_lessons",{p_course_id:courseId});
   const lessonBox=document.querySelector("#lessons");
   if(lessons.error){lessonBox.innerHTML='<div class="empty">Lessons will appear after your enrolment is approved.</div>';return;}
   const rows=Array.isArray(lessons.data)?lessons.data:[];
-  lessonBox.innerHTML=rows.length?rows.map((lesson,i)=>`<article class="lesson"><strong>${i+1}. ${esc(lesson.title || "Lesson")}</strong><p>${esc(lesson.content || "Learning material")}</p></article>`).join(""):'<div class="empty">No lessons are available for this course yet.</div>';
+  lessonBox.innerHTML=rows.length?rows.map((lesson,i)=>`<article class="lesson"><strong>${i+1}. ${esc(lesson.title || "Lesson")}</strong><p>${esc(lesson.content || "Learning material")}</p>${lesson.completed_at ? '<span class="pill">Completed</span>' : `<button class="small-btn" data-complete-lesson="${esc(lesson.id)}">Mark complete</button>`}</article>`).join(""):'<div class="empty">No lessons are available for this course yet.</div>';
+  lessonBox.querySelectorAll("[data-complete-lesson]").forEach(button=>button.addEventListener("click",async()=>{
+    button.disabled=true;button.textContent="Saving…";
+    const result=await supabase.rpc("portal_mark_lesson_complete",{p_lesson_id:button.dataset.completeLesson});
+    if(result.error){button.disabled=false;button.textContent="Try again";return;}
+    await openCourse(courseId);
+  }));
+  const progress=await supabase.rpc("portal_get_my_course_progress",{p_course_id:courseId});
+  if(!progress.error && Array.isArray(progress.data) && progress.data[0]){
+    const p=progress.data[0];
+    document.querySelector("#course-progress").innerHTML=`<div class="panel" style="margin-top:16px"><strong>Course progress: ${Number(p.progress_percent)||0}%</strong><p class="muted">${Number(p.completed_lessons)||0} of ${Number(p.total_lessons)||0} lessons completed</p><div style="height:9px;background:#e5edf3;border-radius:10px;overflow:hidden"><div style="height:100%;width:${Math.max(0,Math.min(100,Number(p.progress_percent)||0))}%;background:var(--blue)"></div></div></div>`;
+  }
 }
 
 async function syncSession(session) {
