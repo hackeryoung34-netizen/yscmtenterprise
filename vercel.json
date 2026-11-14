@@ -17,5 +17,15 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/portal",
+      "destination": "/portal/index.html"
+    },
+    {
+      "source": "/portal/:path*",
+      "destination": "/portal/index.html"
+    }
   ]
 }
