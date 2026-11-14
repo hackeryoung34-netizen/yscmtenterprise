@@ -455,6 +455,24 @@ footer p,footer li{font-size:11.5px;line-height:1.7}
  .brand-name .brand-tagline{font-size:7px;letter-spacing:.9px}
 }
 
+
+/* YSCMT Enterprise business conversion and quote form */
+.quote-link{display:inline-block;margin-top:13px;color:#087da7;font-size:12px;font-weight:800}
+.business-reach{margin-top:22px;text-align:center;color:#526679;font-size:13px}
+.quote-layout{display:grid;grid-template-columns:.85fr 1.15fr;gap:34px;align-items:start}
+.quote-intro p{font-size:13px;color:#526679;margin:0 0 12px}
+.quote-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;background:#fff;border:1px solid #dce5ed;border-radius:10px;padding:24px;box-shadow:0 12px 30px #08213b12}
+.quote-form label{display:grid;gap:6px;color:#08213b;font-size:12px;font-weight:700}
+.quote-form label:nth-child(4),.quote-form label:nth-child(6),.quote-actions,.quote-form .quote-note{grid-column:1/-1}
+.quote-form input,.quote-form select,.quote-form textarea{width:100%;border:1px solid #cbd8e3;border-radius:5px;padding:11px 12px;font:inherit;color:#182b3d;background:#fff;min-height:44px}
+.quote-form textarea{resize:vertical;min-height:110px}
+.quote-form input:focus,.quote-form select:focus,.quote-form textarea:focus{outline:2px solid #078db7;outline-offset:1px}
+.quote-actions{display:flex;gap:10px;flex-wrap:wrap}
+.quote-actions button{border:0;border-radius:5px;padding:12px 17px;background:#12834a;color:#fff;font-weight:800;cursor:pointer;min-height:44px}
+.quote-actions button.email-submit{background:#08213b}
+.quote-form .quote-note,.quote-note{font-size:11px;color:#637487;line-height:1.6}
+@media(max-width:700px){.quote-layout{grid-template-columns:1fr}.quote-form{grid-template-columns:1fr;padding:17px}.quote-form label:nth-child(4),.quote-form label:nth-child(6),.quote-actions,.quote-form .quote-note{grid-column:auto}.quote-actions button{flex:1}}
+
 </style>
 </head>
 
@@ -496,6 +514,8 @@ footer p,footer li{font-size:11.5px;line-height:1.7}
    <li><a href="#home">Home</a></li>
    <li><a href="#about">About</a></li>
    <li><a href="#services">Services</a></li>
+   <li><a href="#business-services">Business Solutions</a></li>
+   <li><a href="#get-quote">Get a Quote</a></li>
    <li><a href="#training">Training</a></li>
    <li><a href="https://yscmt-student-portal.hatchable.site/">Distance Learning</a></li>
    <li><a href="#tutorials">Tutorials</a></li>
@@ -687,6 +707,85 @@ footer p,footer li{font-size:11.5px;line-height:1.7}
    <article class="service"><h3>IT Training</h3><p>Programming, computer skills and practical technology education.</p></article>
    <article class="service"><h3>Digital Solutions</h3><p>Digital tools, technology support and process improvements for organizations.</p></article>
   </div>
+ </div>
+</section>
+
+<section class="content soft" id="business-services">
+ <div class="container">
+  <div class="heading">
+   <div class="tag">WORK WITH YSCMT</div>
+   <h2>Digital Services That Move Your Business Forward</h2>
+   <p>Practical technology, creative support and digital learning for customers in Nigeria and around the world.</p>
+  </div>
+  <div class="service-grid">
+   <article class="service">
+    <span class="icon" aria-hidden="true">🌐</span>
+    <h3>Website & Software Development</h3>
+    <p>Business websites, online stores, school portals, learning platforms and custom web applications.</p>
+    <a class="quote-link" href="#get-quote">Request a website quote →</a>
+   </article>
+   <article class="service">
+    <span class="icon" aria-hidden="true">🎨</span>
+    <h3>Digital Services</h3>
+    <p>Graphic design, social media support, digital marketing, website maintenance and practical IT assistance.</p>
+    <a class="quote-link" href="#get-quote">Request a service quote →</a>
+   </article>
+   <article class="service">
+    <span class="icon" aria-hidden="true">🎓</span>
+    <h3>Online Courses & Training</h3>
+    <p>Learn computer fundamentals, programming, web development, cybersecurity awareness and digital productivity.</p>
+    <a class="quote-link" href="https://yscmt-student-portal.hatchable.site/" target="_blank" rel="noopener noreferrer">Explore Student Portal →</a>
+   </article>
+   <article class="service">
+    <span class="icon" aria-hidden="true">🛠️</span>
+    <h3>Business Technology Support</h3>
+    <p>Get help choosing, setting up and maintaining digital tools that support your organisation's day-to-day work.</p>
+    <a class="quote-link" href="#get-quote">Talk to our team →</a>
+   </article>
+  </div>
+  <p class="business-reach">Serving individuals, startups, schools and organisations in Nigeria and internationally.</p>
+ </div>
+</section>
+
+<section class="content" id="get-quote">
+ <div class="container quote-layout">
+  <div class="quote-intro">
+   <div class="heading">
+    <div class="tag">START A PROJECT</div>
+    <h2>Request a Quote</h2>
+    <p>Tell us what you need. YSCMT Enterprise will follow up through your preferred contact channel.</p>
+   </div>
+   <p><strong>Company email:</strong> <a href="mailto:yscmtenterprise@gmail.com">yscmtenterprise@gmail.com</a></p>
+   <p><strong>WhatsApp:</strong> <a href="https://wa.me/212632138231" target="_blank" rel="noopener noreferrer">Chat with YSCMT Enterprise</a></p>
+   <p class="quote-note">Choose NGN or USD as your preferred quotation currency. Final pricing and payment instructions will be confirmed directly with you.</p>
+  </div>
+  <form class="quote-form" id="yscmt-quote-form">
+   <label>Full name<input name="customer_name" type="text" autocomplete="name" required></label>
+   <label>Email address<input name="customer_email" type="email" autocomplete="email" required></label>
+   <label>Country<input name="customer_country" type="text" autocomplete="country-name" required></label>
+   <label>Service you need
+    <select name="service" required>
+     <option value="">Choose a service</option>
+     <option>Website or software development</option>
+     <option>Digital services (design, marketing or IT support)</option>
+     <option>Online courses or training</option>
+     <option>Business technology support</option>
+     <option>Other enquiry</option>
+    </select>
+   </label>
+   <label>Preferred quotation currency
+    <select name="currency" required>
+     <option value="NGN">NGN — Nigerian Naira</option>
+     <option value="USD">USD — US Dollar</option>
+    </select>
+   </label>
+   <label>Tell us about your needs<textarea name="project_details" rows="4" placeholder="Describe the website, service or course you are interested in..." required></textarea></label>
+   <div class="quote-actions">
+    <button type="submit" data-channel="whatsapp">Send via WhatsApp</button>
+    <button type="submit" data-channel="email" class="email-submit">Send via Email</button>
+   </div>
+   <p class="quote-note">This form prepares a message in WhatsApp or your email app. It does not store your information or take payments on this website.</p>
+  </form>
  </div>
 </section>
 
@@ -1056,6 +1155,31 @@ searchInput.addEventListener('input', () => {
     noResults.style.display = 'none';
   }
 });
+
+// YSCMT Enterprise quote enquiry: hand off to WhatsApp or the visitor's email app.
+const yscmtQuoteForm = document.getElementById('yscmt-quote-form');
+if (yscmtQuoteForm) {
+  yscmtQuoteForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const values = new FormData(yscmtQuoteForm);
+    const message = [
+      'YSCMT Enterprise — New Enquiry',
+      'Name: ' + values.get('customer_name'),
+      'Email: ' + values.get('customer_email'),
+      'Country: ' + values.get('customer_country'),
+      'Service: ' + values.get('service'),
+      'Preferred currency: ' + values.get('currency'),
+      'Details: ' + values.get('project_details')
+    ].join('\n');
+    const channel = event.submitter && event.submitter.dataset.channel;
+    if (channel === 'email') {
+      const subject = encodeURIComponent('YSCMT Enterprise — Service Enquiry');
+      window.location.href = 'mailto:yscmtenterprise@gmail.com?subject=' + subject + '&body=' + encodeURIComponent(message);
+    } else {
+      window.location.href = 'https://wa.me/212632138231?text=' + encodeURIComponent(message);
+    }
+  });
+}
 </script>
 
 </body>
