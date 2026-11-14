@@ -19,7 +19,7 @@ In Supabase Dashboard → Authentication → URL Configuration:
 - Add these Redirect URLs:
   - `https://yscmtenterprise.ng/community/`
   - `https://www.yscmtenterprise.ng/community/`
-  - `https://yscmtenterprise-l6aorgeir-yscmtonlines-projects.vercel.app/community/`
+  - `https://yscmtenterprise-git-feature-commun-5daab5-yscmtonlines-projects.vercel.app/community/`
 
 Add any new Vercel preview URL as a redirect URL before testing email sign-in from that preview.
 
