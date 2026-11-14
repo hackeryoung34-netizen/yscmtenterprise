@@ -7,6 +7,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 });
 const app = document.querySelector("#app");
 document.querySelector("#year").textContent = new Date().getFullYear();
+const REGISTRATION_ENABLED = false; // Enable only after Auth and data migration are verified.
 let activeSession = null;
 let selectedCourse = null;
 
@@ -50,7 +51,13 @@ function renderAuth(mode = "signin") {
         <div class="notice">Portal migration preview: course data and existing student accounts have not yet been imported. Please do not create a real account until registration is officially opened.</div>
       </div>
     </section>`;
-  document.querySelector("#switch-mode").addEventListener("click", () => renderAuth(signup ? "signin" : "signup"));
+  const switchButton = document.querySelector("#switch-mode");
+  if (!REGISTRATION_ENABLED) {
+    switchButton.disabled = true;
+    switchButton.textContent = "New student registration opens after migration validation";
+  } else {
+    switchButton.addEventListener("click", () => renderAuth(signup ? "signin" : "signup"));
+  }
   document.querySelector("#auth-form").addEventListener("submit", async event => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -59,6 +66,9 @@ function renderAuth(mode = "signin") {
     const button = document.querySelector("#submit");
     button.disabled = true; button.textContent = "Please wait…";
     try {
+      if (signup && !REGISTRATION_ENABLED) {
+        throw new Error("New student registration is temporarily closed while the migration is validated.");
+      }
       if (signup) {
         const {data,error} = await supabase.auth.signUp({
           email, password,
