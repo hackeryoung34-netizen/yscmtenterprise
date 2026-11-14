@@ -29,9 +29,9 @@
  function esc(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
  async function sync(){const {data}=await client.auth.getSession();currentUser=data.session?.user||null;$('#signout').hidden=!currentUser;$('#signin-link').hidden=!!currentUser;$('#profile').hidden=!currentUser;$('#discussion').hidden=!currentUser;if(currentUser){const {data:p}=await client.from('community_profiles').select('*').eq('user_id',currentUser.id).maybeSingle();if(p)for(const [k,v] of Object.entries(p))if($('#profile-form [name="'+k+'"]'))$('#profile-form [name="'+k+'"]').value=v;loadPosts()}loadMembers()}
  $('#auth-form').addEventListener('submit',async e=>{e.preventDefault();const {error}=await client.auth.signInWithOtp({email:$('#email').value.trim(),options:{emailRedirectTo:location.origin+"/community/"}});say('#auth-message',error?error.message:'Check your email for the secure sign-in link.')});
- $('#profile-form').addEventListener('submit',async e=>{e.preventDefault();if(!currentUser)return;const form=Object.fromEntries(new FormData(e.currentTarget));const {error}=await client.from('community_profiles').upsert({...form,user_id:currentUser.id},{onConflict:'user_id'});say('#profile-message',error?error.message:'Your profile has been saved.');if(!error)loadMembers()});
+ $('#profile-form').addEventListener('submit',async e=>{e.preventDefault();if(!currentUser)return;const form=Object.fromEntries(new FormData(e.currentTarget));const {error}=await client.from('community_profiles').upsert({...form,user_id:currentUser.id,updated_at:new Date().toISOString()},{onConflict:'user_id'});say('#profile-message',error?error.message:'Your profile has been saved.');if(!error)loadMembers()});
  $('#post-form').addEventListener('submit',async e=>{e.preventDefault();const body=new FormData(e.currentTarget).get('body').trim();const {error}=await client.from('community_posts').insert({body,user_id:currentUser.id});say('#post-message',error?error.message:'Your discussion has been published.');if(!error){e.currentTarget.reset();loadPosts()}});
  $('#signout').addEventListener('click',async()=>{await client.auth.signOut();location.reload()});
- client.auth.onAuthStateChange(()=>sync());sync();
+ client.auth.onAuthStateChange(()=>queueMicrotask(()=>sync()));sync();
 })();
 </script></body></html>
