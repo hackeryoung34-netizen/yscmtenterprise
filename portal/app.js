@@ -8,6 +8,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 const app = document.querySelector("#app");
 document.querySelector("#year").textContent = new Date().getFullYear();
 const REGISTRATION_ENABLED = false; // Enable only after Auth and data migration are verified.
+const PAYMENTS_ENABLED = false; // Enable only after migration 010 and Paystack test verification.
 let activeSession = null;
 let selectedCourse = null;
 
@@ -164,6 +165,7 @@ async function openCourse(courseId) {
       <p>${esc(course.description || "")}</p>
       <p><strong>Fee: ${money(course.fee_amount,course.fee_currency)}</strong></p>
       ${hasEnrollment ? `<div class="notice">Enrolment status: ${esc(course.enrollment_status)}</div>` : '<button class="btn" id="enrol-course">Request enrolment</button>'}
+      ${course.enrollment_status === "pending" && Number(course.fee_amount) > 0 ? '<button class="small-btn" id="pay-course" disabled>Pay online with Paystack (preview only)</button><p class="muted">Online payments remain disabled until the secure Paystack function is deployed and tested.</p>' : ""}
       <div id="course-message"></div>
     </article>
     <div class="section-title"><h2>Lessons</h2></div>
@@ -171,6 +173,8 @@ async function openCourse(courseId) {
     <div id="course-progress"></div>
     <div id="exam-area"></div>`;
   document.querySelector("#close-course").addEventListener("click",()=>{detail.innerHTML="";});
+  const payButton = document.querySelector("#pay-course");
+  if(payButton && PAYMENTS_ENABLED) payButton.addEventListener("click",()=>initializeCoursePayment(courseId));
   const enrolButton = document.querySelector("#enrol-course");
   if(enrolButton) enrolButton.addEventListener("click",async()=>{
     enrolButton.disabled=true;enrolButton.textContent="Submitting…";
