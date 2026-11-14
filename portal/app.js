@@ -165,7 +165,7 @@ async function openCourse(courseId) {
       <p>${esc(course.description || "")}</p>
       <p><strong>Fee: ${money(course.fee_amount,course.fee_currency)}</strong></p>
       ${hasEnrollment ? `<div class="notice">Enrolment status: ${esc(course.enrollment_status)}</div>` : '<button class="btn" id="enrol-course">Request enrolment</button>'}
-      ${course.enrollment_status === "pending" && Number(course.fee_amount) > 0 ? '<button class="small-btn" id="pay-course" ${PAYMENTS_ENABLED ? "" : "disabled"}>Pay online with Paystack${PAYMENTS_ENABLED ? "" : " (preview only)"}</button><p class="muted">Online payments remain disabled until the secure Paystack function is deployed and tested.</p>' : ""}
+      ${course.enrollment_status === "pending" && Number(course.fee_amount) > 0 ? `<button class="small-btn" id="pay-course" ${PAYMENTS_ENABLED ? "" : "disabled"}>Pay online with Paystack${PAYMENTS_ENABLED ? "" : " (preview only)"}</button><p class="muted">Online payments remain disabled until the secure Paystack function is deployed and tested.</p>` : ""}
       <div id="course-message"></div>
     </article>
     <div class="section-title"><h2>Lessons</h2></div>
@@ -200,6 +200,7 @@ async function openCourse(courseId) {
     const p=progress.data[0];
     document.querySelector("#course-progress").innerHTML=`<div class="panel" style="margin-top:16px"><strong>Course progress: ${Number(p.progress_percent)||0}%</strong><p class="muted">${Number(p.completed_lessons)||0} of ${Number(p.total_lessons)||0} lessons completed</p><div style="height:9px;background:#e5edf3;border-radius:10px;overflow:hidden"><div style="height:100%;width:${Math.max(0,Math.min(100,Number(p.progress_percent)||0))}%;background:var(--blue)"></div></div></div>`;
   }
+  await loadCourseExams(courseId);
 }
 
 let examTimer = null;
@@ -314,7 +315,7 @@ async function initializeCoursePayment(courseId) {
   const {data:enrollmentRows,error:enrollmentError} = await supabase.rpc("portal_get_my_course_enrollment",{p_course_id:courseId});
   const enrollment = Array.isArray(enrollmentRows) ? enrollmentRows[0] : null;
   if (enrollmentError || !enrollment || enrollment.status !== "pending" || enrollment.fee_currency !== "NGN") {
-    showMessage("This enrolment is not ready for online payment.");
+    document.querySelector("#course-message").textContent = "This enrolment is not ready for online payment.";
     return;
   }
   const response = await fetch(SUPABASE_URL + "/functions/v1/paystack-payment", {
@@ -328,12 +329,12 @@ async function initializeCoursePayment(courseId) {
   });
   const result = await response.json().catch(()=>null);
   if (!response.ok || !result?.authorization_url) {
-    showMessage(result?.error || "Payment checkout could not be started.");
+    document.querySelector("#course-message").textContent = result?.error || "Payment checkout could not be started.";
     return;
   }
   const checkout = new URL(result.authorization_url);
   if (checkout.protocol !== "https:" || checkout.hostname !== "checkout.paystack.com") {
-    showMessage("The payment provider returned an invalid checkout address.");
+    document.querySelector("#course-message").textContent = "The payment provider returned an invalid checkout address.";
     return;
   }
   window.location.assign(checkout.href);
