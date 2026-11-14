@@ -185,7 +185,7 @@ async function openCourse(courseId) {
 
 async function syncSession(session) {
   activeSession=session;
-  const adminPath = window.location.pathname.replace(/\\/+$/, "") === "/portal/admin";
+  const adminPath = window.location.pathname === "/portal/admin" || window.location.pathname === "/portal/admin/";
   if(!session){renderAuth("signin");return;}
   const identity=await loadIdentity();
   if(adminPath){
