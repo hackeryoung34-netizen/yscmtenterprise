@@ -171,7 +171,9 @@ async function openCourse(courseId) {
     <div class="section-title"><h2>Lessons</h2></div>
     <div id="lessons" class="lesson-list"><div class="empty">Checking your lesson access…</div></div>
     <div id="course-progress"></div>
-    <div id="exam-area"></div>`;
+    <div id="exam-area"></div>
+    <div id="classroom-area"></div>
+    <div id="certificate-area"></div>`;
   document.querySelector("#close-course").addEventListener("click",()=>{detail.innerHTML="";});
   const payButton = document.querySelector("#pay-course");
   if(payButton && PAYMENTS_ENABLED) payButton.addEventListener("click",()=>initializeCoursePayment(courseId));
@@ -201,6 +203,7 @@ async function openCourse(courseId) {
     document.querySelector("#course-progress").innerHTML=`<div class="panel" style="margin-top:16px"><strong>Course progress: ${Number(p.progress_percent)||0}%</strong><p class="muted">${Number(p.completed_lessons)||0} of ${Number(p.total_lessons)||0} lessons completed</p><div style="height:9px;background:#e5edf3;border-radius:10px;overflow:hidden"><div style="height:100%;width:${Math.max(0,Math.min(100,Number(p.progress_percent)||0))}%;background:var(--blue)"></div></div></div>`;
   }
   await loadCourseExams(courseId);
+  await loadClassroom(courseId);
 }
 
 let examTimer = null;
@@ -365,6 +368,60 @@ async function renderPaymentCallback() {
   document.querySelector("#payment-status").textContent = response.ok && result?.confirmed
     ? "Payment verified successfully. Your enrolment has been approved."
     : (result?.error || "Payment is not confirmed yet. Please contact support before trying again.");
+}
+
+async function loadClassroom(courseId) {
+  const area = document.querySelector("#classroom-area");
+  const [sessions, announcements, replies, messages] = await Promise.all([
+    supabase.rpc("portal_list_classroom_sessions",{p_course_id:courseId}),
+    supabase.rpc("portal_list_classroom_announcements",{p_course_id:courseId}),
+    supabase.rpc("portal_list_teacher_replies",{p_course_id:courseId}),
+    supabase.rpc("portal_list_classroom_messages",{p_course_id:courseId})
+  ]);
+  if (sessions.error || announcements.error || replies.error || messages.error) {
+    area.innerHTML = '<div class="section-title"><h2>Virtual classroom</h2></div><div class="empty">Classroom access is being prepared and will open after the student RPC migration is activated.</div>';
+    return;
+  }
+  const sessionRows = Array.isArray(sessions.data) ? sessions.data : [];
+  const announcementRows = Array.isArray(announcements.data) ? announcements.data : [];
+  const replyRows = Array.isArray(replies.data) ? replies.data : [];
+  const messageRows = Array.isArray(messages.data) ? messages.data : [];
+  const sessionHtml = sessionRows.length ? sessionRows.map(item => {
+    let meeting = "";
+    try {
+      const url = new URL(item.meeting_url);
+      if (url.protocol === "https:") meeting = '<a class="text-btn" target="_blank" rel="noopener noreferrer" href="' + esc(url.href) + '">Open meeting link</a>';
+    } catch {}
+    return '<article class="course"><h3>' + esc(item.title) + '</h3><p>' + esc(item.description || "") + '</p><p class="muted">' +
+      esc(new Date(item.starts_at).toLocaleString()) + ' · ' + esc(item.status) + '</p>' +
+      (item.joined_at ? '<span class="pill">Attendance recorded</span>' : '<button class="small-btn" data-join-session="' + esc(item.id) + '">Join session</button>') +
+      meeting + '</article>';
+  }).join("") : '<div class="empty">No classroom sessions are scheduled.</div>';
+  const announcementHtml = announcementRows.map(item => '<article class="lesson"><strong>' + esc(item.title) + '</strong><p>' + esc(item.body) + '</p></article>').join("") || '<p class="muted">No announcements yet.</p>';
+  const replyHtml = replyRows.map(item => '<article class="lesson"><strong>Teacher reply</strong><p>' + esc(item.message) + '</p></article>').join("") || '<p class="muted">No teacher replies yet.</p>';
+  const messageHtml = messageRows.map(item => '<article class="lesson"><span class="pill">' + esc(item.author_role) + '</span><p>' + esc(item.message) + '</p><p class="muted">' + esc(new Date(item.created_at).toLocaleString()) + '</p></article>').join("") || '<p class="muted">No classroom messages yet.</p>';
+  area.innerHTML = '<div class="section-title"><h2>Virtual classroom</h2></div><div class="course-grid">' + sessionHtml + '</div>' +
+    '<div class="section-title"><h2>Announcements</h2></div>' + announcementHtml +
+    '<div class="section-title"><h2>Teacher replies</h2></div>' + replyHtml +
+    '<div class="section-title"><h2>Classroom discussion</h2></div><div class="lesson-list">' + messageHtml + '</div>' +
+    '<form id="classroom-message-form" class="panel" style="margin-top:14px"><div class="field"><label for="classroom-message">Send a message</label><textarea id="classroom-message" maxlength="2000" rows="3" required></textarea></div><button class="btn" type="submit">Send message</button><div id="classroom-message-result"></div></form>';
+  area.querySelectorAll("[data-join-session]").forEach(button => button.addEventListener("click",async()=>{
+    button.disabled=true;button.textContent="Joining…";
+    const result=await supabase.rpc("portal_join_classroom_session",{p_session_id:button.dataset.joinSession});
+    if(result.error){button.disabled=false;button.textContent="Try again";return;}
+    await loadClassroom(courseId);
+  }));
+  document.querySelector("#classroom-message-form").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const input=document.querySelector("#classroom-message");
+    const resultBox=document.querySelector("#classroom-message-result");
+    const button=event.currentTarget.querySelector("button");
+    button.disabled=true;
+    const result=await supabase.rpc("portal_send_classroom_message",{p_course_id:courseId,p_message:input.value});
+    if(result.error){resultBox.className="error";resultBox.textContent="Message could not be sent. Please try again.";}
+    else{input.value="";await loadClassroom(courseId);}
+    button.disabled=false;
+  });
 }
 
 async function syncSession(session) {
