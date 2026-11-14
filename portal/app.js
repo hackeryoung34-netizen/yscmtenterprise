@@ -125,6 +125,7 @@ function renderDashboard(identity, courses = [], courseError = false) {
     </section>
     <div class="section-title"><h2>Course catalogue</h2><span class="muted">YSCMT Enterprise</span></div>
     <div id="course-area"></div>
+    <div id="student-extras"></div>
     <div id="course-detail"></div>
     <div class="notice">This is a migration preview. Existing Hatchable student records, payment history and certificates have not been imported. The old portal remains unchanged.</div>
   `;
@@ -204,6 +205,7 @@ async function openCourse(courseId) {
   }
   await loadCourseExams(courseId);
   await loadClassroom(courseId);
+  await loadCertificateArea(courseId);
 }
 
 let examTimer = null;
@@ -424,6 +426,62 @@ async function loadClassroom(courseId) {
   });
 }
 
+async function loadCertificateArea(courseId) {
+  const area = document.querySelector("#certificate-area");
+  if (!area) return;
+  area.innerHTML = '<div class="section-title"><h2>Course certificate</h2></div><div class="panel"><p class="muted">Certificate eligibility requires every active lesson to be completed and a passed exam.</p><button class="small-btn" id="request-certificate">Request certificate</button><div id="certificate-result"></div></div>';
+  document.querySelector("#request-certificate").addEventListener("click",async()=>{
+    const button=document.querySelector("#request-certificate");
+    const resultBox=document.querySelector("#certificate-result");
+    button.disabled=true;button.textContent="Checking eligibility…";
+    const result=await supabase.rpc("portal_request_certificate",{p_course_id:courseId});
+    const certificate=Array.isArray(result.data)?result.data[0]:null;
+    if(result.error || !certificate){
+      resultBox.className="error";
+      resultBox.textContent="Certificate is not available yet. Complete all lessons and pass the course exam first.";
+    } else {
+      resultBox.className="success";
+      resultBox.textContent="Certificate issued: " + certificate.certificate_code;
+    }
+    button.disabled=false;button.textContent="Request certificate";
+  });
+}
+
+async function loadStudentExtras() {
+  const area=document.querySelector("#student-extras");
+  if(!area) return;
+  const [practice,certificates]=await Promise.all([
+    supabase.rpc("portal_list_my_practice_submissions"),
+    supabase.rpc("portal_list_my_certificates")
+  ]);
+  if(practice.error || certificates.error){
+    area.innerHTML='<div class="section-title"><h2>My practice and certificates</h2></div><div class="empty">Practice submissions and certificates will appear when the student services migration is activated.</div>';
+    return;
+  }
+  const practiceRows=Array.isArray(practice.data)?practice.data:[];
+  const certificateRows=Array.isArray(certificates.data)?certificates.data:[];
+  area.innerHTML='<div class="section-title"><h2>Practice submissions</h2></div>' +
+    (practiceRows.length?practiceRows.map(item=>'<article class="lesson"><strong>'+esc(item.title)+'</strong><p>'+esc(item.lab_key)+' · '+esc(item.status)+'</p><p>'+esc(item.reviewer_notes||"Awaiting review")+'</p></article>').join(""):'<div class="empty">No practice submissions yet.</div>')+
+    '<form id="practice-form" class="panel" style="margin-top:14px"><div class="field"><label for="practice-lab">Lab key</label><input id="practice-lab" maxlength="100" required></div><div class="field"><label for="practice-title">Project title</label><input id="practice-title" maxlength="200" required></div><div class="field"><label for="practice-text">Submission notes</label><textarea id="practice-text" maxlength="5000" rows="3"></textarea></div><div class="field"><label for="practice-url">Project URL (HTTPS)</label><input id="practice-url" type="url" placeholder="https://…"></div><button class="btn" type="submit">Submit practice</button><div id="practice-result"></div></form>'+
+    '<div class="section-title"><h2>My certificates</h2></div>'+
+    (certificateRows.length?certificateRows.map(item=>'<article class="course"><span class="pill">Verified record</span><h3>'+esc(item.course_title)+'</h3><p>'+esc(item.student_name)+'</p><p class="muted">Certificate code: '+esc(item.certificate_code)+'</p></article>').join(""):'<div class="empty">No certificates issued yet.</div>');
+  document.querySelector("#practice-form").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const button=event.currentTarget.querySelector("button");
+    const resultBox=document.querySelector("#practice-result");
+    button.disabled=true;button.textContent="Submitting…";
+    const result=await supabase.rpc("portal_submit_practice",{
+      p_lab_key:document.querySelector("#practice-lab").value,
+      p_title:document.querySelector("#practice-title").value,
+      p_submission_text:document.querySelector("#practice-text").value,
+      p_project_url:document.querySelector("#practice-url").value
+    });
+    if(result.error){resultBox.className="error";resultBox.textContent="Practice work could not be submitted. Check the fields and try again.";}
+    else{await loadStudentExtras();}
+    button.disabled=false;button.textContent="Submit practice";
+  });
+}
+
 async function syncSession(session) {
   activeSession=session;
   const adminPath = window.location.pathname === "/portal/admin" || window.location.pathname === "/portal/admin/";
@@ -440,6 +498,7 @@ async function syncSession(session) {
   let courses=[],courseError=false;
   try{courses=await loadCourses();}catch{courseError=true;}
   renderDashboard(identity || {role:"Student"},courses,courseError);
+  await loadStudentExtras();
 }
 
 supabase.auth.onAuthStateChange((_event,session)=>{activeSession=session;queueMicrotask(()=>syncSession(session));});
