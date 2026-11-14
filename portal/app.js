@@ -307,10 +307,72 @@ function renderTimedExam(session, questions) {
   });
 }
 
+async function initializeCoursePayment(courseId) {
+  if (!PAYMENTS_ENABLED) return;
+  const {data:{session}} = await supabase.auth.getSession();
+  if (!session) throw new Error("Sign in again before paying.");
+  const {data:enrollmentRows,error:enrollmentError} = await supabase.rpc("portal_get_my_course_enrollment",{p_course_id:courseId});
+  const enrollment = Array.isArray(enrollmentRows) ? enrollmentRows[0] : null;
+  if (enrollmentError || !enrollment || enrollment.status !== "pending" || enrollment.fee_currency !== "NGN") {
+    showMessage("This enrolment is not ready for online payment.");
+    return;
+  }
+  const response = await fetch(SUPABASE_URL + "/functions/v1/paystack-payment", {
+    method: "POST",
+    headers: {
+      "apikey": SUPABASE_PUBLISHABLE_KEY,
+      "Authorization": "Bearer " + session.access_token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({action:"initialize",enrollment_id:enrollment.enrollment_id})
+  });
+  const result = await response.json().catch(()=>null);
+  if (!response.ok || !result?.authorization_url) {
+    showMessage(result?.error || "Payment checkout could not be started.");
+    return;
+  }
+  const checkout = new URL(result.authorization_url);
+  if (checkout.protocol !== "https:" || checkout.hostname !== "checkout.paystack.com") {
+    showMessage("The payment provider returned an invalid checkout address.");
+    return;
+  }
+  window.location.assign(checkout.href);
+}
+
+async function renderPaymentCallback() {
+  app.innerHTML = '<section class="panel" style="max-width:620px;margin:60px auto;padding:38px"><span class="eyebrow">PAYMENT STATUS</span><h1 style="color:var(--navy)">Checking your payment</h1><p class="muted" id="payment-status">Please wait…</p><a class="text-btn" href="/portal/">Return to portal</a></section>';
+  if (!PAYMENTS_ENABLED) {
+    document.querySelector("#payment-status").textContent = "Payment verification is not open in this preview. No payment has been requested or processed.";
+    return;
+  }
+  const reference = new URLSearchParams(window.location.search).get("reference");
+  const {data:{session}} = await supabase.auth.getSession();
+  if (!reference || !session) {
+    document.querySelector("#payment-status").textContent = "Sign in again with the account used for this payment to verify its status.";
+    return;
+  }
+  const response = await fetch(SUPABASE_URL + "/functions/v1/paystack-payment", {
+    method: "POST",
+    headers: {
+      "apikey": SUPABASE_PUBLISHABLE_KEY,
+      "Authorization": "Bearer " + session.access_token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({action:"verify",reference})
+  });
+  const result = await response.json().catch(()=>null);
+  document.querySelector("#payment-status").textContent = response.ok && result?.confirmed
+    ? "Payment verified successfully. Your enrolment has been approved."
+    : (result?.error || "Payment is not confirmed yet. Please contact support before trying again.");
+}
+
 async function syncSession(session) {
   activeSession=session;
   const adminPath = window.location.pathname === "/portal/admin" || window.location.pathname === "/portal/admin/";
   if(!session){renderAuth("signin");return;}
+  if(window.location.pathname === "/portal/payment/callback" || window.location.pathname === "/portal/payment/callback/"){
+    await renderPaymentCallback();return;
+  }
   const identity=await loadIdentity();
   if(adminPath){
     if(!identity){app.innerHTML='<div class="empty">Administrator identity verification is unavailable. Access remains closed until the secure role service is enabled.</div>';return;}
