@@ -47,6 +47,7 @@ function renderAuth(mode = "signin") {
           <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="${signup ? "new-password" : "current-password"}" minlength="8" required placeholder="At least 8 characters"></div>
           <button class="btn" id="submit" type="submit">${signup ? "Create student account" : "Sign in securely"}</button>
         </form>
+        <a class="text-btn" href="/portal/admin">Administrator access</a>
         <button class="text-btn" id="switch-mode" type="button">${signup ? "Already registered? Sign in" : "New student? Create an account"}</button>
         <div class="notice">Portal migration preview: course data and existing student accounts have not yet been imported. Please do not create a real account until registration is officially opened.</div>
       </div>
@@ -97,6 +98,16 @@ async function loadCourses() {
   const {data,error} = await supabase.rpc("portal_list_courses");
   if (error) throw error;
   return Array.isArray(data) ? data : [];
+}
+
+function renderAccessDenied() {
+  app.innerHTML = '<section class="panel" style="max-width:620px;margin:60px auto;text-align:center;padding:38px"><span class="eyebrow">YSCMT ADMINISTRATION</span><h1 style="color:var(--navy)">Access restricted</h1><p class="muted">This account does not have a verified administrator role. Admin access is controlled by the private role registry, not profile metadata.</p><a class="btn" style="display:grid;place-items:center" href="/portal/">Return to student portal</a></section>';
+}
+
+function renderAdminPreview(identity) {
+  app.innerHTML = '<header class="dashboard-head"><div><span class="eyebrow">YSCMT OWNER CONTROL CENTRE</span><h1>Administrator workspace</h1><p id="admin-name"></p></div><button class="small-btn" id="signout">Sign out</button></header><section class="grid"><article class="panel"><div class="stat">Protected</div><div class="muted">Trusted admin role verified</div></article><article class="panel"><div class="stat">Pending</div><div class="muted">Admin API migration</div></article><article class="panel"><div class="stat">Legacy</div><div class="muted">Existing admin portal remains unchanged</div></article></section><div class="section-title"><h2>Administration modules</h2><span class="muted">Preview only</span></div><div class="grid"><article class="panel"><strong>Students</strong><p class="muted">Student records and access controls</p></article><article class="panel"><strong>Courses &amp; lessons</strong><p class="muted">Learning programme management</p></article><article class="panel"><strong>Enrolments</strong><p class="muted">Review and approve requests</p></article><article class="panel"><strong>Payments</strong><p class="muted">Payment reconciliation and receipts</p></article><article class="panel"><strong>Exams &amp; results</strong><p class="muted">Assessments and results</p></article><article class="panel"><strong>Certificates</strong><p class="muted">Eligibility and issuance</p></article></div><div class="notice">Admin data APIs and audit workflows are not yet enabled. No administrative action can be performed from this preview. Continue using the existing admin portal until migration approval and testing.</div><p><a class="text-btn" href="/portal/">Open student portal</a></p>';
+  document.querySelector('#admin-name').textContent = 'Verified administrator: ' + (identity.full_name || activeSession?.user?.email || 'Admin');
+  document.querySelector('#signout').addEventListener('click', async () => { await supabase.auth.signOut(); });
 }
 
 function renderDashboard(identity, courses = [], courseError = false) {
@@ -174,8 +185,14 @@ async function openCourse(courseId) {
 
 async function syncSession(session) {
   activeSession=session;
+  const adminPath = window.location.pathname.replace(/\\/+$/, "") === "/portal/admin";
   if(!session){renderAuth("signin");return;}
   const identity=await loadIdentity();
+  if(adminPath){
+    if(!identity){app.innerHTML='<div class="empty">Administrator identity verification is unavailable. Access remains closed until the secure role service is enabled.</div>';return;}
+    if(identity.role !== "admin"){renderAccessDenied();return;}
+    renderAdminPreview(identity);return;
+  }
   let courses=[],courseError=false;
   try{courses=await loadCourses();}catch{courseError=true;}
   renderDashboard(identity || {role:"Student"},courses,courseError);
