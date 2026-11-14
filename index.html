@@ -1170,7 +1170,7 @@ if (yscmtQuoteForm) {
       'Service: ' + values.get('service'),
       'Preferred currency: ' + values.get('currency'),
       'Details: ' + values.get('project_details')
-    ].join('\\n');
+    ].join('\n');
     const channel = event.submitter && event.submitter.dataset.channel;
     if (channel === 'email') {
       const subject = encodeURIComponent('YSCMT Enterprise — Service Enquiry');
