@@ -1,6 +1,6 @@
-// Supabase public client configuration. Replace these two values with your project details.
-// The anon key is intended for browser use; database security must be enforced by the RLS policies in supabase/schema.sql.
+// Public Supabase browser configuration for YSCMT Community.
+// This publishable key is safe to expose in the browser; access is restricted by RLS.
 window.YSCMT_CONFIG = {
-  url: "YOUR_SUPABASE_PROJECT_URL",
-  anonKey: "YOUR_SUPABASE_ANON_KEY"
+  url: "https://tfaraznupjwpkyflwdjg.supabase.co",
+  anonKey: "sb_publishable_AfrRv8pVqaSZvlpXJlI36Q_ppQh4sRY"
 };
