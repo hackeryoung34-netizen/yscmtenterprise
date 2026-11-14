@@ -165,7 +165,7 @@ async function openCourse(courseId) {
       <p>${esc(course.description || "")}</p>
       <p><strong>Fee: ${money(course.fee_amount,course.fee_currency)}</strong></p>
       ${hasEnrollment ? `<div class="notice">Enrolment status: ${esc(course.enrollment_status)}</div>` : '<button class="btn" id="enrol-course">Request enrolment</button>'}
-      ${course.enrollment_status === "pending" && Number(course.fee_amount) > 0 ? '<button class="small-btn" id="pay-course" disabled>Pay online with Paystack (preview only)</button><p class="muted">Online payments remain disabled until the secure Paystack function is deployed and tested.</p>' : ""}
+      ${course.enrollment_status === "pending" && Number(course.fee_amount) > 0 ? '<button class="small-btn" id="pay-course" ${PAYMENTS_ENABLED ? "" : "disabled"}>Pay online with Paystack${PAYMENTS_ENABLED ? "" : " (preview only)"}</button><p class="muted">Online payments remain disabled until the secure Paystack function is deployed and tested.</p>' : ""}
       <div id="course-message"></div>
     </article>
     <div class="section-title"><h2>Lessons</h2></div>
