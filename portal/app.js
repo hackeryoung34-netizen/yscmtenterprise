@@ -106,9 +106,85 @@ function renderAccessDenied() {
 }
 
 function renderAdminPreview(identity) {
-  app.innerHTML = '<header class="dashboard-head"><div><span class="eyebrow">YSCMT OWNER CONTROL CENTRE</span><h1>Administrator workspace</h1><p id="admin-name"></p></div><button class="small-btn" id="signout">Sign out</button></header><section class="grid"><article class="panel"><div class="stat">Protected</div><div class="muted">Trusted admin role verified</div></article><article class="panel"><div class="stat">Pending</div><div class="muted">Admin API migration</div></article><article class="panel"><div class="stat">Legacy</div><div class="muted">Existing admin portal remains unchanged</div></article></section><div class="section-title"><h2>Administration modules</h2><span class="muted">Preview only</span></div><div class="grid"><article class="panel"><strong>Students</strong><p class="muted">Student records and access controls</p></article><article class="panel"><strong>Courses &amp; lessons</strong><p class="muted">Learning programme management</p></article><article class="panel"><strong>Enrolments</strong><p class="muted">Review and approve requests</p></article><article class="panel"><strong>Payments</strong><p class="muted">Payment reconciliation and receipts</p></article><article class="panel"><strong>Exams &amp; results</strong><p class="muted">Assessments and results</p></article><article class="panel"><strong>Certificates</strong><p class="muted">Eligibility and issuance</p></article></div><div class="notice">Admin data APIs and audit workflows are not yet enabled. No administrative action can be performed from this preview. Continue using the existing admin portal until migration approval and testing.</div><p><a class="text-btn" href="/portal/">Open student portal</a></p>';
-  document.querySelector('#admin-name').textContent = 'Verified administrator: ' + (identity.full_name || activeSession?.user?.email || 'Admin');
-  document.querySelector('#signout').addEventListener('click', async () => { await supabase.auth.signOut(); });
+  app.innerHTML = '<header class="dashboard-head"><div><span class="eyebrow">YSCMT OWNER CONTROL CENTRE</span><h1>Administrator workspace</h1><p id="admin-name"></p></div><button class="small-btn" id="signout">Sign out</button></header><section id="admin-overview" class="grid"></section><div class="section-title"><h2>Students</h2></div><div id="admin-students"></div><div class="section-title"><h2>Enrolments</h2></div><div id="admin-enrollments"></div><div class="section-title"><h2>Courses</h2></div><div id="admin-courses"></div><form id="admin-course-form" class="panel"><h3>Create course</h3><div class="field"><label for="admin-title">Title</label><input id="admin-title" maxlength="150" required></div><div class="field"><label for="admin-description">Description</label><textarea id="admin-description" maxlength="10000" required></textarea></div><div class="field"><label for="admin-level">Level</label><input id="admin-level" maxlength="50" value="Beginner" required></div><div class="field"><label for="admin-fee">Fee (NGN)</label><input id="admin-fee" type="number" min="0" step="0.01" value="0" required></div><button class="btn" type="submit">Create course</button><div id="admin-course-result"></div></form><div class="section-title"><h2>Paystack transactions</h2></div><div id="admin-paystack"></div><div class="section-title"><h2>Bank payments</h2></div><div id="admin-bank"></div><div class="section-title"><h2>Practice reviews</h2></div><div id="admin-practice"></div><div class="section-title"><h2>Certificates</h2></div><div id="admin-certificates"></div><div class="notice">Admin actions are checked by trusted database roles and recorded in the audit log. Services remain unavailable until migrations 005-012 are approved and applied.</div><p><a class="text-btn" href="/portal/">Open student portal</a></p>';
+  document.querySelector("#admin-name").textContent = "Verified administrator: " + (identity.full_name || activeSession?.user?.email || "Admin");
+  document.querySelector("#signout").addEventListener("click", async () => { await supabase.auth.signOut(); });
+}
+
+async function loadAdminDashboard(identity) {
+  renderAdminPreview(identity);
+  const results = await Promise.all([
+    supabase.rpc("portal_admin_overview"),
+    supabase.rpc("portal_admin_list_students",{p_limit:100}),
+    supabase.rpc("portal_admin_list_enrollments",{p_status:null,p_limit:200}),
+    supabase.rpc("portal_admin_list_courses"),
+    supabase.rpc("portal_admin_list_paystack_payments"),
+    supabase.rpc("portal_admin_list_payment_submissions"),
+    supabase.rpc("portal_admin_list_practice_submissions"),
+    supabase.rpc("portal_admin_list_certificates")
+  ]);
+  if (results.some(item => item.error)) {
+    document.querySelector("#admin-overview").innerHTML = '<div class="empty">Secure admin data services are not active yet. No administrative change has been made.</div>';
+    return;
+  }
+  const summary = results[0].data?.[0] || {};
+  const metrics = [["Students",summary.students_count],["Courses",summary.active_courses_count],["Enrolments",summary.enrollments_count],["Pending enrolments",summary.pending_enrollments_count],["Bank payments",summary.pending_bank_payments_count],["Paystack pending",summary.pending_paystack_count],["Practice to review",summary.submitted_practice_count],["Certificates",summary.certificates_count]];
+  document.querySelector("#admin-overview").innerHTML = metrics.map(item => '<article class="panel"><div class="stat">' + Number(item[1] || 0) + '</div><div class="muted">' + esc(item[0]) + '</div></article>').join("");
+
+  const students = Array.isArray(results[1].data) ? results[1].data : [];
+  document.querySelector("#admin-students").innerHTML = students.length ? '<div class="lesson-list">' + students.map(item => '<article class="lesson"><strong>' + esc(item.full_name || "Student") + '</strong><p>' + esc(item.email || "") + ' · ' + esc(item.phone || "") + '</p><p class="muted">Enrolments: ' + Number(item.enrollment_count || 0) + '</p></article>').join("") + '</div>' : '<div class="empty">No students found.</div>';
+
+  const enrollments = Array.isArray(results[2].data) ? results[2].data : [];
+  document.querySelector("#admin-enrollments").innerHTML = enrollments.length ? '<div class="lesson-list">' + enrollments.map(item => '<article class="lesson"><strong>' + esc(item.student_name || item.email || "Student") + '</strong><p>' + esc(item.course_title) + ' · ' + esc(item.status) + '</p><p class="muted">' + esc(item.email || "") + '</p>' + (item.status === "pending" ? '<button class="small-btn" data-admin-enrollment="' + esc(item.enrollment_id) + '" data-status="approved">Approve</button> <button class="small-btn" data-admin-enrollment="' + esc(item.enrollment_id) + '" data-status="rejected">Reject</button>' : '') + '</article>').join("") + '</div>' : '<div class="empty">No enrolment requests.</div>';
+
+  const courses = Array.isArray(results[3].data) ? results[3].data : [];
+  document.querySelector("#admin-courses").innerHTML = courses.length ? '<div class="course-grid">' + courses.map(item => '<article class="course"><span class="pill">' + (item.active ? "Active" : "Inactive") + '</span><h3>' + esc(item.title) + '</h3><p>' + esc(item.description) + '</p><p class="muted">' + esc(item.level) + ' · ' + money(item.fee_amount,item.fee_currency) + '</p></article>').join("") + '</div>' : '<div class="empty">No courses created.</div>';
+
+  const paystack = Array.isArray(results[4].data) ? results[4].data : [];
+  document.querySelector("#admin-paystack").innerHTML = paystack.length ? '<div class="lesson-list">' + paystack.map(item => '<article class="lesson"><strong>' + esc(item.course_title) + '</strong><p>' + esc(item.student_name || item.student_email) + ' · ' + money(Number(item.amount_kobo)/100,item.currency) + '</p><p class="muted">' + esc(item.reference) + ' · ' + esc(item.status) + '</p></article>').join("") + '</div>' : '<div class="empty">No Paystack transactions.</div>';
+
+  const bank = Array.isArray(results[5].data) ? results[5].data : [];
+  document.querySelector("#admin-bank").innerHTML = bank.length ? '<div class="lesson-list">' + bank.map(item => '<article class="lesson"><strong>' + esc(item.student_name || item.student_email) + ' · ' + esc(item.course_title) + '</strong><p>' + money(item.amount,item.currency) + ' · ' + esc(item.transfer_reference) + '</p><p class="muted">' + esc(item.file_name) + ' · ' + esc(item.status) + '</p>' + (item.status === "pending" ? '<button class="small-btn" data-admin-payment="' + esc(item.id) + '" data-status="approved">Approve</button> <button class="small-btn" data-admin-payment="' + esc(item.id) + '" data-status="rejected">Reject</button>' : '') + '</article>').join("") + '</div>' : '<div class="empty">No bank transfer submissions. Receipt upload is not yet enabled.</div>';
+
+  const practice = Array.isArray(results[6].data) ? results[6].data : [];
+  document.querySelector("#admin-practice").innerHTML = practice.length ? '<div class="lesson-list">' + practice.map(item => '<article class="lesson"><strong>' + esc(item.student_name || item.student_email) + ' · ' + esc(item.title) + '</strong><p>' + esc(item.lab_key) + ' · ' + esc(item.status) + '</p><p>' + esc(item.submission_text || "") + '</p><p class="muted">' + esc(item.reviewer_notes || "") + '</p>' + (item.status === "submitted" || item.status === "reviewing" ? '<button class="small-btn" data-admin-practice="' + esc(item.id) + '" data-status="approved">Approve</button> <button class="small-btn" data-admin-practice="' + esc(item.id) + '" data-status="rejected">Reject</button>' : '') + '</article>').join("") + '</div>' : '<div class="empty">No practice submissions.</div>';
+
+  const certificates = Array.isArray(results[7].data) ? results[7].data : [];
+  document.querySelector("#admin-certificates").innerHTML = certificates.length ? '<div class="lesson-list">' + certificates.map(item => '<article class="lesson"><strong>' + esc(item.student_name) + ' · ' + esc(item.course_title) + '</strong><p class="muted">' + esc(item.certificate_code) + ' · ' + esc(item.student_email) + '</p></article>').join("") + '</div>' : '<div class="empty">No certificates issued.</div>';
+
+  document.querySelectorAll("[data-admin-enrollment]").forEach(button => button.addEventListener("click",async()=>{
+    button.disabled=true;
+    const result=await supabase.rpc("portal_admin_review_enrollment",{p_enrollment_id:button.dataset.adminEnrollment,p_status:button.dataset.status,p_note:"Reviewed in YSCMT admin portal"});
+    if(result.error){button.disabled=false;button.textContent="Review failed";return;}
+    await loadAdminDashboard(identity);
+  }));
+  document.querySelectorAll("[data-admin-payment]").forEach(button => button.addEventListener("click",async()=>{
+    button.disabled=true;
+    const result=await supabase.rpc("portal_admin_review_payment_submission",{p_submission_id:button.dataset.adminPayment,p_status:button.dataset.status,p_note:"Reviewed in YSCMT admin portal"});
+    if(result.error){button.disabled=false;button.textContent="Review failed";return;}
+    await loadAdminDashboard(identity);
+  }));
+  document.querySelectorAll("[data-admin-practice]").forEach(button => button.addEventListener("click",async()=>{
+    button.disabled=true;
+    const result=await supabase.rpc("portal_admin_review_practice_submission",{p_submission_id:button.dataset.adminPractice,p_status:button.dataset.status,p_notes:"Reviewed in YSCMT admin portal"});
+    if(result.error){button.disabled=false;button.textContent="Review failed";return;}
+    await loadAdminDashboard(identity);
+  }));
+  document.querySelector("#admin-course-form").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const button=event.currentTarget.querySelector("button");
+    const resultBox=document.querySelector("#admin-course-result");
+    button.disabled=true;button.textContent="Creating…";
+    const result=await supabase.rpc("portal_admin_create_course",{
+      p_title:document.querySelector("#admin-title").value,
+      p_description:document.querySelector("#admin-description").value,
+      p_level:document.querySelector("#admin-level").value,
+      p_fee_amount:Number(document.querySelector("#admin-fee").value),
+      p_fee_currency:"NGN"
+    });
+    if(result.error){resultBox.className="error";resultBox.textContent="Course could not be created. Check the fields and try again.";button.disabled=false;button.textContent="Create course";return;}
+    await loadAdminDashboard(identity);
+  });
 }
 
 function renderDashboard(identity, courses = [], courseError = false) {
@@ -493,7 +569,7 @@ async function syncSession(session) {
   if(adminPath){
     if(!identity){app.innerHTML='<div class="empty">Administrator identity verification is unavailable. Access remains closed until the secure role service is enabled.</div>';return;}
     if(identity.role !== "admin"){renderAccessDenied();return;}
-    renderAdminPreview(identity);return;
+    await loadAdminDashboard(identity);return;
   }
   let courses=[],courseError=false;
   try{courses=await loadCourses();}catch{courseError=true;}
