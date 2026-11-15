@@ -473,6 +473,29 @@ footer p,footer li{font-size:11.5px;line-height:1.7}
 .quote-form .quote-note,.quote-note{font-size:11px;color:#637487;line-height:1.6}
 @media(max-width:700px){.quote-layout{grid-template-columns:1fr}.quote-form{grid-template-columns:1fr;padding:17px}.quote-form label:nth-child(4),.quote-form label:nth-child(6),.quote-actions,.quote-form .quote-note{grid-column:auto}.quote-actions button{flex:1}}
 
+
+/* YSCMT shared typography refinement — smaller, consistent, responsive text */
+body{font-size:15px}
+body p,body li,body td,body th,body label,body input,body textarea,body select,body button,body small{font-size:14px!important}
+body h1{font-size:clamp(30px,3.8vw,42px)!important;line-height:1.15}
+body h2{font-size:clamp(23px,2.8vw,30px)!important;line-height:1.25}
+body h3{font-size:18px!important;line-height:1.35}
+body h4{font-size:16px!important}
+body .brand-name strong{font-size:21px!important}
+body .nav-links a{font-size:13px!important}
+body .topbar,body .eyebrow,body .heading .tag{font-size:11px!important}
+body .slide h1{font-size:clamp(30px,4vw,44px)!important}
+body .slide p{font-size:15px!important}
+body .corporate-banner h1{font-size:clamp(30px,3.8vw,44px)!important}
+body .corporate-banner-tagline{font-size:18px!important}
+body .corporate-banner-copy{font-size:14px!important}
+@media(max-width:650px){
+ body h1{font-size:30px!important}
+ body h2{font-size:24px!important}
+ body .slide h1{font-size:32px!important}
+ body .brand-name strong{font-size:16px!important}
+}
+
 </style>
 </head>
 
