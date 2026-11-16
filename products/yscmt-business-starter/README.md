@@ -1,25 +1,19 @@
-# YSCMT Enterprise — Main Website Template
+# Generic Business Website Starter
 
 **Price:** NGN 15,000 (one-time digital download)  
-**License:** Single business / single website project. See [LICENSE.txt](./LICENSE.txt).
+**License:** Single business / one website project. See [LICENSE.txt](./LICENSE.txt).
 
-A standalone copy of the YSCMT Enterprise homepage design, preserving YSCMT's brand, layout, content, and visual style.
+A clean, responsive, generic business landing-page starter. It contains no YSCMT branding, company contact details, founder biography, or YSCMT-specific imagery.
 
 ## Package contents
-- `index.html` — homepage markup, styling, and interactive scripts
-- `images/yscmt-enterprise-logo.jpg` — YSCMT Enterprise logo
-- `images/yscmt-focus.jpg` — YSCMT image asset
-- `images/yscmt-workstation.jpg` — YSCMT image asset
-- `LICENSE.txt` — customer license
+- `index.html` — complete responsive page with embedded CSS and JavaScript
+- `LICENSE.txt` — single-business customer license
 
-## Preview locally
-Open `index.html` in a modern browser. Keep the `images` folder beside it so local images load.
+## Customize
+1. Replace YOUR BRAND and all sample copy with your own business information.
+2. Update the email address, navigation and calls to action.
+3. Adjust colors in the CSS variables at the top of the file.
+4. Test on mobile and desktop before publishing.
 
-## Before using for another business
-- Replace YSCMT contact details, service links, and brand references with the purchaser's own details.
-- Review embedded media, external links, privacy notices, and contact details.
-- Review third-party fonts, libraries, images, and services under their own licenses.
-- The license permits one business and one website/project only. Resale, redistribution, sublicensing, and sharing the source package are prohibited.
-
-## Support and delivery
-This is a digital download. Installation, hosting, domain registration, and custom changes are not included unless separately agreed in writing. The package should be tested on the purchaser's chosen hosting provider before launch.
+## Important
+This starter is a simple static landing page, not a full CMS, ecommerce checkout, booking system or backend. No third-party images, fonts or JavaScript libraries are bundled. Hosting, domain registration, installation and custom development are not included.
