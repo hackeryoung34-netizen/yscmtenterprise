@@ -1,23 +1,24 @@
 # YSCMT Enterprise — Main Website Template
 
-This template now uses the **actual YSCMT Enterprise main website** as its source design. It is not a newly invented demo brand or a separate visual direction.
+This package is a standalone copy of the actual YSCMT Enterprise homepage, taken from the main website design. It preserves YSCMT's own brand, layout, content, and visual style.
 
-## What it carries over
-- The original YSCMT Enterprise homepage structure and navigation
-- The original navy, blue, gold and white brand palette
-- The existing YSCMT logo and corporate banner
-- The original hero slider, service cards, founder section and content layouts
-- Three original YSCMT image assets bundled locally (logo, focus image and workstation image)
-- The existing responsive styles and interactive homepage behaviour
+## Package contents
+- `index.html` — homepage markup, with its page styling and interactive scripts embedded
+- `images/yscmt-enterprise-logo.jpg` — YSCMT Enterprise logo
+- `images/yscmt-focus.jpg` — original YSCMT image asset
+- `images/yscmt-workstation.jpg` — original YSCMT image asset
+- `LICENSE.txt` — preview license notice
 
-## Preview / local use
-The page is copied from the main website's `index.html`. It uses the original site's root-level assets (for example, files under `/images/`) and the same public contact links. For a local preview, run it from the website root or keep the original asset paths available.
+## Preview locally
+Open `index.html` in a modern browser. Keep the `images` folder beside it so the logo and local photos load.
 
-## Important
-- The live homepage in the repository's `main` branch has not been changed by this template update.
-- This copy is maintained on `feature/yscmt-template-store`.
-- Review image and other root asset paths before distributing this as a standalone ZIP.
-- Confirm any public contact details and legal/privacy notices before selling or publishing it.
+## Before distributing
+- This is currently a YSCMT-branded preview package, not a cleared commercial resale product.
+- The page retains YSCMT's live contact details and some links to YSCMT's existing services and sites. Replace those with the buyer's details when adapting it for another business.
+- Review embedded media, external links, privacy notices, and contact details before publishing.
+- Obtain approval for the final customer license before listing or selling the package.
 
-## Brand
-YSCMT Enterprise — Learn. Build. Innovate.
+## Source and safety
+- Adapted from the YSCMT Enterprise homepage in the `main` branch.
+- This copy lives on `feature/yscmt-template-store`; the live homepage branch has not been changed.
+- The package includes local copies of the three image assets used by the homepage.
