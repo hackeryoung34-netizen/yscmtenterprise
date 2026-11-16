@@ -58,11 +58,11 @@ Assign `store_admin` to the intended administrator account using Supabase Auth u
 
 Paystack is the selected first payment provider. The integration code is implemented, but checkout is not live until the required server-side keys, merchant activation, webhook endpoint and end-to-end tests are complete. Before taking customer money:
 
-1. Select and authorize a payment provider.
-2. Configure its secret keys in server-side environment variables only.
-3. Implement server-side payment initialization, signed webhook verification, idempotency and amount/currency validation.
-4. Ensure webhook processing is atomic and cannot mark an order paid from browser input.
-5. Test duplicate, forged, failed, pending, refunded and successful payment events.
+1. Complete Paystack merchant compliance and activate the Nigerian business account.
+2. Add the Paystack Test Secret Key and Supabase service-role key to Vercel Preview server-side environment variables; never share or commit them.
+3. Configure the Paystack webhook URL to the production API only after the route is deployed and TLS is active.
+4. Test duplicate, forged, failed, pending, refunded and successful payment events; confirm amount, currency, order ID metadata and idempotency.
+5. Switch to the Paystack Live Secret Key only after successful test-mode review and merchant activation.
 6. Upload only YSCMT-owned or explicitly licensed ZIP archives to private storage.
 7. Publish products only after checking ownership/licence, demo, screenshots, supported technologies, version, price and archive integrity.
 8. Test customer registration, login, order creation, payment, download entitlement, installation requests and expired signed links end to end.
