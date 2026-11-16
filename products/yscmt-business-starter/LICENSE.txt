@@ -1,0 +1,7 @@
+YSCMT ENTERPRISE — TEMPLATE LICENSE
+
+This YSCMT-branded starter is a development preview. The final customer license and permitted usage terms must be approved by YSCMT Enterprise and attached to the product listing before any sale.
+
+Until a final license is published, do not redistribute, resell, sublicense, or claim exclusive ownership of this package.
+
+© YSCMT Enterprise. All rights reserved.
