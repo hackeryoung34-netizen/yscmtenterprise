@@ -1,41 +1,50 @@
+const crypto = require("crypto");
 function send(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json; charset=utf-8").send(JSON.stringify(body));
 }
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") { res.setHeader("Allow", "POST"); return send(res, 405, { error: "Method not allowed" }); }
-  const root = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
-  const anonKey = process.env.SUPABASE_ANON_KEY;
-  if (!root || !anonKey) return send(res, 503, { error: "Order service is not configured yet." });
-  const authorization = req.headers.authorization || "";
-  const accessToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  const root = (process.env.SUPABASE_URL || "").replace(/\/$/, ""), anonKey = process.env.SUPABASE_ANON_KEY;
+  const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
+  if (!root || !anonKey || !paystackSecret) return send(res, 503, { error: "Secure checkout is not configured yet. Please try again later." });
+  const authorization = req.headers.authorization || "", accessToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   const body = req.body && typeof req.body === "object" ? req.body : {};
-  const productId = typeof body.product_id === "string" ? body.product_id : "";
-  const purchaseType = body.purchase_type;
-  if (!accessToken || !/^[0-9a-f-]{36}$/i.test(productId) || !["source_code", "installation"].includes(purchaseType)) return send(res, 400, { error: "Sign in and provide a valid product and purchase type." });
+  const productId = typeof body.product_id === "string" ? body.product_id : "", purchaseType = body.purchase_type;
+  if (!accessToken || !/^[0-9a-f-]{36}$/i.test(productId) || !["source_code","installation"].includes(purchaseType)) return send(res, 400, { error: "Sign in and provide a valid product and purchase type." });
   const headers = { apikey: anonKey, Authorization: "Bearer " + accessToken, "Content-Type": "application/json" };
   try {
     const userResponse = await fetch(root + "/auth/v1/user", { headers });
     if (!userResponse.ok) return send(res, 401, { error: "Your session is invalid or expired." });
     const user = await userResponse.json();
+    if (!user.email) return send(res, 400, { error: "A verified email address is required for payment." });
     const productUrl = new URL(root + "/rest/v1/store_products");
-    productUrl.searchParams.set("select", "id,download_price_ngn,installation_price_ngn");
-    productUrl.searchParams.set("id", "eq." + productId);
-    productUrl.searchParams.set("status", "eq.published");
-    productUrl.searchParams.set("limit", "1");
-    const productResponse = await fetch(productUrl, { headers });
-    if (!productResponse.ok) return send(res, 502, { error: "Unable to verify this product." });
-    const products = await productResponse.json(), product = products[0];
-    if (!product) return send(res, 404, { error: "This template is not available for purchase." });
-    const amount = purchaseType === "source_code" ? product.download_price_ngn : product.installation_price_ngn;
-    if (!Number.isSafeInteger(amount) || amount < 0) return send(res, 409, { error: "This purchase option is not available yet." });
-    const orderResponse = await fetch(root + "/rest/v1/store_orders", {
-      method: "POST", headers: { ...headers, Prefer: "return=representation" },
-      body: JSON.stringify({ user_id: user.id, product_id: product.id, purchase_type: purchaseType, amount_ngn: amount, currency: "NGN", status: "pending" })
+    productUrl.searchParams.set("select","id,name,download_price_ngn,installation_price_ngn");
+    productUrl.searchParams.set("id","eq."+productId); productUrl.searchParams.set("status","eq.published"); productUrl.searchParams.set("limit","1");
+    const productResponse = await fetch(productUrl,{headers});
+    if (!productResponse.ok) return send(res,502,{error:"Unable to verify this product."});
+    const products=await productResponse.json(), product=products[0];
+    if (!product) return send(res,404,{error:"This template is not available for purchase."});
+    const amount=purchaseType==="source_code"?product.download_price_ngn:product.installation_price_ngn;
+    if (!Number.isSafeInteger(amount)||amount<=0) return send(res,409,{error:"This purchase option is not available for payment yet."});
+    const orderResponse=await fetch(root+"/rest/v1/store_orders",{
+      method:"POST",headers:{...headers,Prefer:"return=representation"},
+      body:JSON.stringify({user_id:user.id,product_id:product.id,purchase_type:purchaseType,amount_ngn:amount,currency:"NGN",status:"pending"})
     });
-    if (orderResponse.status === 401 || orderResponse.status === 403) return send(res, 403, { error: "Your account cannot create this order. Please sign in again." });
-    if (!orderResponse.ok) return send(res, 502, { error: "Unable to create your pending order." });
-    const orders = await orderResponse.json();
-    if (!orders[0]) return send(res, 502, { error: "The order service returned no order record." });
-    return send(res, 201, { order_id: orders[0].id, amount_ngn: amount, currency: "NGN", status: "pending", message: "Order created. Payment must be completed and verified before access is granted." });
-  } catch { return send(res, 502, { error: "Order service is temporarily unavailable." }); }
+    if (!orderResponse.ok) return send(res,502,{error:"Unable to create your pending order."});
+    const orders=await orderResponse.json(),order=orders[0];
+    if(!order)return send(res,502,{error:"The order service returned no order record."});
+    const reference="yscmt-"+crypto.randomUUID();
+    const origin=process.env.STORE_PAYMENT_CALLBACK_URL || (process.env.VERCEL_ENV==="production"?"https://yscmtenterprise.ng/templates/payment-callback.html":(process.env.VERCEL_URL?"https://"+process.env.VERCEL_URL+"/templates/payment-callback.html":"https://yscmtenterprise.ng/templates/payment-callback.html"));
+    const initResponse=await fetch("https://api.paystack.co/transaction/initialize",{
+      method:"POST",headers:{Authorization:"Bearer "+paystackSecret,"Content-Type":"application/json",Accept:"application/json"},
+      body:JSON.stringify({email:user.email,amount:amount*100,currency:"NGN",reference,callback_url:origin,metadata:{order_id:order.id,product_id:product.id,purchase_type:purchaseType,custom_fields:[{display_name:"YSCMT Order",variable_name:"yscmt_order_id",value:order.id}]}})
+    });
+    const initialized=await initResponse.json();
+    if(!initResponse.ok||!initialized.status||!initialized.data||!initialized.data.authorization_url||initialized.data.reference!==reference) return send(res,502,{error:"Paystack could not initialize this payment. No paid access has been granted."});
+    const attach=await fetch(root+"/rest/v1/rpc/store_set_paystack_reference",{
+      method:"POST",headers,body:JSON.stringify({p_order_id:order.id,p_reference:reference})
+    });
+    if(!attach.ok||(await attach.json())!==true) return send(res,502,{error:"Payment was initialized but could not be safely linked to your order. Please contact YSCMT support before paying again."});
+    return send(res,201,{order_id:order.id,reference,amount_ngn:amount,currency:"NGN",status:"pending",authorization_url:initialized.data.authorization_url,message:"Continue to Paystack to complete your payment. Your order becomes paid only after server verification."});
+  } catch { return send(res,502,{error:"Checkout is temporarily unavailable. Please try again later."}); }
 };
