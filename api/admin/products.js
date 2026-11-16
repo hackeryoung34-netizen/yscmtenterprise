@@ -5,13 +5,13 @@ const editable = ["slug","name","category","summary","description","screenshot_u
 const categories = new Set(["Business Websites","E-commerce","Portfolio","School & LMS","Blog & News","Admin Dashboard"]);
 module.exports = async function handler(req, res) {
   if (!["GET","POST","PATCH"].includes(req.method)) { res.setHeader("Allow", "GET, POST, PATCH"); return send(res, 405, { error: "Method not allowed" }); }
-  const baseUrl = process.env.SUPABASE_URL, anonKey = process.env.SUPABASE_ANON_KEY, serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!baseUrl || !anonKey || !serviceKey) return send(res, 503, { error: "Store administration is not configured yet." });
+  const root = (process.env.SUPABASE_URL || "").replace(/\/$/, ""), anonKey = process.env.SUPABASE_ANON_KEY;
+  if (!root || !anonKey) return send(res, 503, { error: "Store administration is not configured yet." });
   const authorization = req.headers.authorization || "", accessToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   if (!accessToken) return send(res, 401, { error: "Administrator sign-in is required." });
-  const root = baseUrl.replace(/\/$/, ""), headers = { apikey: serviceKey, Authorization: "Bearer " + serviceKey, "Content-Type": "application/json" };
+  const headers = { apikey: anonKey, Authorization: "Bearer " + accessToken, "Content-Type": "application/json" };
   try {
-    const authResponse = await fetch(root + "/auth/v1/user", { headers: { apikey: anonKey, Authorization: "Bearer " + accessToken } });
+    const authResponse = await fetch(root + "/auth/v1/user", { headers });
     if (!authResponse.ok) return send(res, 401, { error: "Your session is invalid or expired." });
     const user = await authResponse.json();
     if (!user.app_metadata || user.app_metadata.role !== "store_admin") return send(res, 403, { error: "Store administrator permission is required." });
@@ -41,10 +41,14 @@ module.exports = async function handler(req, res) {
       url = new URL(root + "/rest/v1/store_products"); url.searchParams.set("id", "eq." + id); method = "PATCH";
     }
     const response = await fetch(url, { method, headers: { ...headers, Prefer: "return=representation" }, body: JSON.stringify(payload) });
-    if (!response.ok) return send(res, 502, { error: "Product could not be saved. Check required fields and database configuration." });
+    if (!response.ok) return send(res, 502, { error: "Product could not be saved. Check required fields and administrator permissions." });
     const saved = await response.json();
     if (!saved[0]) return send(res, 404, { error: "No product was changed." });
-    await fetch(root + "/rest/v1/store_audit_logs", { method: "POST", headers, body: JSON.stringify({ actor_user_id: user.id, action: req.method === "POST" ? "product_created" : "product_updated", entity_type: "store_product", entity_id: saved[0].id, details: { status: saved[0].status, slug: saved[0].slug } }) }).catch(() => {});
+    const auditResponse = await fetch(root + "/rest/v1/store_audit_logs", {
+      method: "POST", headers,
+      body: JSON.stringify({ actor_user_id: user.id, action: req.method === "POST" ? "product_created" : "product_updated", entity_type: "store_product", entity_id: saved[0].id, details: { status: saved[0].status, slug: saved[0].slug } })
+    });
+    if (!auditResponse.ok) return send(res, 200, { product: saved[0], warning: "Product saved, but the audit event could not be recorded." });
     return send(res, req.method === "POST" ? 201 : 200, { product: saved[0] });
   } catch { return send(res, 502, { error: "Store administration is temporarily unavailable." }); }
 };
