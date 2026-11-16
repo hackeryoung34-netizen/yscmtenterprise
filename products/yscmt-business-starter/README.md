@@ -1,25 +1,22 @@
-# YSCMT Enterprise — Business Website Template
+# YSCMT Enterprise — Main Website Template
 
-A responsive business website starter branded for **YSCMT Enterprise**.
+This template now uses the **actual YSCMT Enterprise main website** as its source design. It is not a newly invented demo brand or a separate visual direction.
 
-## Included
-- YSCMT Enterprise wordmark and editable SVG logo
-- Responsive navigation and mobile menu
-- Hero, about, services, approach and contact sections
-- Responsive layout, accessible form labels and reduced-motion support
-- Plain HTML, CSS and JavaScript; no build tools or paid dependencies
+## What it carries over
+- The original YSCMT Enterprise homepage structure and navigation
+- The original navy, blue, gold and white brand palette
+- The existing YSCMT logo and corporate banner
+- The original hero slider, service cards, founder section and content layouts
+- The existing responsive styles and interactive homepage behaviour
 
-## Quick start
-1. Open `index.html` in a browser, or run `python3 -m http.server 8080` in this folder.
-2. Replace the demo contact email in `script.js` and `index.html` with YSCMT's official public contact address.
-3. Edit the copy and services to match the actual YSCMT offering.
-4. Update colors and layout in `styles.css`; edit `logo.svg` if you need a different lockup.
+## Preview / local use
+The page is copied from the main website's `index.html`. It uses the original site's root-level assets (for example, files under `/images/`) and the same public contact links. For a local preview, run it from the website root or keep the original asset paths available.
 
-## Before publishing
-- Confirm the public contact details and service descriptions.
-- Replace any placeholder copy or email.
-- Add YSCMT's approved privacy/legal pages if collecting personal data.
-- The contact form uses a mailto handoff and does not store submissions.
+## Important
+- The live homepage in the repository's `main` branch has not been changed by this template update.
+- This copy is maintained on `feature/yscmt-template-store`.
+- Review image and other root asset paths before distributing this as a standalone ZIP.
+- Confirm any public contact details and legal/privacy notices before selling or publishing it.
 
-## Credits
+## Brand
 YSCMT Enterprise — Learn. Build. Innovate.
