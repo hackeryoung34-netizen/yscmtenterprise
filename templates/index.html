@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08213b">
+  <meta name="description" content="Explore website templates from YSCMT Enterprise. Choose a source-code download or professional installation.">
+  <title>Template Store | YSCMT Enterprise</title>
+  <style>
+    :root{--navy:#08213b;--blue:#12a9d6;--gold:#f0b84b;--ink:#172b3d;--muted:#64778a;--paper:#f3f7fa;--line:#dce5ed}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font:16px/1.6 Arial,Helvetica,sans-serif;color:var(--ink);background:#fff}a{color:inherit;text-decoration:none}.wrap{width:min(1160px,92%);margin:auto}
+    .top{background:#041322;color:#dbe8f2;font-size:12px}.top .wrap{display:flex;justify-content:space-between;padding:8px 0;gap:12px;flex-wrap:wrap}
+    header{background:#fff;border-bottom:1px solid var(--line)}.head{min-height:82px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-weight:800;color:var(--navy);font-size:21px;letter-spacing:.2px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:2px}.nav{display:flex;align-items:center;gap:22px;font-size:13px;font-weight:700}.nav a:hover{color:#078db7}.home{border:1px solid var(--line);padding:9px 13px;border-radius:6px}
+    .hero{background:linear-gradient(118deg,#061b34,#0b4672 65%,#078bb5);color:#fff;padding:72px 0 64px;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:380px;height:380px;border:55px solid #ffffff12;border-radius:50%;right:-110px;top:-190px}.eyebrow{color:#ffcf62;font-size:11px;font-weight:800;letter-spacing:3px;text-transform:uppercase}.hero h1{font-size:clamp(36px,5.5vw,58px);line-height:1.08;max-width:760px;margin:12px 0}.hero p{max-width:670px;color:#e0edf7;font-size:16px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}.btn{display:inline-block;padding:12px 18px;border-radius:5px;background:var(--gold);color:#182b3d;font-weight:800;font-size:13px}.btn.alt{background:transparent;color:#fff;border:1px solid #ffffff80}
+    main{padding:52px 0 70px}.section-head{text-align:center;max-width:720px;margin:0 auto 28px}.section-head .eyebrow{color:#078db7}.section-head h2{font-size:clamp(25px,3vw,34px);color:var(--navy);margin:5px 0}.section-head p{color:var(--muted);font-size:14px}
+    .categories{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.category{border:1px solid var(--line);border-radius:10px;padding:22px;background:#fff;text-align:left;cursor:pointer;transition:.18s;min-height:145px}.category:hover,.category:focus{border-color:#1aa8d0;box-shadow:0 9px 24px #08213b12;transform:translateY(-2px);outline:none}.category .symbol{font-size:24px}.category h3{margin:8px 0 2px;color:var(--navy);font-size:17px}.category p{margin:0;color:var(--muted);font-size:12px}
+    .catalog{margin-top:58px}.catalog-bar{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}.catalog-bar h2{color:var(--navy);font-size:25px;margin:0}.tools{display:flex;gap:9px;flex-wrap:wrap}.tools input,.tools select{border:1px solid #cbd8e3;border-radius:5px;padding:10px 12px;font:inherit;font-size:13px;background:#fff;min-width:190px}.filters{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.filter{border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 12px;border-radius:30px;font-size:12px;cursor:pointer}.filter[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+    .empty{border:1px dashed #b9c9d7;background:var(--paper);border-radius:12px;text-align:center;padding:44px 18px;margin-top:12px}.empty .symbol{font-size:34px}.empty h3{margin:8px 0;color:var(--navy)}.empty p{max-width:590px;margin:0 auto;color:var(--muted);font-size:14px}
+    .buy-paths{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:54px}.path{border-radius:10px;padding:24px;background:#f2f7fa;border:1px solid var(--line)}.path h3{color:var(--navy);margin:5px 0}.path p{font-size:13px;color:var(--muted);margin:0}.path strong{font-size:12px;color:#078db7;letter-spacing:1px}
+    footer{background:#061b31;color:#d8e5ef;padding:28px 0;font-size:12px}footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}footer a{color:#ffcf62}
+    @media(max-width:760px){.head{align-items:flex-start;padding:17px 0;flex-direction:column}.nav{gap:13px;flex-wrap:wrap}.hero{padding:54px 0}.categories{grid-template-columns:repeat(2,1fr)}.buy-paths{grid-template-columns:1fr}.catalog-bar{align-items:flex-start}.tools{width:100%}.tools input,.tools select{flex:1;min-width:0}}
+    @media(max-width:480px){.categories{grid-template-columns:1fr}.hero h1{font-size:38px}.nav{font-size:12px}}
+  </style>
+</head>
+<body>
+  <div class="top"><div class="wrap"><span>YSCMT Enterprise · Learn. Build. Innovate.</span><span>Digital products & professional web services</span></div></div>
+  <header><div class="wrap head">
+    <a class="brand" href="/">YSCMT <span style="color:#078db7">TEMPLATE STORE</span><small>DESIGN · DEVELOP · LAUNCH</small></a>
+    <nav class="nav" aria-label="Main navigation"><a href="#categories">Categories</a><a href="#catalog">Browse templates</a><a href="#how-it-works">How it works</a><a class="home" href="/">← Main website</a></nav>
+  </div></header>
+  <section class="hero"><div class="wrap">
+    <div class="eyebrow">YSCMT Digital Marketplace</div>
+    <h1>Build your next website with confidence.</h1>
+    <p>Explore website templates for businesses, online stores, schools and creators. Purchase the source code to build it yourself, or let YSCMT handle the professional installation.</p>
+    <div class="hero-actions"><a class="btn" href="#catalog">Explore templates</a><a class="btn alt" href="#how-it-works">How purchasing works</a></div>
+  </div></section>
+  <main class="wrap">
+    <section id="categories">
+      <div class="section-head"><div class="eyebrow">Find the right starting point</div><h2>Browse by category</h2><p>Choose a category to filter the catalogue. More templates will appear as products are reviewed and published.</p></div>
+      <div class="categories" id="categoryCards">
+        <button class="category" data-category="Business Websites"><span class="symbol">🏢</span><h3>Business Websites</h3><p>Professional websites for companies and services.</p></button>
+        <button class="category" data-category="E-commerce"><span class="symbol">🛍️</span><h3>E-commerce</h3><p>Online shops, product catalogues and storefronts.</p></button>
+        <button class="category" data-category="Portfolio"><span class="symbol">🎨</span><h3>Portfolio</h3><p>Showcase work, skills and creative projects.</p></button>
+        <button class="category" data-category="School & LMS"><span class="symbol">🎓</span><h3>School & LMS</h3><p>Education, courses and learning platforms.</p></button>
+        <button class="category" data-category="Blog & News"><span class="symbol">📰</span><h3>Blog & News</h3><p>Editorial websites, magazines and publications.</p></button>
+        <button class="category" data-category="Admin Dashboard"><span class="symbol">📊</span><h3>Admin Dashboard</h3><p>Management interfaces and data dashboards.</p></button>
+      </div>
+    </section>
+    <section class="catalog" id="catalog">
+      <div class="catalog-bar"><h2>Template catalogue</h2><div class="tools"><input id="search" type="search" placeholder="Search templates…" aria-label="Search templates"><select id="categorySelect" aria-label="Filter by category"><option value="">All categories</option><option>Business Websites</option><option>E-commerce</option><option>Portfolio</option><option>School & LMS</option><option>Blog & News</option><option>Admin Dashboard</option></select></div></div>
+      <div class="filters" aria-label="Category filters"><button class="filter" data-filter="" aria-pressed="true">All templates</button><button class="filter" data-filter="Business Websites" aria-pressed="false">Business</button><button class="filter" data-filter="E-commerce" aria-pressed="false">E-commerce</button><button class="filter" data-filter="Portfolio" aria-pressed="false">Portfolio</button><button class="filter" data-filter="School & LMS" aria-pressed="false">School & LMS</button><button class="filter" data-filter="Blog & News" aria-pressed="false">Blog & News</button><button class="filter" data-filter="Admin Dashboard" aria-pressed="false">Admin Dashboard</button></div>
+      <div class="empty" id="emptyState"><div class="symbol">🧩</div><h3>Templates are being prepared</h3><p id="emptyMessage">Our catalogue is being reviewed. Published templates will show their screenshots, live demo, supported technologies, licence details, download price and professional installation option here. No sample prices or demo links are displayed as real products.</p></div>
+    </section>
+    <section class="buy-paths" id="how-it-works">
+      <article class="path"><strong>OPTION 01 · DOWNLOAD</strong><h3>Get the source code</h3><p>Choose a published template, review its licence and details, complete payment, then access your authorised ZIP download securely.</p></article>
+      <article class="path"><strong>OPTION 02 · DONE FOR YOU</strong><h3>Professional installation</h3><p>Choose a template with installation service, provide your project requirements, and track the setup progress with YSCMT.</p></article>
+    </section>
+  </main>
+  <footer><div class="wrap"><span>© <span id="year"></span> YSCMT Enterprise. All rights reserved.</span><a href="/">Return to YSCMT Enterprise</a></div></footer>
+  <script>
+    const select=document.getElementById('categorySelect');
+    const search=document.getElementById('search');
+    const message=document.getElementById('emptyMessage');
+    const buttons=[...document.querySelectorAll('[data-filter]')];
+    function updateFilter(category){
+      select.value=category;
+      buttons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter===category)));
+      message.textContent=category
+        ? 'No published templates in '+category+' yet. This category will display products after YSCMT has reviewed their files, licence rights, demo and pricing.'
+        : 'Our catalogue is being reviewed. Published templates will show their screenshots, live demo, supported technologies, licence details, download price and professional installation option here. No sample prices or demo links are displayed as real products.';
+    }
+    buttons.forEach(b=>b.addEventListener('click',()=>updateFilter(b.dataset.filter)));
+    document.querySelectorAll('[data-category]').forEach(b=>b.addEventListener('click',()=>{updateFilter(b.dataset.category);document.getElementById('catalog').scrollIntoView({behavior:'smooth'});}));
+    select.addEventListener('change',()=>updateFilter(select.value));
+    search.addEventListener('input',()=>{if(search.value.trim())message.textContent='No matching published templates yet. Search will return products as soon as the catalogue is populated.';else updateFilter(select.value);});
+    document.getElementById('year').textContent=new Date().getFullYear();
+  </script>
+</body>
+</html>
