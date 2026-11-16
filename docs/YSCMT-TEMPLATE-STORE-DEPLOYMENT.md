@@ -22,6 +22,7 @@ Use the dedicated project `YSCMT-Template-Store`. Do not reuse YSCMT-Student-Por
 6. `supabase/migrations/20261116000600_admin_archive_read_policy.sql`
 7. `supabase/migrations/20261116000700_paystack_payment_security.sql`
 8. `supabase/migrations/20261116000800_restrict_payment_reference_rpc.sql`
+9. `supabase/migrations/20261116000900_fix_server_payment_reference_rpc.sql`
 
 The migrations create the product, order, installation and audit tables; the private `template-archives` bucket; customer/admin RLS; pending-order price validation; paid-installation checks; and paid-source-code download entitlements.
 
