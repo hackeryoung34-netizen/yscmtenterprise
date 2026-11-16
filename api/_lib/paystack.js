@@ -1,5 +1,4 @@
 const crypto = require("crypto");
-
 function config() {
   return {
     paystackSecret: process.env.PAYSTACK_SECRET_KEY || "",
@@ -7,7 +6,6 @@ function config() {
     serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || ""
   };
 }
-
 async function verifyTransaction(reference) {
   const { paystackSecret } = config();
   if (!paystackSecret) throw new Error("Paystack is not configured.");
@@ -19,25 +17,35 @@ async function verifyTransaction(reference) {
   if (!result.status || !result.data) throw new Error("Paystack did not confirm this transaction.");
   const data = result.data;
   if (data.reference !== reference || data.status !== "success" || data.currency !== "NGN") throw new Error("Payment is not successful or does not match this order.");
-  if (!Number.isSafeInteger(data.amount) || data.amount <= 0) throw new Error("Paystack returned an invalid amount.");
+  if (!Number.isSafeInteger(data.amount) || data.amount <= 0 || data.amount % 100 !== 0) throw new Error("Paystack returned an invalid amount.");
   return data;
 }
-
 async function confirmPaidOrder(reference) {
   const { supabaseUrl, serviceKey } = config();
   if (!supabaseUrl || !serviceKey) throw new Error("Secure payment confirmation is not configured.");
+  const headers = { apikey: serviceKey, Authorization: "Bearer " + serviceKey };
+  const orderUrl = new URL(supabaseUrl + "/rest/v1/store_orders");
+  orderUrl.searchParams.set("select","id,amount_ngn,currency,status,payment_provider");
+  orderUrl.searchParams.set("provider_reference","eq."+reference);
+  orderUrl.searchParams.set("payment_provider","eq.paystack");
+  orderUrl.searchParams.set("limit","1");
+  const orderResponse = await fetch(orderUrl,{headers});
+  if(!orderResponse.ok) throw new Error("Unable to locate the matching YSCMT order.");
+  const orders=await orderResponse.json(),order=orders[0];
+  if(!order) throw new Error("This Paystack reference is not linked to a YSCMT order.");
   const payment = await verifyTransaction(reference);
+  if (payment.amount !== order.amount_ngn * 100 || payment.currency !== order.currency) throw new Error("The verified payment amount does not match the YSCMT order.");
+  if (!payment.metadata || payment.metadata.order_id !== order.id) throw new Error("The Paystack transaction metadata does not match this YSCMT order.");
   const response = await fetch(supabaseUrl + "/rest/v1/rpc/store_confirm_paystack_payment", {
     method: "POST",
-    headers: { apikey: serviceKey, Authorization: "Bearer " + serviceKey, "Content-Type": "application/json" },
-    body: JSON.stringify({ p_reference: reference, p_amount_ngn: Math.round(payment.amount / 100), p_currency: payment.currency })
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({ p_reference: reference, p_amount_ngn: order.amount_ngn, p_currency: order.currency })
   });
   if (!response.ok) throw new Error("The verified payment could not be applied to the order.");
   const confirmed = await response.json();
   if (confirmed !== true) throw new Error("The payment does not match a pending YSCMT order.");
   return payment;
 }
-
 function validWebhookSignature(rawBody, headers) {
   const secret = process.env.PAYSTACK_SECRET_KEY || "";
   const legacy = headers["x-paystack-signature"];
@@ -63,5 +71,4 @@ function validWebhookSignature(rawBody, headers) {
   }
   return false;
 }
-
 module.exports = { verifyTransaction, confirmPaidOrder, validWebhookSignature };
