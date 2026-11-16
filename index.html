@@ -513,6 +513,47 @@ h4{font-size:15px!important;line-height:1.4}
  h1,.hero h1,.page-title,.display-title{font-size:clamp(23px,6vw,30px)!important}
  h2,.section-title{font-size:21px!important}
 }
+
+/* Navigation scrolling refinement: preserves every existing menu item and page section */
+.navbar .container{min-width:0}
+.nav-links{
+ flex:1 1 auto;
+ min-width:0;
+ overflow-x:auto;
+ overflow-y:hidden;
+ white-space:nowrap;
+ overscroll-behavior-x:contain;
+ scroll-behavior:smooth;
+ -webkit-overflow-scrolling:touch;
+ scrollbar-width:thin;
+ scrollbar-color:#19bde8 #08213b;
+}
+.nav-links li{flex:0 0 auto}
+.nav-links a{white-space:nowrap}
+.nav-links::-webkit-scrollbar{height:6px}
+.nav-links::-webkit-scrollbar-track{background:#08213b}
+.nav-links::-webkit-scrollbar-thumb{background:#19bde8;border-radius:10px}
+.search{flex:0 0 auto}
+@media(max-width:900px){
+ .nav-links{
+  flex:0 0 100%;
+  width:100%;
+  max-height:min(65vh,520px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  white-space:normal;
+  overscroll-behavior-y:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#19bde8 #08213b;
+  -webkit-overflow-scrolling:touch;
+ }
+ .nav-links a{white-space:normal}
+ .nav-links::-webkit-scrollbar{width:6px;height:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .nav-links{scroll-behavior:auto}
+}
+
 </style>
 </head>
 
