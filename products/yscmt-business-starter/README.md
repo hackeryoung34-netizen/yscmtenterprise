@@ -7,6 +7,7 @@ This template now uses the **actual YSCMT Enterprise main website** as its sourc
 - The original navy, blue, gold and white brand palette
 - The existing YSCMT logo and corporate banner
 - The original hero slider, service cards, founder section and content layouts
+- Three original YSCMT image assets bundled locally (logo, focus image and workstation image)
 - The existing responsive styles and interactive homepage behaviour
 
 ## Preview / local use
