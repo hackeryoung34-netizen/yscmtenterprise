@@ -1,35 +1,35 @@
-YSCMT ENTERPRISE — SINGLE-BUSINESS TEMPLATE LICENSE
+GENERIC BUSINESS WEBSITE STARTER — SINGLE-BUSINESS LICENSE
 Version 1.0
 
 Copyright © YSCMT Enterprise. All rights reserved.
 
 PURCHASE PRICE
-The listed one-time download price for this product is NGN 15,000. Any optional installation or customization service is separate and must be shown and agreed before payment.
+The listed one-time download price is NGN 15,000. Optional installation or customization is separate and must be agreed before payment.
 
 LICENSE GRANT
 After full, successful payment, YSCMT Enterprise grants the purchaser a non-exclusive, non-transferable license to use and modify this template for ONE business and ONE business website/project.
 
 PERMITTED USE
-- Install, customize, and operate the template for the purchaser's own business.
-- Modify text, colors, layout, and code for that one business project.
+- Install, customize and operate the template for the purchaser's own business.
+- Modify text, colors, layout and code for that one business project.
 - Use the finished website commercially for that business.
 
 NOT PERMITTED
-- Resell, redistribute, share, publish, sublicense, or give away the source template or substantial portions of it.
-- Upload the template or its source files to a public repository, template marketplace, or file-sharing service.
+- Resell, redistribute, share, publish, sublicense or give away the source template or substantial portions of it.
+- Upload the template or its source files to a public repository, template marketplace or file-sharing service.
 - Use one purchase to build websites for multiple unrelated businesses or clients.
-- Claim ownership of YSCMT Enterprise's original template, branding, or included assets.
+- Claim ownership of YSCMT Enterprise's original template code.
 
-OWNERSHIP AND THIRD-PARTY MATERIAL
-YSCMT Enterprise retains ownership of its original template code, branding, and included materials. Any third-party fonts, libraries, images, or services remain subject to their respective licenses and terms. The purchaser is responsible for replacing YSCMT-specific contact details, links, and branding before using the template for another business.
+OWNERSHIP
+YSCMT Enterprise retains ownership of its original template code. The purchaser owns the business-specific text, branding and other materials they independently add, subject to third-party rights.
 
 DELIVERY AND SUPPORT
-The download is supplied digitally after payment verification. Installation, hosting, domain registration, ongoing maintenance, and custom development are not included unless separately agreed in writing.
+The template is supplied digitally after payment verification. Installation, hosting, domain registration, maintenance and custom development are not included unless separately agreed in writing.
 
 NO WARRANTY
-The template is provided on an “as is” basis. YSCMT Enterprise does not guarantee compatibility with every hosting provider or business workflow. The purchaser should review and test all changes before publishing.
+The template is provided on an “as is” basis. The purchaser should review and test all changes before publishing.
 
 REFUNDS
-Because this is a digital product, refund requests are reviewed individually where delivery fails or the supplied files are materially different from the product description, subject to applicable law.
+Refund requests for failed delivery or materially incorrect files are reviewed individually, subject to applicable law.
 
 By purchasing, the customer confirms that they have read and accepted this license.
