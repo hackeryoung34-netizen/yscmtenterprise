@@ -6,7 +6,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== "POST") { res.setHeader("Allow", "POST"); return send(res, 405, { error: "Method not allowed" }); }
   const root = (process.env.SUPABASE_URL || "").replace(/\/$/, ""), anonKey = process.env.SUPABASE_ANON_KEY;
   const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
-  if (!root || !anonKey || !paystackSecret) return send(res, 503, { error: "Secure checkout is not configured yet. Please try again later." });
+  if (!root || !anonKey || !paystackSecret || !process.env.SUPABASE_SERVICE_ROLE_KEY) return send(res, 503, { error: "Secure checkout is not configured yet. Please try again later." });
   const authorization = req.headers.authorization || "", accessToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   const body = req.body && typeof req.body === "object" ? req.body : {};
   const productId = typeof body.product_id === "string" ? body.product_id : "", purchaseType = body.purchase_type;
@@ -41,8 +41,9 @@ module.exports = async function handler(req, res) {
     });
     const initialized=await initResponse.json();
     if(!initResponse.ok||!initialized.status||!initialized.data||!initialized.data.authorization_url||initialized.data.reference!==reference) return send(res,502,{error:"Paystack could not initialize this payment. No paid access has been granted."});
+    const serviceKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
     const attach=await fetch(root+"/rest/v1/rpc/store_set_paystack_reference",{
-      method:"POST",headers,body:JSON.stringify({p_order_id:order.id,p_reference:reference})
+      method:"POST",headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,"Content-Type":"application/json"},body:JSON.stringify({p_order_id:order.id,p_reference:reference})
     });
     if(!attach.ok||(await attach.json())!==true) return send(res,502,{error:"Payment was initialized but could not be safely linked to your order. Please contact YSCMT support before paying again."});
     return send(res,201,{order_id:order.id,reference,amount_ngn:amount,currency:"NGN",status:"pending",authorization_url:initialized.data.authorization_url,message:"Continue to Paystack to complete your payment. Your order becomes paid only after server verification."});
