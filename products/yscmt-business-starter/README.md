@@ -1,24 +1,25 @@
 # YSCMT Enterprise — Main Website Template
 
-This package is a standalone copy of the actual YSCMT Enterprise homepage, taken from the main website design. It preserves YSCMT's own brand, layout, content, and visual style.
+**Price:** NGN 15,000 (one-time digital download)  
+**License:** Single business / single website project. See [LICENSE.txt](./LICENSE.txt).
+
+A standalone copy of the YSCMT Enterprise homepage design, preserving YSCMT's brand, layout, content, and visual style.
 
 ## Package contents
-- `index.html` — homepage markup, with its page styling and interactive scripts embedded
+- `index.html` — homepage markup, styling, and interactive scripts
 - `images/yscmt-enterprise-logo.jpg` — YSCMT Enterprise logo
-- `images/yscmt-focus.jpg` — original YSCMT image asset
-- `images/yscmt-workstation.jpg` — original YSCMT image asset
-- `LICENSE.txt` — preview license notice
+- `images/yscmt-focus.jpg` — YSCMT image asset
+- `images/yscmt-workstation.jpg` — YSCMT image asset
+- `LICENSE.txt` — customer license
 
 ## Preview locally
-Open `index.html` in a modern browser. Keep the `images` folder beside it so the logo and local photos load.
+Open `index.html` in a modern browser. Keep the `images` folder beside it so local images load.
 
-## Before distributing
-- This is currently a YSCMT-branded preview package, not a cleared commercial resale product.
-- The page retains YSCMT's live contact details and some links to YSCMT's existing services and sites. Replace those with the buyer's details when adapting it for another business.
-- Review embedded media, external links, privacy notices, and contact details before publishing.
-- Obtain approval for the final customer license before listing or selling the package.
+## Before using for another business
+- Replace YSCMT contact details, service links, and brand references with the purchaser's own details.
+- Review embedded media, external links, privacy notices, and contact details.
+- Review third-party fonts, libraries, images, and services under their own licenses.
+- The license permits one business and one website/project only. Resale, redistribution, sublicensing, and sharing the source package are prohibited.
 
-## Source and safety
-- Adapted from the YSCMT Enterprise homepage in the `main` branch.
-- This copy lives on `feature/yscmt-template-store`; the live homepage branch has not been changed.
-- The package includes local copies of the three image assets used by the homepage.
+## Support and delivery
+This is a digital download. Installation, hosting, domain registration, and custom changes are not included unless separately agreed in writing. The package should be tested on the purchaser's chosen hosting provider before launch.
