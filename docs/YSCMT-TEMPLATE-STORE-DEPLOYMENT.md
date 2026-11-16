@@ -22,9 +22,9 @@ The service-role key bypasses RLS. Keep it only in Vercel server environment var
 ## API
 
 - `GET /api/catalog`: returns published catalogue records only.
-- `POST /api/download`: requires a Supabase access token and an order ID; checks that the order belongs to the authenticated user, is paid, and is a source-code purchase; creates a 60-second signed URL from the private `template-archives` bucket.
+- `POST /api/create-order`: requires a Supabase access token, validates a published product and purchase option, and creates a pending order using the database price (never a browser-supplied price). It does not charge the customer.\n- `POST /api/download`: requires a Supabase access token and an order ID; checks that the order belongs to the authenticated user, is paid, and is a source-code purchase; creates a 60-second signed URL from the private `template-archives` bucket.
 
-The download endpoint is intentionally unavailable until environment variables and the dedicated database are configured. Payment is not considered complete until a payment provider integration verifies its signature server-side and atomically records a paid order. Never set an order to paid from browser input.
+The download endpoint is intentionally unavailable until environment variables and the dedicated database are configured. Payment is not considered complete until a payment provider integration verifies its signature server-side and atomically records a paid order. The current order endpoint deliberately creates pending orders only. Never set an order to paid from browser input.
 
 ## Payment and product launch gates
 
