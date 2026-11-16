@@ -18,6 +18,7 @@ Use the dedicated project `YSCMT-Template-Store`. Do not reuse YSCMT-Student-Por
 2. `supabase/migrations/20261116000200_store_audit_and_updated_at.sql`
 3. `supabase/migrations/20261116000300_optimize_store_rls.sql`
 4. `supabase/migrations/20261116000400_customer_rls_checkout_and_downloads.sql`
+5. `supabase/migrations/20261116000500_remove_redundant_insert_policies.sql`
 
 The migrations create the product, order, installation and audit tables; the private `template-archives` bucket; customer/admin RLS; pending-order price validation; paid-installation checks; and paid-source-code download entitlements.
 
