@@ -52,13 +52,19 @@ Customer order creation and installation requests use the signed-in customer's a
 
 ## Admin access
 
-Assign `store_admin` to the intended administrator account using Supabase Auth user app metadata (not user-editable metadata). The admin page is `/templates/admin.html`. It cannot grant itself administrator rights. The intended admin account has not yet been created or verified.
+Assign `store_admin` to the intended administrator account using Supabase Auth user app metadata (not user-editable metadata). The admin page is `/templates/admin.html`. It cannot grant itself administrator rights. The intended admin account has not yet been created or verified. The company address \`yscmtenterprise@gmail.com\` was checked in Supabase Auth and no account exists yet. Create and confirm that account through \`/templates/account.html\`, then promote it with a trusted SQL operation in the Template Store project (never use user-editable \`user_metadata\`):
+
+\`\`\`sql
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"store_admin"}'::jsonb
+where lower(email) = lower('yscmtenterprise@gmail.com');
+\`\`\`
 
 ## Payment and production launch gates
 
 Paystack is the selected first payment provider. The integration code is implemented, but checkout is not live until the required server-side keys, merchant activation, webhook endpoint and end-to-end tests are complete. Before taking customer money:
 
-1. Complete Paystack merchant compliance and activate the Nigerian business account.
+1. Complete Paystack merchant compliance and activate the Nigerian business account. For a CAC Business Name, prepare the Business Name Certificate, BN number, CAC BN 1 and owner details, plus acceptable proof of address; Paystack may request additional verification.
 2. Add the Paystack Test Secret Key and Supabase service-role key to Vercel Preview server-side environment variables; never share or commit them.
 3. Configure the Paystack webhook URL to the production API only after the route is deployed and TLS is active.
 4. Test duplicate, forged, failed, pending, refunded and successful payment events; confirm amount, currency, order ID metadata and idempotency.
