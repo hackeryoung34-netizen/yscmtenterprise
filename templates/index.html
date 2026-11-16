@@ -26,7 +26,7 @@
   <div class="top"><div class="wrap"><span>YSCMT Enterprise · Learn. Build. Innovate.</span><span>Digital products & professional web services</span></div></div>
   <header><div class="wrap head">
     <a class="brand" href="/">YSCMT <span style="color:#078db7">TEMPLATE STORE</span><small>DESIGN · DEVELOP · LAUNCH</small></a>
-    <nav class="nav" aria-label="Main navigation"><a href="#categories">Categories</a><a href="#catalog">Browse templates</a><a href="#how-it-works">How it works</a><a href="/templates/account.html">Customer account</a><a class="home" href="/">← Main website</a></nav>
+    <nav class="nav" aria-label="Main navigation"><a href="#categories">Categories</a><a href="#catalog">Browse templates</a><a href="#how-it-works">How it works</a><a href="/templates/account.html">Customer account</a><a class="home" href="/"> Main website</a></nav>
   </div></header>
   <section class="hero"><div class="wrap">
     <div class="eyebrow">YSCMT Digital Marketplace</div>
@@ -84,7 +84,7 @@
         body.append(element('div','product-price','Source code: '+money(p.download_price_ngn)));
         if(p.installation_price_ngn!==null&&p.installation_price_ngn!==undefined)body.append(element('div','product-price','With installation: '+money(p.installation_price_ngn)));
         const links=element('div','product-links');
-        if(p.demo_url){const a=element('a','', 'View live demo ↗');a.href=p.demo_url;a.target='_blank';a.rel='noopener noreferrer';links.append(a);}
+        if(p.demo_url){const a=element('a','', 'View live demo ');a.href=p.demo_url;a.target='_blank';a.rel='noopener noreferrer';links.append(a);}
         function checkoutButton(label,type){const button=element('button','',label);button.type='button';button.addEventListener('click',async()=>{let session;try{session=JSON.parse(sessionStorage.getItem('yscmt_store_session')||'null')}catch{}if(!session||!session.access_token){location.href='/templates/account.html';return;}button.disabled=true;button.textContent='Preparing checkout…';try{const response=await fetch('/api/create-order',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({product_id:p.id,purchase_type:type})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Unable to start checkout.');if(!data.authorization_url)throw new Error('Paystack did not return a checkout link.');location.href=data.authorization_url;}catch(error){alert(error.message);button.disabled=false;button.textContent=label;}});links.append(button);}
         checkoutButton('Buy source code','source_code');
         if(p.installation_price_ngn!==null&&p.installation_price_ngn!==undefined)checkoutButton('Buy with installation','installation');
