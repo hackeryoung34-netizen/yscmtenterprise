@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
   const authorization = req.headers.authorization || "", accessToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   const body = req.body && typeof req.body === "object" ? req.body : {};
   const orderId = typeof body.order_id === "string" ? body.order_id : "", requirements = typeof body.requirements === "string" ? body.requirements.trim() : "";
-  if (!accessToken || !/^[0-9a-f-]{36}$/i.test(orderId) || requirements.length > 5000) return send(res, 400, { error: "Sign in and provide a valid installation order and requirements (maximum 5,000 characters)." });
+  if (!accessToken || !/^[0-9a-f-]{36}$/i.test(orderId) || requirements.length < 10 || requirements.length > 5000) return send(res, 400, { error: "Sign in and provide a valid installation order and requirements (10 to 5,000 characters)." });
   const headers = { apikey: anonKey, Authorization: "Bearer " + accessToken, "Content-Type": "application/json" };
   try {
     const userResponse = await fetch(root + "/auth/v1/user", { headers });
@@ -32,6 +32,13 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({ order_id: order.id, user_id: user.id, requirements, status: "requested", admin_notes: "" })
     });
     if (createResponse.status === 401 || createResponse.status === 403) return send(res, 403, { error: "Your account cannot create this request. Please check that the order is paid." });
+    if (createResponse.status === 409) {
+      const retryResponse = await fetch(existingUrl, { headers });
+      if (retryResponse.ok) {
+        const retryExisting = await retryResponse.json();
+        if (retryExisting[0]) return send(res, 200, { installation_id: retryExisting[0].id, status: retryExisting[0].status, message: "An installation request already exists for this order." });
+      }
+    }
     if (!createResponse.ok) return send(res, 502, { error: "Unable to create the installation request." });
     const created = await createResponse.json();
     if (!created[0]) return send(res, 502, { error: "The installation service returned no request record." });
