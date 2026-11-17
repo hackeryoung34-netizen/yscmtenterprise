@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
   try {
     const upstream = await fetch(
       `${baseUrl.replace(/\/$/, "")}/rest/v1/store_products?select=id,slug,name,category,summary,description,screenshot_urls,demo_url,technologies,license_type,version,download_price_ngn,installation_price_ngn&status=eq.published&order=created_at.desc`,
-      { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
+      { headers: { apikey: anonKey } }
     );
     if (!upstream.ok) {
       return send(res, 502, { error: "Catalogue service is temporarily unavailable." });
