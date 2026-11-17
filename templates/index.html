@@ -65,6 +65,7 @@
     const empty=document.getElementById('emptyState');
     const buttons=[...document.querySelectorAll('[data-filter]')];
     let products=[];
+    let catalogueError='';
     const money=value=>new Intl.NumberFormat('en-NG',{style:'currency',currency:'NGN',maximumFractionDigits:0}).format(value);
     function element(tag, className, value){const node=document.createElement(tag);if(className)node.className=className;if(value!==undefined)node.textContent=value;return node;}
     function render(){
@@ -92,7 +93,8 @@
         card.append(body);grid.append(card);
       });
       empty.hidden=filtered.length>0;
-      if(!products.length){message.textContent='No templates have been published yet. YSCMT will list only reviewed products with verified ownership/licence, files, screenshots and accurate prices.';}
+      if(catalogueError){message.textContent=catalogueError;}
+      else if(!products.length){message.textContent='No templates have been published yet. YSCMT will list only reviewed products with verified ownership/licence, files, screenshots and accurate prices.';}
       else if(!filtered.length){message.textContent='No published templates match these filters. Try another category or search term.';}
     }
     function updateFilter(category){
@@ -111,7 +113,7 @@
         const data=await response.json();
         products=Array.isArray(data.products)?data.products:[];
       }catch{
-        message.textContent='The catalogue service is not connected yet. Please check back soon.';
+        catalogueError='The catalogue service is temporarily unavailable. Please try again shortly.';
       }
       render();
     }
