@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+<title id="title">Generic Business Website Starter — responsive preview</title>
+<desc id="desc">A visual preview of the responsive business website starter, showing desktop and mobile layouts with navy blue hero, services, about and contact sections.</desc>
+<defs>
+  <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#08213b"/><stop offset="1" stop-color="#15577b"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#071b2e" flood-opacity=".18"/></filter>
+  <clipPath id="desktopClip"><rect x="74" y="126" width="1050" height="790" rx="18"/></clipPath>
+  <clipPath id="phoneClip"><rect x="1190" y="260" width="300" height="590" rx="30"/></clipPath>
+</defs>
+<rect width="1600" height="1000" fill="#edf3f7"/>
+<circle cx="1450" cy="95" r="170" fill="#dbeaf2"/><circle cx="70" cy="940" r="210" fill="#e2edf3"/>
+<g font-family="Arial,Helvetica,sans-serif">
+  <text x="74" y="62" fill="#08213b" font-size="22" font-weight="700" letter-spacing="2">YSCMT ENTERPRISE</text>
+  <text x="74" y="91" fill="#64778a" font-size="13" letter-spacing="4">TEMPLATE PREVIEW · BUSINESS STARTER</text>
+  <g filter="url(#shadow)">
+    <rect x="60" y="112" width="1078" height="820" rx="22" fill="#fff"/>
+  </g>
+  <g clip-path="url(#desktopClip)">
+    <rect x="74" y="126" width="1050" height="38" fill="#f3f6f8"/>
+    <circle cx="96" cy="145" r="5" fill="#e78b83"/><circle cx="114" cy="145" r="5" fill="#e8c16a"/><circle cx="132" cy="145" r="5" fill="#7cbd91"/>
+    <rect x="420" y="135" width="350" height="20" rx="10" fill="#e2e9ee"/>
+    <text x="595" y="149" fill="#758696" font-size="10" text-anchor="middle">yourbusiness.com</text>
+    <rect x="74" y="164" width="1050" height="64" fill="#fff"/>
+    <text x="112" y="203" fill="#182b3d" font-size="23" font-weight="800">YOUR BRAND</text>
+    <text x="650" y="201" fill="#637487" font-size="14">Services</text><text x="740" y="201" fill="#637487" font-size="14">About</text><text x="812" y="201" fill="#637487" font-size="14">Contact</text>
+    <rect x="930" y="181" width="145" height="34" rx="4" fill="#f0b84b"/><text x="1002" y="203" fill="#172b3c" font-size="12" font-weight="700" text-anchor="middle">GET IN TOUCH</text>
+    <rect x="74" y="228" width="1050" height="300" fill="url(#hero)"/>
+    <text x="125" y="291" fill="#80e4ff" font-size="12" font-weight="700" letter-spacing="3">WELCOME TO YOUR NEXT CHAPTER</text>
+    <text x="125" y="354" fill="#fff" font-size="46" font-weight="700">Build trust. Grow</text><text x="125" y="408" fill="#fff" font-size="46" font-weight="700">your business.</text>
+    <text x="125" y="448" fill="#e0edf5" font-size="16">A modern, flexible website starter for businesses, professionals</text><text x="125" y="472" fill="#e0edf5" font-size="16">and growing teams. Tell visitors what you do and why it matters.</text>
+    <rect x="125" y="488" width="135" height="32" rx="4" fill="#f0b84b"/><text x="192" y="509" fill="#172b3c" font-size="11" font-weight="700" text-anchor="middle">WORK WITH US</text>
+    <rect x="274" y="488" width="145" height="32" rx="4" fill="none" stroke="#fff"/><text x="346" y="509" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">EXPLORE SERVICES</text>
+    <rect x="74" y="528" width="1050" height="205" fill="#fff"/>
+    <text x="125" y="570" fill="#078db7" font-size="11" font-weight="700" letter-spacing="3">WHAT WE DO</text>
+    <text x="125" y="607" fill="#182b3d" font-size="27" font-weight="700">Services designed around you.</text>
+    <text x="125" y="634" fill="#637487" font-size="13">Replace these examples with the products, services and solutions your business provides.</text>
+    <g fill="#fff" stroke="#dce5ed">
+      <rect x="125" y="655" width="285" height="60" rx="6"/><rect x="430" y="655" width="285" height="60" rx="6"/><rect x="735" y="655" width="335" height="60" rx="6"/>
+    </g>
+    <g fill="#182b3d" font-size="13" font-weight="700"><text x="145" y="680">Service One</text><text x="450" y="680">Service Two</text><text x="755" y="680">Service Three</text></g>
+    <g fill="#637487" font-size="10"><text x="145" y="699">Describe your core service and value.</text><text x="450" y="699">Explain how you help your clients.</text><text x="755" y="699">Highlight a specialist capability.</text></g>
+    <rect x="74" y="733" width="1050" height="183" fill="#f2f6fa"/>
+    <text x="125" y="779" fill="#078db7" font-size="11" font-weight="700" letter-spacing="3">ABOUT YOUR BUSINESS</text>
+    <text x="125" y="817" fill="#182b3d" font-size="26" font-weight="700">Good work starts with a clear purpose.</text>
+    <text x="125" y="848" fill="#637487" font-size="13">Introduce your business, your experience and the people you serve.</text>
+    <text x="125" y="872" fill="#637487" font-size="13">Add your story, business values, location and verified credentials.</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1174" y="242" width="332" height="626" rx="42" fill="#102235"/>
+    <rect x="1186" y="254" width="308" height="602" rx="32" fill="#fff"/>
+  </g>
+  <g clip-path="url(#phoneClip)">
+    <rect x="1190" y="260" width="300" height="590" fill="#fff"/>
+    <rect x="1190" y="260" width="300" height="40" fill="#fff"/>
+    <text x="1212" y="286" fill="#182b3d" font-size="12" font-weight="800">YOUR BRAND</text>
+    <rect x="1450" y="274" width="20" height="14" rx="2" fill="#f0b84b"/>
+    <rect x="1190" y="300" width="300" height="230" fill="url(#hero)"/>
+    <text x="1214" y="342" fill="#80e4ff" font-size="8" font-weight="700" letter-spacing="1.5">WELCOME TO YOUR NEXT CHAPTER</text>
+    <text x="1214" y="390" fill="#fff" font-size="27" font-weight="700">Build trust.</text><text x="1214" y="422" fill="#fff" font-size="27" font-weight="700">Grow your</text><text x="1214" y="454" fill="#fff" font-size="27" font-weight="700">business.</text>
+    <text x="1214" y="480" fill="#e0edf5" font-size="9">A modern, flexible website starter</text><text x="1214" y="496" fill="#e0edf5" font-size="9">for businesses and growing teams.</text>
+    <rect x="1214" y="507" width="106" height="25" rx="3" fill="#f0b84b"/><text x="1267" y="523" fill="#172b3c" font-size="8" font-weight="700" text-anchor="middle">WORK WITH US</text>
+    <rect x="1190" y="530" width="300" height="210" fill="#fff"/>
+    <text x="1214" y="565" fill="#078db7" font-size="8" font-weight="700" letter-spacing="2">WHAT WE DO</text>
+    <text x="1214" y="592" fill="#182b3d" font-size="18" font-weight="700">Services designed</text><text x="1214" y="614" fill="#182b3d" font-size="18" font-weight="700">around you.</text>
+    <rect x="1214" y="631" width="250" height="29" rx="4" fill="#fff" stroke="#dce5ed"/><rect x="1214" y="668" width="250" height="29" rx="4" fill="#fff" stroke="#dce5ed"/><rect x="1214" y="705" width="250" height="29" rx="4" fill="#fff" stroke="#dce5ed"/>
+    <rect x="1190" y="740" width="300" height="110" fill="#f2f6fa"/>
+    <text x="1214" y="774" fill="#078db7" font-size="8" font-weight="700" letter-spacing="2">ABOUT YOUR BUSINESS</text>
+    <text x="1214" y="802" fill="#182b3d" font-size="15" font-weight="700">Good work starts with</text><text x="1214" y="822" fill="#182b3d" font-size="15" font-weight="700">a clear purpose.</text>
+  </g>
+  <rect x="1288" y="253" width="104" height="12" rx="6" fill="#102235"/>
+  <text x="1174" y="907" fill="#08213b" font-size="13" font-weight="700">RESPONSIVE · DESKTOP + MOBILE</text>
+  <text x="74" y="970" fill="#64778a" font-size="12">Illustrative preview of the included HTML, CSS and JavaScript template.</text>
+</g>
+</svg>
