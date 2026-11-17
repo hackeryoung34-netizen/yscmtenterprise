@@ -19,6 +19,14 @@ module.exports = async function handler(req, res) {
     url.searchParams.set("limit", "100");
     const response = await fetch(url, { headers: authHeaders });
     if (!response.ok) return send(res, 502, { error: "Unable to load your orders." });
-    return send(res, 200, { orders: await response.json() });
+    const orders = await response.json();
+    const installationsUrl = new URL(root + "/rest/v1/store_installations");
+    installationsUrl.searchParams.set("select", "id,order_id,status,requirements,created_at,updated_at");
+    installationsUrl.searchParams.set("user_id", "eq." + user.id);
+    installationsUrl.searchParams.set("order", "created_at.desc");
+    installationsUrl.searchParams.set("limit", "100");
+    const installationsResponse = await fetch(installationsUrl, { headers: authHeaders });
+    if (!installationsResponse.ok) return send(res, 502, { error: "Unable to load installation requests." });
+    return send(res, 200, { orders, installations: await installationsResponse.json() });
   } catch { return send(res, 502, { error: "Order history is temporarily unavailable." }); }
 };
