@@ -262,6 +262,7 @@ function create(options){
   callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callBox.classList.add("is-ringing");callLabel.textContent="Preparing call…";callTimer.textContent="";showCall(true);
   accept.hidden=true;reject.hidden=true;mute.hidden=true;speaker.hidden=true;camera.hidden=true;end.hidden=false;end.textContent="Cancel";
   try{
+   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
    await ensureConversation();
    const stream=await prepareLocal(callType),pc=makePeer(callType);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
