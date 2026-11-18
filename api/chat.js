@@ -70,15 +70,16 @@ module.exports=async function handler(req,res){
   const action=cleanText(body.action,40),message=cleanText(body.message,2000);
   if(body.website)return send(res,200,{ok:true});
   if(action==="start"){
-    if(!message)return send(res,400,{error:"Please enter a message."});
     const name=cleanText(body.name,80),email=cleanText(body.email,160);
     if(name.length<2)return send(res,400,{error:"Please enter your name."});
     if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return send(res,400,{error:"Please enter a valid email address."});
     const token=crypto.randomBytes(32).toString("hex");
     const rows=await db(root,service,"store_chat_conversations",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({visitor_token_hash:hash(token),visitor_name:name,visitor_email:email||null})});
     const conversation=rows&&rows[0];if(!conversation)throw new Error("Could not create chat conversation.");
-    await db(root,service,"store_chat_messages",{method:"POST",body:JSON.stringify({conversation_id:conversation.id,sender_type:"visitor",message})});
-    await db(root,service,"store_chat_conversations?id=eq."+conversation.id,{method:"PATCH",body:JSON.stringify({last_message_at:new Date().toISOString(),updated_at:new Date().toISOString()})});
+    if(message){
+      await db(root,service,"store_chat_messages",{method:"POST",body:JSON.stringify({conversation_id:conversation.id,sender_type:"visitor",message})});
+      await db(root,service,"store_chat_conversations?id=eq."+conversation.id,{method:"PATCH",body:JSON.stringify({last_message_at:new Date().toISOString(),updated_at:new Date().toISOString()})});
+    }
     return send(res,201,{conversation_id:conversation.id,visitor_token:token});
   }
   const conversationId=cleanText(body.conversation_id,36);
