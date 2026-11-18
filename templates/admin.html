@@ -3,6 +3,49 @@
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f7fa;color:#172b3d;font:14px/1.5 Arial,sans-serif}.wrap{width:min(1050px,94%);margin:30px auto}header,.panel{background:#fff;border:1px solid #dce5ed;border-radius:12px;padding:22px;margin-bottom:18px}h1,h2{color:#08213b;margin:0 0 10px}.muted{color:#64778a}label{display:block;font-weight:700;margin:12px 0 5px}input,textarea,select{width:100%;padding:10px;border:1px solid #cbd8e3;border-radius:6px;font:inherit}textarea{min-height:80px}button{background:#08213b;color:white;border:0;border-radius:6px;padding:11px 15px;font-weight:700;cursor:pointer}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.status{padding:12px;background:#f3f7fa;border-radius:7px;margin-top:12px;white-space:pre-wrap}.product{padding:14px;border:1px solid #dce5ed;border-radius:8px;margin:10px 0}.row{display:flex;gap:10px;flex-wrap:wrap}.operation{padding:15px;border:1px solid #dce5ed;border-radius:8px;margin:10px 0;background:#fff}.operation h3{margin:0 0 8px;color:#08213b}.operation small{color:#64778a;overflow-wrap:anywhere}.operation .meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}.operation textarea{min-height:65px}.pill{display:inline-block;background:#edf3f8;border-radius:20px;padding:3px 9px;font-size:12px;font-weight:700}@media(max-width:650px){.grid{grid-template-columns:1fr}}
 .yscmt-chat-tools{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:10px 0}.yscmt-chat-tools>button{width:auto!important;min-width:40px;padding:8px 12px!important;border-radius:9px!important;background:#e8f3f8!important;color:#08213b!important;border:1px solid #c9dce7!important;font-size:17px}.yscmt-chat-media{display:block;max-width:min(300px,100%);max-height:240px;border-radius:9px;margin-top:7px}.yscmt-media-caption{font-size:12px;color:#536779;margin-top:4px}.yscmt-call-box{width:100%;padding:10px;background:#08213b;color:#fff;border-radius:10px;margin-top:8px}.yscmt-call-box[hidden]{display:none}.yscmt-call-label{font-weight:700;margin-bottom:7px}.yscmt-remote-video{width:100%;max-height:220px;background:#000;border-radius:8px}.yscmt-local-video{width:100px;max-height:130px;object-fit:cover;border:2px solid #fff;border-radius:8px;position:absolute;right:18px;bottom:60px}.yscmt-call-actions{display:flex;gap:7px;margin-top:8px}.yscmt-call-actions button{flex:1;width:auto!important;padding:9px!important}.yscmt-call-actions button[hidden]{display:none}
+/* WhatsApp-inspired live chat media composer */
+.yscmt-chat-tools{display:flex;align-items:flex-start;flex-wrap:wrap;gap:8px;margin:10px 0;position:relative}
+.yscmt-chat-tools .yscmt-tool{width:42px!important;height:42px;min-width:42px;padding:0!important;display:inline-flex;align-items:center;justify-content:center;border-radius:50%!important;background:#edf5f8!important;color:#07546a!important;border:1px solid #d5e5eb!important;font-size:19px;cursor:pointer;transition:background .15s,transform .15s}
+.yscmt-chat-tools .yscmt-tool:hover{background:#dceff4!important;transform:translateY(-1px)}
+.yscmt-chat-tools .yscmt-tool.is-recording{background:#fee2e2!important;color:#b42318!important;animation:yscmt-pulse 1.2s infinite}
+@keyframes yscmt-pulse{50%{box-shadow:0 0 0 6px #fca5a533}}
+.yscmt-attach-wrap{position:relative}
+.yscmt-attach-menu{position:absolute;z-index:50;bottom:50px;left:0;min-width:170px;padding:6px;background:#fff;border:1px solid #dbe5ea;border-radius:12px;box-shadow:0 12px 32px #0b25351f}
+.yscmt-attach-menu[hidden],.yscmt-upload-preview[hidden],.yscmt-recorder-panel[hidden],.yscmt-call-box[hidden]{display:none!important}
+.yscmt-attach-option{display:flex;align-items:center;width:100%!important;padding:10px 12px!important;background:transparent!important;color:#17384a!important;text-align:left;border-radius:8px!important;font-weight:600}
+.yscmt-attach-option:hover{background:#eff7f9!important}
+.yscmt-upload-preview,.yscmt-recorder-panel{flex:1 1 100%;min-width:0;padding:11px;background:#f4f8fa;border:1px solid #dce8ed;border-radius:12px}
+.yscmt-preview-title,.yscmt-recorder-title{font-size:13px;font-weight:700;color:#193d4d;margin-bottom:8px}
+.yscmt-queue-list{display:flex;flex-direction:column;gap:7px;max-height:190px;overflow:auto}
+.yscmt-queue-item{display:flex;align-items:center;gap:9px;padding:7px;background:#fff;border:1px solid #e2ebef;border-radius:9px;min-width:0}
+.yscmt-queue-thumb{width:42px;height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;background:#eaf2f5;border-radius:7px;color:#0b6579;font-size:20px;overflow:hidden}
+.yscmt-queue-thumb img{width:100%;height:100%;object-fit:cover}
+.yscmt-queue-details{display:flex;flex:1;flex-direction:column;min-width:0;gap:2px}
+.yscmt-queue-details strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#17384a}
+.yscmt-queue-details small,.yscmt-media-filename{font-size:11px;color:#647987}
+.yscmt-remove-file{width:28px!important;height:28px;padding:0!important;border-radius:50%!important;background:#f1f5f7!important;color:#526875!important;font-size:18px}
+.yscmt-preview-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:9px}
+.yscmt-preview-actions button{width:auto!important;padding:8px 12px!important;border-radius:8px!important;font-size:12px}
+.yscmt-primary{background:#087f8c!important;color:#fff!important}
+.yscmt-secondary{background:#e7eef2!important;color:#294653!important}
+.yscmt-danger{background:#c83c45!important;color:#fff!important}
+.yscmt-upload-progress{height:5px;background:#dce7eb;border-radius:10px;overflow:hidden;margin-top:9px}
+.yscmt-upload-progress-bar{height:100%;width:0;background:#0b9b91;transition:width .15s}
+.yscmt-recorder-clock{display:inline-block;font-size:13px;font-weight:700;color:#0b6579;font-variant-numeric:tabular-nums;margin-bottom:8px}
+.yscmt-recorder-panel audio{display:block;width:100%;height:38px;margin:5px 0}
+.yscmt-call-box{flex:1 1 100%;min-width:0;padding:12px;background:#092b3b;color:#fff;border-radius:14px;box-shadow:0 8px 24px #071d2a24}
+.yscmt-call-label{font-size:14px;font-weight:700;margin-bottom:9px}
+.yscmt-remote-video{display:block;width:100%;max-height:260px;object-fit:cover;background:#000;border-radius:10px}
+.yscmt-local-video{display:block;width:94px;max-height:120px;object-fit:cover;background:#000;border:2px solid #fff;border-radius:9px;margin:8px 0 0 auto}
+.yscmt-call-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.yscmt-call-actions button{flex:1 1 auto;width:auto!important;min-width:76px;padding:9px 11px!important;border-radius:9px!important;font-size:12px}
+.yscmt-call-actions button[hidden]{display:none!important}
+.yscmt-media-card{max-width:min(300px,100%);padding:4px 0}
+.yscmt-media-heading{font-size:12px;font-weight:700;color:#315465;margin-bottom:6px}
+.yscmt-chat-media{display:block;max-width:100%;max-height:260px;border-radius:10px;object-fit:contain;background:#e8eef1}
+.yscmt-chat-audio{display:block;width:min(280px,100%);height:40px}
+.yscmt-media-filename{margin-top:5px;overflow-wrap:anywhere}
+@media(max-width:480px){.yscmt-chat-tools{gap:7px}.yscmt-chat-tools .yscmt-tool{width:40px!important;height:40px;min-width:40px}.yscmt-remote-video{max-height:210px}.yscmt-queue-list{max-height:150px}}
 </style></head><body><main class="wrap"><header><div class="muted">YSCMT ENTERPRISE · PRIVATE AREA</div><h1>Template Store Admin</h1><p class="muted">Only accounts with the store_admin role can manage products. Never share service-role keys in this page.</p><div id="auth"><a href="/templates/account.html">Sign in to your account</a></div><div id="status" class="status">Loading admin service…</div></header>
 <section class="panel" id="editor" hidden><h2>Create / update a product</h2><form id="productForm">
 <div class="grid"><div><label>Product ID (leave blank for new)</label><input id="id" placeholder="UUID for update"></div><div><label>Product name</label><input id="name" required></div><div><label>Slug</label><input id="slug" placeholder="business-website-template" required></div><div><label>Category</label><select id="category"><option>Business Websites</option><option>E-commerce</option><option>Portfolio</option><option>School & LMS</option><option>Blog & News</option><option>Admin Dashboard</option></select></div><div><label>Download price (NGN)</label><input id="download" type="number" min="0" step="1" value="0"></div><div><label>Installation price (NGN, optional)</label><input id="installation" type="number" min="0" step="1"></div><div><label>Version</label><input id="version" value="1.0.0"></div><div><label>Licence</label><input id="license" value="single-project"></div><div><label>Technologies (comma-separated)</label><input id="technologies"></div><div><label>Screenshot URLs (one per line)</label><textarea id="screenshots"></textarea></div><div><label>Live demo URL</label><input id="demo" type="url"></div><div><label>Upload product ZIP archive (maximum 50 MB)</label><input id="archive" type="file" accept=".zip,application/zip"><p class="muted">The ZIP is uploaded directly to private Supabase Storage using your administrator session.</p></div><div><label>Private ZIP path</label><input id="artifact" placeholder="product-name/v1.0.0.zip" readonly></div></div>
