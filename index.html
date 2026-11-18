@@ -604,6 +604,37 @@ h4{font-size:15px!important;line-height:1.4}
 .yscmt-media-filename{margin-top:5px;overflow-wrap:anywhere}
 .yscmt-media-actions{display:flex;gap:10px;margin-top:5px}.yscmt-media-download{display:inline-flex;align-items:center;padding:5px 9px;border-radius:7px;background:#e8f3f5;color:#07546a;font-size:11px;font-weight:700;text-decoration:none}.yscmt-media-download:hover{background:#d6ebef}
 @media(max-width:480px){.yscmt-chat-tools{gap:7px}.yscmt-chat-tools .yscmt-tool{width:40px!important;height:40px;min-width:40px}.yscmt-remote-video{max-height:210px}.yscmt-queue-list{max-height:150px}}
+.yscmt-call-screen{position:fixed!important;inset:0!important;z-index:100000!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:none!important;margin:0!important;padding:env(safe-area-inset-top) 26px calc(28px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-between!important;overflow:hidden!important;background:radial-gradient(ellipse at 18% 28%,rgba(42,105,95,.72),transparent 48%),radial-gradient(ellipse at 82% 65%,rgba(40,58,125,.82),transparent 52%),linear-gradient(145deg,#092f50 0%,#073d35 52%,#10244e 100%)!important;color:#fff!important;box-shadow:none!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+.yscmt-call-screen[hidden]{display:none!important}
+.yscmt-call-backdrop{position:absolute;inset:-20%;pointer-events:none;background:radial-gradient(circle at 50% 48%,rgba(255,255,255,.08),transparent 42%);filter:blur(28px)}
+.yscmt-call-header{position:relative;margin-top:clamp(24px,7vh,76px);font-size:12px;letter-spacing:4px;font-weight:700;color:rgba(255,255,255,.68)}
+.yscmt-call-identity{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;margin:auto 0 0;padding:0 12px 7vh}
+.yscmt-call-avatar{width:108px;height:108px;border-radius:50%;display:grid;place-items:center;margin-bottom:26px;background:linear-gradient(145deg,rgba(255,255,255,.24),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.2);font-size:42px;font-weight:600;color:#fff;box-shadow:0 16px 45px rgba(0,0,0,.16)}
+.yscmt-call-name{font-size:clamp(27px,7vw,40px);line-height:1.2;font-weight:650;letter-spacing:-.6px;color:#fff}
+.yscmt-call-screen .yscmt-call-label{font-size:19px;font-weight:600;color:rgba(255,255,255,.58);margin-top:14px}
+.yscmt-call-screen .yscmt-call-actions{position:relative;width:min(100%,430px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 14px;margin:0 auto 0;padding:0 0 2vh}
+.yscmt-call-screen .yscmt-call-control{min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:0!important;border-radius:0!important;background:transparent!important;color:#fff!important;font-size:14px;font-weight:600;padding:0!important;box-shadow:none!important}
+.yscmt-call-screen .yscmt-call-control:before{content:"";width:72px;height:72px;border-radius:50%;display:block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.08)}
+.yscmt-call-screen .yscmt-call-control:nth-child(1):after{content:"♩";position:absolute;font-size:29px;margin-top:-38px}
+.yscmt-call-screen .yscmt-call-control:nth-child(2):after{content:"▣";position:absolute;font-size:27px;margin-top:-38px}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-end{grid-column:2;background:transparent!important}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-end:before{background:#ff453a;width:82px;height:82px;border:0}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-end:after{content:"☎";position:absolute;font-size:34px;margin-top:-42px;color:#fff}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-accept{grid-column:1;background:transparent!important}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-accept:before{background:#30c66a;width:82px;height:82px}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-accept:after{content:"☎";position:absolute;font-size:32px;margin-top:-42px}
+.yscmt-call-screen .yscmt-remote-video{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;border-radius:0;z-index:0}
+.yscmt-call-screen.is-video-call .yscmt-call-backdrop,.yscmt-call-screen.is-video-call .yscmt-call-header,.yscmt-call-screen.is-video-call .yscmt-call-identity{z-index:2}
+.yscmt-call-screen.is-video-call .yscmt-call-identity{margin-top:12vh;margin-bottom:auto}
+.yscmt-call-screen.is-video-call .yscmt-call-avatar{display:none}
+.yscmt-call-screen.is-video-call .yscmt-call-name,.yscmt-call-screen.is-video-call .yscmt-call-label{text-shadow:0 2px 12px #000}
+.yscmt-call-screen .yscmt-local-video{position:absolute;z-index:4;right:18px;top:calc(env(safe-area-inset-top) + 20px);bottom:auto;width:104px;height:145px;object-fit:cover;border:2px solid rgba(255,255,255,.8);border-radius:16px;margin:0;box-shadow:0 8px 24px #0005}
+.yscmt-call-screen.is-video-call .yscmt-call-actions{z-index:3;background:linear-gradient(transparent,rgba(0,0,0,.35));width:100%;max-width:none;padding:30px 0 calc(18px + env(safe-area-inset-bottom))}
+.yscmt-call-screen.is-video-call .yscmt-call-control:before{background:rgba(0,0,0,.38)}
+.yscmt-call-screen audio{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+@media(min-width:700px){.yscmt-call-screen{padding-left:max(26px,calc((100vw - 520px)/2))!important;padding-right:max(26px,calc((100vw - 520px)/2))!important}.yscmt-call-screen .yscmt-call-identity{padding-bottom:5vh}}
+
+.yscmt-call-screen [hidden]{display:none!important}.yscmt-call-screen .yscmt-call-control{position:relative}.yscmt-call-screen .yscmt-call-mute:after{content:"♩";position:absolute;top:28px;left:50%;transform:translateX(-50%);font-size:28px}.yscmt-call-screen .yscmt-call-camera:after{content:"▣";position:absolute;top:29px;left:50%;transform:translateX(-50%);font-size:26px}
 </style>
 </head>
 
@@ -1348,37 +1379,3 @@ if(s&&s.conversation_id)extras.setConversation(s.conversation_id,null);
 </script>
 </body>
 </html>
-
-
-/* Full-screen iPhone-inspired calling interface */
-.yscmt-call-screen{position:fixed!important;inset:0!important;z-index:100000!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:none!important;margin:0!important;padding:env(safe-area-inset-top) 26px calc(28px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-between!important;overflow:hidden!important;background:radial-gradient(ellipse at 18% 28%,rgba(42,105,95,.72),transparent 48%),radial-gradient(ellipse at 82% 65%,rgba(40,58,125,.82),transparent 52%),linear-gradient(145deg,#092f50 0%,#073d35 52%,#10244e 100%)!important;color:#fff!important;box-shadow:none!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
-.yscmt-call-screen[hidden]{display:none!important}
-.yscmt-call-backdrop{position:absolute;inset:-20%;pointer-events:none;background:radial-gradient(circle at 50% 48%,rgba(255,255,255,.08),transparent 42%);filter:blur(28px)}
-.yscmt-call-header{position:relative;margin-top:clamp(24px,7vh,76px);font-size:12px;letter-spacing:4px;font-weight:700;color:rgba(255,255,255,.68)}
-.yscmt-call-identity{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;margin:auto 0 0;padding:0 12px 7vh}
-.yscmt-call-avatar{width:108px;height:108px;border-radius:50%;display:grid;place-items:center;margin-bottom:26px;background:linear-gradient(145deg,rgba(255,255,255,.24),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.2);font-size:42px;font-weight:600;color:#fff;box-shadow:0 16px 45px rgba(0,0,0,.16)}
-.yscmt-call-name{font-size:clamp(27px,7vw,40px);line-height:1.2;font-weight:650;letter-spacing:-.6px;color:#fff}
-.yscmt-call-screen .yscmt-call-label{font-size:19px;font-weight:600;color:rgba(255,255,255,.58);margin-top:14px}
-.yscmt-call-screen .yscmt-call-actions{position:relative;width:min(100%,430px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 14px;margin:0 auto 0;padding:0 0 2vh}
-.yscmt-call-screen .yscmt-call-control{min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:0!important;border-radius:0!important;background:transparent!important;color:#fff!important;font-size:14px;font-weight:600;padding:0!important;box-shadow:none!important}
-.yscmt-call-screen .yscmt-call-control:before{content:"";width:72px;height:72px;border-radius:50%;display:block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.08)}
-.yscmt-call-screen .yscmt-call-control:nth-child(1):after{content:"♩";position:absolute;font-size:29px;margin-top:-38px}
-.yscmt-call-screen .yscmt-call-control:nth-child(2):after{content:"▣";position:absolute;font-size:27px;margin-top:-38px}
-.yscmt-call-screen .yscmt-call-control.yscmt-call-end{grid-column:2;background:transparent!important}
-.yscmt-call-screen .yscmt-call-control.yscmt-call-end:before{background:#ff453a;width:82px;height:82px;border:0}
-.yscmt-call-screen .yscmt-call-control.yscmt-call-end:after{content:"☎";position:absolute;font-size:34px;margin-top:-42px;color:#fff}
-.yscmt-call-screen .yscmt-call-control.yscmt-call-accept{grid-column:1;background:transparent!important}
-.yscmt-call-screen .yscmt-call-control.yscmt-call-accept:before{background:#30c66a;width:82px;height:82px}
-.yscmt-call-screen .yscmt-call-control.yscmt-call-accept:after{content:"☎";position:absolute;font-size:32px;margin-top:-42px}
-.yscmt-call-screen .yscmt-remote-video{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;border-radius:0;z-index:0}
-.yscmt-call-screen.is-video-call .yscmt-call-backdrop,.yscmt-call-screen.is-video-call .yscmt-call-header,.yscmt-call-screen.is-video-call .yscmt-call-identity{z-index:2}
-.yscmt-call-screen.is-video-call .yscmt-call-identity{margin-top:12vh;margin-bottom:auto}
-.yscmt-call-screen.is-video-call .yscmt-call-avatar{display:none}
-.yscmt-call-screen.is-video-call .yscmt-call-name,.yscmt-call-screen.is-video-call .yscmt-call-label{text-shadow:0 2px 12px #000}
-.yscmt-call-screen .yscmt-local-video{position:absolute;z-index:4;right:18px;top:calc(env(safe-area-inset-top) + 20px);bottom:auto;width:104px;height:145px;object-fit:cover;border:2px solid rgba(255,255,255,.8);border-radius:16px;margin:0;box-shadow:0 8px 24px #0005}
-.yscmt-call-screen.is-video-call .yscmt-call-actions{z-index:3;background:linear-gradient(transparent,rgba(0,0,0,.35));width:100%;max-width:none;padding:30px 0 calc(18px + env(safe-area-inset-bottom))}
-.yscmt-call-screen.is-video-call .yscmt-call-control:before{background:rgba(0,0,0,.38)}
-.yscmt-call-screen audio{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-@media(min-width:700px){.yscmt-call-screen{padding-left:max(26px,calc((100vw - 520px)/2))!important;padding-right:max(26px,calc((100vw - 520px)/2))!important}.yscmt-call-screen .yscmt-call-identity{padding-bottom:5vh}}
-
-.yscmt-call-screen [hidden]{display:none!important}.yscmt-call-screen .yscmt-call-control{position:relative}.yscmt-call-screen .yscmt-call-mute:after{content:"♩";position:absolute;top:28px;left:50%;transform:translateX(-50%);font-size:28px}.yscmt-call-screen .yscmt-call-camera:after{content:"▣";position:absolute;top:29px;left:50%;transform:translateX(-50%);font-size:26px}
