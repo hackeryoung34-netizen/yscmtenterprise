@@ -4,11 +4,12 @@ const $=(tag,attrs={},content)=>{const el=document.createElement(tag);Object.ent
 const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+" MB";
 const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
- const role=options.role,host=options.host,status=options.status;
+ const role=options.role,host=options.host,status=options.status,callHost=options.callHost;
  const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
  if(!host)return {setConversation(){},renderMedia:async()=>{}};
 
  const bar=$("div",{className:"yscmt-chat-tools"});
+ const callBar=$("div",{className:"yscmt-chat-call-tools","aria-label":"Call actions"});
  const attachWrap=$("div",{className:"yscmt-attach-wrap"});
  const attach=$("button",{type:"button",className:"yscmt-tool yscmt-attach",title:"Attach photo, video or audio","aria-label":"Attach media"},"＋");
  const menu=$("div",{className:"yscmt-attach-menu",hidden:true});
@@ -57,8 +58,10 @@ function create(options){
  callActions.append(accept,reject,mute,camera,end);
  callBox.append(callLabel,remoteVideo,localVideo,remoteAudio,callActions);
  attachWrap.append(attach,menu);
- bar.append(attachWrap,record,voice,video,fileInput,preview,recorderPanel,callBox);
+ bar.append(attachWrap,record,fileInput,preview,recorderPanel,callBox);
+ callBar.append(voice,video);
  host.append(bar);
+ if(callHost)callHost.append(callBar);else bar.append(voice,video);
 
  function say(message){if(status)status.textContent=message||""}
  function visitor(){return typeof options.getVisitor==="function"?options.getVisitor():null}
