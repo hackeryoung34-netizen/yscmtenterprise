@@ -17,7 +17,7 @@ async function getConversation(root,key,id){const rows=await db(root,key,"store_
 async function getMessages(root,key,id){return await db(root,key,"store_chat_messages?select=id,sender_type,message,message_type,media_path,media_name,media_mime,media_size,created_at&conversation_id=eq."+encodeURIComponent(id)+"&order=created_at.asc&limit=300");}
 async function requireAdmin(req,root,anonKey){const header=req.headers.authorization||"",token=header.startsWith("Bearer ")?header.slice(7):"";if(!token)throw Object.assign(new Error("Administrator sign-in is required."),{status:401});const r=await fetch(root+"/auth/v1/user",{headers:{apikey:anonKey,Authorization:"Bearer "+token}});if(!r.ok)throw Object.assign(new Error("Your session is invalid or expired."),{status:401});const user=await r.json();if(!user.app_metadata||user.app_metadata.role!=="store_admin")throw Object.assign(new Error("Store administrator permission is required."),{status:403});return user;}
 async function authorize(req,root,anon,key,conversation,bodyOrQuery){const token=cleanText(bodyOrQuery&&(bodyOrQuery.visitor_token||bodyOrQuery.token),128);if(token&&/^[a-f0-9]{64}$/i.test(token)&&sameHash(conversation.visitor_token_hash,hash(token)))return "visitor";await requireAdmin(req,root,anon);return "admin";}
-async function signMedia(root,service,path){const data=await storage(root,service,"object/sign/"+BUCKET+"/"+safePath(path),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})});const url=data&&data.signedURL;if(!url)throw new Error("Could not create a private media link.");return url.startsWith("http")?url:root+"/storage/v1"+url;}
+async function signMedia(root,service,path,downloadName){const data=await storage(root,service,"object/sign/"+BUCKET+"/"+safePath(path),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600,...(downloadName?{download:downloadName}:{})})});const url=data&&data.signedURL;if(!url)throw new Error("Could not create a private media link.");return url.startsWith("http")?url:root+"/storage/v1"+url;}
 async function addCallEvent(root,service,callId,sender,eventType,payload={}){return await db(root,service,"store_chat_call_events",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({call_id:callId,sender_type:sender,event_type:eventType,payload})});}
 async function getCall(root,service,id){const rows=await db(root,service,"store_chat_calls?select=id,conversation_id,caller_type,call_type,status,created_at,updated_at,ended_at&id=eq."+encodeURIComponent(id)+"&limit=1");return rows&&rows[0]||null;}
 async function verifyCallParticipant(req,root,anon,service,call,bodyOrQuery){const conversation=await getConversation(root,service,call.conversation_id);if(!conversation)throw Object.assign(new Error("Conversation not found."),{status:404});const side=await authorize(req,root,anon,service,conversation,bodyOrQuery);return {side,conversation};}
@@ -55,6 +55,14 @@ module.exports=async function handler(req,res){
     const conversation=await getConversation(root,service,message.conversation_id);if(!conversation)return send(res,404,{error:"Conversation not found."});
     await authorize(req,root,anon,service,conversation,req.query);
     return send(res,200,{url:await signMedia(root,service,message.media_path)});
+   }
+   if(action==="media_download"){
+    const messageId=cleanText(req.query&&req.query.id,36);if(!/^[0-9a-f-]{36}$/i.test(messageId))return send(res,400,{error:"Invalid media message."});
+    const rows=await db(root,service,"store_chat_messages?select=id,conversation_id,media_path,media_name&id=eq."+encodeURIComponent(messageId)+"&limit=1");
+    const message=rows&&rows[0];if(!message||!message.media_path)return send(res,404,{error:"Media not found."});
+    const conversation=await getConversation(root,service,message.conversation_id);if(!conversation)return send(res,404,{error:"Conversation not found."});
+    await authorize(req,root,anon,service,conversation,req.query);
+    return send(res,200,{url:await signMedia(root,service,message.media_path,cleanText(message.media_name,160)||"attachment")});
    }
    if(action==="call_poll"){
     const callId=cleanText(req.query&&req.query.id,36);if(!/^[0-9a-f-]{36}$/i.test(callId))return send(res,400,{error:"Invalid call."});
