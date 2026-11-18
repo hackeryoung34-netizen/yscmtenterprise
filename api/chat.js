@@ -21,7 +21,7 @@ async function signMedia(root,service,path){const data=await storage(root,servic
 async function addCallEvent(root,service,callId,sender,eventType,payload={}){return await db(root,service,"store_chat_call_events",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({call_id:callId,sender_type:sender,event_type:eventType,payload})});}
 async function getCall(root,service,id){const rows=await db(root,service,"store_chat_calls?select=id,conversation_id,caller_type,call_type,status,created_at,updated_at,ended_at&id=eq."+encodeURIComponent(id)+"&limit=1");return rows&&rows[0]||null;}
 async function verifyCallParticipant(req,root,anon,service,call,bodyOrQuery){const conversation=await getConversation(root,service,call.conversation_id);if(!conversation)throw Object.assign(new Error("Conversation not found."),{status:404});const side=await authorize(req,root,anon,service,conversation,bodyOrQuery);return {side,conversation};}
-async function getActiveCall(root,service,conversationId){const rows=await db(root,service,"store_chat_calls?select=id,conversation_id,caller_type,call_type,status,created_at&conversation_id=eq."+encodeURIComponent(conversationId)+"&status=in.(ringing,active)&order=created_at.desc&limit=1");return rows&&rows[0]||null;}
+async function getActiveCall(root,service,conversationId){const rows=await db(root,service,"store_chat_calls?select=id,conversation_id,caller_type,call_type,status,created_at&conversation_id=eq."+encodeURIComponent(conversationId)+"&status=in.(ringing,active)&order=created_at.desc&limit=1");const call=rows&&rows[0]||null;if(call&&call.status==="ringing"&&Date.now()-new Date(call.created_at).getTime()>45000){await db(root,service,"store_chat_calls?id=eq."+call.id,{method:"PATCH",body:JSON.stringify({status:"missed",ended_at:new Date().toISOString(),updated_at:new Date().toISOString()})});return null;}return call;}
 function mediaKind(mime,requested){if(requested==="voice_note"&&mime.startsWith("audio/"))return "voice_note";if(mime.startsWith("image/"))return "image";if(mime.startsWith("video/"))return "video";if(mime.startsWith("audio/"))return "audio";return null;}
 module.exports=async function handler(req,res){
  if(!["GET","POST"].includes(req.method)){res.setHeader("Allow","GET, POST");return send(res,405,{error:"Method not allowed"});}
@@ -60,6 +60,8 @@ module.exports=async function handler(req,res){
     const callId=cleanText(req.query&&req.query.id,36);if(!/^[0-9a-f-]{36}$/i.test(callId))return send(res,400,{error:"Invalid call."});
     const call=await getCall(root,service,callId);if(!call)return send(res,404,{error:"Call not found."});
     const {side}=await verifyCallParticipant(req,root,anon,service,call,req.query);
+    if(call.status==="ringing"&&Date.now()-new Date(call.created_at).getTime()>45000){await db(root,service,"store_chat_calls?id=eq."+callId,{method:"PATCH",body:JSON.stringify({status:"missed",ended_at:new Date().toISOString(),updated_at:new Date().toISOString()})});call.status="missed";}
+    if(call.status==="missed")return send(res,200,{call,side,events:[]});
     const cursor=Math.max(0,Number.parseInt(req.query&&req.query.after,10)||0);
     const events=await db(root,service,"store_chat_call_events?select=id,sender_type,event_type,payload,created_at&call_id=eq."+encodeURIComponent(callId)+"&id=gt."+cursor+"&order=id.asc&limit=100");
     return send(res,200,{call,side,events});
