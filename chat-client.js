@@ -69,7 +69,7 @@ function create(options){
   if(!file.type||(!file.type.startsWith("image/")&&!file.type.startsWith("video/")&&!file.type.startsWith("audio/")))throw new Error("Only photos, videos and audio files are supported.");
   say("Preparing secure upload…");
   const init=await request("media_upload","POST",{file_name:file.name||("voice-note."+((file.type.split("/")[1]||"webm"))),file_mime:file.type,file_size:file.size,kind:kind||""});
-  const up=await fetch(init.upload_url,{method:"PUT",headers:{"Content-Type":file.type},body:file});
+  const up=await fetch(init.upload_url,{method:"PUT",headers:{"Content-Type":file.type.split(";")[0]},body:file});
   if(!up.ok)throw new Error("File upload failed. Please try again.");
   await request("media_message","POST",{media_path:init.path,media_name:file.name||"Voice note",media_mime:file.type,media_size:file.size,kind:kind||""});
   say("Attachment sent.");if(options.refresh)await options.refresh();
