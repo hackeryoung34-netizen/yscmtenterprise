@@ -231,19 +231,26 @@ function create(options){
  async function flushRemoteIce(){if(!state.pc||!state.pc.remoteDescription)return;const candidates=state.remoteIceQueue.splice(0);for(const candidate of candidates){try{await state.pc.addIceCandidate(new RTCIceCandidate(candidate))}catch(error){}}}
  async function startCall(callType){
   if(state.callBusy||state.call)throw new Error("A call is already active.");
-  await ensureConversation();state.callBusy=true;say("Starting "+(callType==="video"?"video":"voice")+" call…");
+  state.callBusy=true;say("Starting "+(callType==="video"?"video":"voice")+" call…");
+  callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callLabel.textContent="Preparing call…";showCall(true);
+  accept.hidden=true;reject.hidden=true;mute.hidden=true;camera.hidden=true;end.hidden=false;end.textContent="Cancel";
   try{
-   callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callLabel.textContent="Preparing call…";showCall(true);
-   accept.hidden=true;reject.hidden=true;mute.hidden=true;camera.hidden=true;end.hidden=true;
+   await ensureConversation();
    const stream=await prepareLocal(callType),pc=makePeer(callType);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
    callLabel.textContent="Calling…";
    const result=await request("call_start","POST",{call_type:callType,offer:pc.localDescription.toJSON()});
    state.call=result.call;state.callCursor=0;callLabel.textContent="Calling…";
    accept.hidden=true;reject.hidden=true;mute.hidden=false;camera.hidden=callType!=="video";end.hidden=false;
-   mute.textContent="Mute";camera.textContent="Camera off";await flushIce();beginPoll();
-  }catch(error){cleanupCall();throw error}
-  finally{state.callBusy=false}
+   mute.textContent="Mute";camera.textContent="Camera off";end.textContent="End call";await flushIce();beginPoll();
+  }catch(error){
+   stopPoller();if(state.pc){state.pc.close();state.pc=null}
+   if(state.local)state.local.getTracks().forEach(track=>track.stop());
+   state.local=null;state.remote=null;localVideo.srcObject=null;remoteVideo.srcObject=null;remoteAudio.srcObject=null;
+   state.call=null;state.callBusy=false;callLabel.textContent=error&&error.message?error.message:"Unable to start call";
+   accept.hidden=true;reject.hidden=true;mute.hidden=true;camera.hidden=true;end.hidden=false;end.textContent="Close";showCall(true);
+   throw error;
+  }finally{state.callBusy=false}
  }
  async function acceptCall(){
   if(!state.incoming)return;
@@ -253,7 +260,7 @@ function create(options){
   }catch(error){await callApiEvent("rejected",{}).catch(()=>{});cleanupCall(error.message)}
  }
  async function rejectCall(){if(!state.call)return;try{await callApiEvent("rejected",{})}catch{}cleanupCall("Call declined.")}
- async function endCall(){if(!state.call)return;try{await callApiEvent("ended",{})}catch{}cleanupCall("Call ended.")}
+ async function endCall(){if(!state.call){cleanupCall("");return}try{await callApiEvent("ended",{})}catch{}cleanupCall("Call ended.")}
  accept.addEventListener("click",acceptCall);reject.addEventListener("click",rejectCall);end.addEventListener("click",endCall);
  mute.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getAudioTracks()[0];if(!track)return;track.enabled=!track.enabled;mute.textContent=track.enabled?"Mute":"Unmute"});
  camera.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getVideoTracks()[0];if(!track)return;track.enabled=!track.enabled;camera.textContent=track.enabled?"Camera off":"Camera on"});
