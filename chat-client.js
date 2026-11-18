@@ -198,7 +198,7 @@ function create(options){
  });
 
  function callApiEvent(eventType,payload={}){return request("call_event","POST",{call_id:state.call&&state.call.id,event_type:eventType,payload})}
- function showCall(open){callBox.hidden=!open;document.body.classList.toggle("yscmt-call-open",open);bar.classList.toggle("call-active",open)}
+ function showCall(open){callBox.hidden=!open;callBox.style.setProperty("display",open?"flex":"none","important");if(open){callBox.style.setProperty("background","radial-gradient(ellipse at 50% 12%,rgba(37,99,235,.32),transparent 42%),radial-gradient(ellipse at 12% 78%,rgba(13,148,136,.28),transparent 38%),linear-gradient(155deg,#071426 0%,#0a2440 52%,#061321 100%)","important");callBox.style.setProperty("visibility","visible","important");void callBox.offsetHeight;}document.body.classList.toggle("yscmt-call-open",open);bar.classList.toggle("call-active",open)}
  function stopPoller(){if(state.poller){clearInterval(state.poller);state.poller=null}state.pollInFlight=false}
  function stopCallClock(){if(state.callTimer){clearInterval(state.callTimer);state.callTimer=null}state.callStartedAt=0;callTimer.textContent="";}
  function stopCallTone(){
