@@ -13,7 +13,7 @@ const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+
 const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
  const role=options.role,host=options.host,status=options.status,callHost=options.callHost;
- const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,pollInFlight:false,callTimer:null,callStartedAt:0,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
+ const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,pollInFlight:false,callTimer:null,callStartedAt:0,callToneContext:null,callToneGain:null,callToneTimer:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
  if(!host)return {setConversation(){},renderMedia:async()=>{}};
 
  const bar=$("div",{className:"yscmt-chat-tools"});
@@ -201,9 +201,29 @@ function create(options){
  function showCall(open){callBox.hidden=!open;document.body.classList.toggle("yscmt-call-open",open);bar.classList.toggle("call-active",open)}
  function stopPoller(){if(state.poller){clearInterval(state.poller);state.poller=null}state.pollInFlight=false}
  function stopCallClock(){if(state.callTimer){clearInterval(state.callTimer);state.callTimer=null}state.callStartedAt=0;callTimer.textContent="";}
+ function stopCallTone(){
+  if(state.callToneTimer){clearInterval(state.callToneTimer);state.callToneTimer=null}
+  if(state.callToneGain){try{state.callToneGain.gain.cancelScheduledValues(0);state.callToneGain.gain.setValueAtTime(0,state.callToneContext.currentTime)}catch(error){}}
+  if(state.callToneContext){const ctx=state.callToneContext;state.callToneContext=null;state.callToneGain=null;try{ctx.close()}catch(error){}}
+ }
+ async function startCallTone(){
+  stopCallTone();
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+  try{
+   const ctx=new AudioCtx(),gain=ctx.createGain();
+   gain.gain.value=0;gain.connect(ctx.destination);
+   [440,480].forEach(frequency=>{const oscillator=ctx.createOscillator();oscillator.type="sine";oscillator.frequency.value=frequency;oscillator.connect(gain);oscillator.start()});
+   state.callToneContext=ctx;state.callToneGain=gain;
+   await ctx.resume();
+   const started=Date.now();
+   const tick=()=>{if(!state.call||!state.callToneContext)return;const phase=(Date.now()-started)%6000;const audible=phase<2000;const now=ctx.currentTime;gain.gain.cancelScheduledValues(now);gain.gain.setTargetAtTime(audible?0.055:0,now,0.035)};
+   tick();state.callToneTimer=setInterval(tick,100);
+  }catch(error){stopCallTone()}
+ }
  function startCallClock(){if(state.callTimer)return;state.callStartedAt=Date.now();const tick=()=>{const seconds=Math.max(0,Math.floor((Date.now()-state.callStartedAt)/1000));const mm=String(Math.floor(seconds/60)).padStart(2,"0"),ss=String(seconds%60).padStart(2,"0");callTimer.textContent=mm+":"+ss};tick();state.callTimer=setInterval(tick,1000)}
  function cleanupCall(message){
-  stopPoller();stopCallClock();
+  stopPoller();stopCallClock();stopCallTone();
   if(state.pc){state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();state.pc=null}
   if(state.local)state.local.getTracks().forEach(track=>track.stop());
   state.local=null;state.remote=null;remoteVideo.srcObject=null;localVideo.srcObject=null;remoteAudio.srcObject=null;
@@ -222,7 +242,7 @@ function create(options){
   };
   pc.onicecandidate=event=>{if(event.candidate){const candidate=event.candidate.toJSON();if(state.call)callApiEvent("ice",{candidate}).catch(()=>{});else state.pendingIce.push(candidate)}};
   pc.onconnectionstatechange=()=>{
-   if(pc.connectionState==="connected"){callBox.classList.remove("is-ringing");callLabel.textContent="Connected";startCallClock();say("Call connected.")}
+   if(pc.connectionState==="connected"){stopCallTone();callBox.classList.remove("is-ringing");callLabel.textContent="Connected";startCallClock();say("Call connected.")}
    else if(pc.connectionState==="disconnected"){callLabel.textContent="Reconnecting…";say("Trying to restore the call connection…")}
    else if(pc.connectionState==="failed"){callLabel.textContent="Connection failed";say("Call connection failed. Check your internet connection or network restrictions.")}
   };
@@ -247,7 +267,7 @@ function create(options){
    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
    callLabel.textContent="Calling…";
    const result=await request("call_start","POST",{call_type:callType,offer:pc.localDescription.toJSON()});
-   state.call=result.call;state.callCursor=0;callLabel.textContent="Calling…";
+   state.call=result.call;state.callCursor=0;callLabel.textContent="Calling…";await startCallTone();
    accept.hidden=true;reject.hidden=true;mute.hidden=false;camera.hidden=callType!=="video";end.hidden=false;
    mute.textContent="Mute";mute.classList.remove("is-muted");speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";camera.classList.remove("is-camera-off");end.textContent="End call";speaker.hidden=false;await flushIce();beginPoll();
   }catch(error){
@@ -294,7 +314,7 @@ function create(options){
    await pc.setRemoteDescription(new RTCSessionDescription(event.payload));await flushRemoteIce();await flushIce();callLabel.textContent="Connecting…";
   }else if(event.event_type==="ice"&&pc&&event.payload&&event.payload.candidate){
    if(pc.remoteDescription){try{await pc.addIceCandidate(new RTCIceCandidate(event.payload.candidate))}catch(error){}}else state.remoteIceQueue.push(event.payload.candidate);
-  }else if(event.event_type==="accepted"){callLabel.textContent="Connecting…"}
+  }else if(event.event_type==="accepted"){stopCallTone();callLabel.textContent="Connecting…"}
   else if(event.event_type==="rejected"){cleanupCall("The other person declined the call.")}
   else if(event.event_type==="ended"){cleanupCall("The other person ended the call.")}
  }
