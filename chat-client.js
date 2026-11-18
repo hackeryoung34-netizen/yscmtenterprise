@@ -66,7 +66,7 @@ function create(options){
  const remoteAudio=$("audio",{autoplay:true});
  const callActions=$("div",{className:"yscmt-call-actions"});
  const accept=$("button",{type:"button",className:"yscmt-call-control yscmt-call-accept"},"Accept");
- const reject=$("button",{type:"button",className:"yscmt-call-control yscmt-call-end"},"Decline");
+ const reject=$("button",{type:"button",className:"yscmt-call-control yscmt-call-end yscmt-call-reject"},"Decline");
  const mute=$("button",{type:"button",className:"yscmt-call-control yscmt-call-mute"},"Mute");
  const speaker=$("button",{type:"button",className:"yscmt-call-control yscmt-call-speaker","aria-pressed":"false"},"Speaker");
  const camera=$("button",{type:"button",className:"yscmt-call-control yscmt-call-camera"},"Camera off");
