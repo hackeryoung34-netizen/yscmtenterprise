@@ -1,175 +1,293 @@
 (function(){
 "use strict";
-const $=(tag,attrs={},text)=>{const e=document.createElement(tag);Object.entries(attrs).forEach(([k,v])=>{if(k==="className")e.className=v;else if(k==="style")e.style.cssText=v;else e.setAttribute(k,v)});if(text!==undefined)e.textContent=text;return e};
-const allowedFiles="image/*,video/*,audio/*";
+const $=(tag,attrs={},content)=>{const el=document.createElement(tag);Object.entries(attrs).forEach(([key,value])=>{if(key==="className")el.className=value;else if(key==="style")el.style.cssText=value;else if(value!==false&&value!=null)el.setAttribute(key,value)});if(content!==undefined)el.textContent=content;return el};
+const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+" MB";
+const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
  const role=options.role,host=options.host,status=options.status;
- const state={conversationId:null,visitorToken:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],seen:new Set(),poller:null,recorder:null,recordChunks:[],incoming:null,callBusy:false};
+ const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],seen:new Set(),poller:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
  if(!host)return {setConversation(){},renderMedia:async()=>{}};
+
  const bar=$("div",{className:"yscmt-chat-tools"});
- const fileInput=$("input",{type:"file",accept:allowedFiles,hidden:"hidden"});
- const choose=$("button",{type:"button",title:"Attach photo, video or audio"},"＋");
- const record=$("button",{type:"button",title:"Record voice note"},"🎙");
- const voice=$("button",{type:"button",title:"Start voice call"},"☎");
- const video=$("button",{type:"button",title:"Start video call"},"▣");
- const callBox=$("div",{className:"yscmt-call-box",hidden:"hidden"});
+ const attachWrap=$("div",{className:"yscmt-attach-wrap"});
+ const attach=$("button",{type:"button",className:"yscmt-tool yscmt-attach",title:"Attach photo, video or audio","aria-label":"Attach media"},"＋");
+ const menu=$("div",{className:"yscmt-attach-menu",hidden:true});
+ const pickers=[
+  {label:"Photo",accept:"image/*",icon:"▧"},
+  {label:"Video",accept:"video/*",icon:"▶"},
+  {label:"Audio file",accept:"audio/*",icon:"♫"}
+ ];
+ const fileInput=$("input",{type:"file",accept:"image/*,video/*,audio/*",multiple:true,hidden:true});
+ const record=$("button",{type:"button",className:"yscmt-tool",title:"Record a voice note","aria-label":"Record voice note"},"🎙");
+ const voice=$("button",{type:"button",className:"yscmt-tool",title:"Start voice call","aria-label":"Voice call"},"☎");
+ const video=$("button",{type:"button",className:"yscmt-tool",title:"Start video call","aria-label":"Video call"},"▣");
+ const preview=$("div",{className:"yscmt-upload-preview",hidden:true});
+ const previewTitle=$("div",{className:"yscmt-preview-title"},"Attachments");
+ const queueList=$("div",{className:"yscmt-queue-list"});
+ const uploadProgress=$("div",{className:"yscmt-upload-progress",hidden:true});
+ const progressBar=$("div",{className:"yscmt-upload-progress-bar"});
+ uploadProgress.append(progressBar);
+ const previewActions=$("div",{className:"yscmt-preview-actions"});
+ const clearQueue=$("button",{type:"button",className:"yscmt-secondary"},"Cancel");
+ const sendQueue=$("button",{type:"button",className:"yscmt-primary"},"Send files");
+ previewActions.append(clearQueue,sendQueue);
+ preview.append(previewTitle,queueList,uploadProgress,previewActions);
+
+ const recorderPanel=$("div",{className:"yscmt-recorder-panel",hidden:true});
+ const recorderTitle=$("div",{className:"yscmt-recorder-title"},"Voice note");
+ const recorderClock=$("span",{className:"yscmt-recorder-clock"},"00:00");
+ const recorderAudio=$("audio",{controls:true,hidden:true});
+ const discardRecording=$("button",{type:"button",className:"yscmt-secondary"},"Discard");
+ const sendRecording=$("button",{type:"button",className:"yscmt-primary",disabled:true},"Send voice note");
+ const recorderActions=$("div",{className:"yscmt-preview-actions"});
+ recorderActions.append(discardRecording,sendRecording);
+ recorderPanel.append(recorderTitle,recorderClock,recorderAudio,recorderActions);
+
+ const callBox=$("section",{className:"yscmt-call-box",hidden:true});
  const callLabel=$("div",{className:"yscmt-call-label"},"Call");
- const remoteVideo=$("video",{className:"yscmt-remote-video",autoplay:"",playsinline:""});
- const localVideo=$("video",{className:"yscmt-local-video",autoplay:"",muted:"",playsinline:""});
- const remoteAudio=$("audio",{autoplay:""});
- const accept=$("button",{type:"button"},"Accept");
- const reject=$("button",{type:"button"},"Decline");
- const end=$("button",{type:"button"},"End call");
+ const remoteVideo=$("video",{className:"yscmt-remote-video",autoplay:true,playsinline:true});
+ const localVideo=$("video",{className:"yscmt-local-video",autoplay:true,muted:true,playsinline:true});
+ const remoteAudio=$("audio",{autoplay:true});
  const callActions=$("div",{className:"yscmt-call-actions"});
- callActions.append(accept,reject,end);callBox.append(callLabel,remoteVideo,localVideo,remoteAudio,callActions);
- bar.append(choose,record,voice,video,fileInput,callBox);host.append(bar);
- function say(text){if(status)status.textContent=text}
+ const accept=$("button",{type:"button",className:"yscmt-primary"},"Accept");
+ const reject=$("button",{type:"button",className:"yscmt-danger"},"Decline");
+ const mute=$("button",{type:"button",className:"yscmt-secondary"},"Mute");
+ const camera=$("button",{type:"button",className:"yscmt-secondary"},"Camera off");
+ const end=$("button",{type:"button",className:"yscmt-danger"},"End call");
+ callActions.append(accept,reject,mute,camera,end);
+ callBox.append(callLabel,remoteVideo,localVideo,remoteAudio,callActions);
+ attachWrap.append(attach,menu);
+ bar.append(attachWrap,record,voice,video,fileInput,preview,recorderPanel,callBox);
+ host.append(bar);
+
+ function say(message){if(status)status.textContent=message||""}
  function visitor(){return typeof options.getVisitor==="function"?options.getVisitor():null}
  function token(){const s=visitor();return s&&s.visitor_token||null}
  function conversation(){return state.conversationId||(visitor()&&visitor().conversation_id)||null}
  async function request(action,method="POST",extra={}){
   const id=conversation();if(!id)throw new Error("Start a chat first.");
-  const isVisitor=role==="visitor",s=visitor();
-  const body={action,conversation_id:id,...extra};
+  const isVisitor=role==="visitor",body={action,conversation_id:id,...extra};
   if(isVisitor)body.visitor_token=token();
   const headers={"Content-Type":"application/json"};
   if(role==="admin"){const t=options.getAdminToken&&options.getAdminToken();if(!t)throw new Error("Please sign in as an administrator.");headers.Authorization="Bearer "+t;}
   let url="/api/chat",payload;
   if(method==="GET"){const q=new URLSearchParams({action,id});if(isVisitor)q.set("token",token()||"");Object.entries(extra).forEach(([k,v])=>q.set(k,String(v)));url+="?"+q.toString();}
   else payload=JSON.stringify(body);
-  const r=await fetch(url,{method,headers,body:payload});const d=await r.json();if(!r.ok)throw new Error(d.error||"Chat request failed.");return d;
+  const response=await fetch(url,{method,headers,body:payload});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||"Chat request failed.");return data;
  }
  async function ensureConversation(){
   if(conversation())return conversation();
   if(role!=="visitor"||!options.ensureVisitorSession)throw new Error("Select a conversation first.");
-  const s=await options.ensureVisitorSession();state.conversationId=s.conversation_id;state.visitorToken=s.visitor_token;return state.conversationId;
+  const session=await options.ensureVisitorSession();state.conversationId=session.conversation_id;return state.conversationId;
  }
- async function signedMedia(message){
-  const d=await request("media_url","GET",{id:message.id});
-  return d.url;
+ function showMenu(open){menu.hidden=!open;attach.setAttribute("aria-expanded",String(open))}
+ attach.addEventListener("click",()=>showMenu(menu.hidden));
+ pickers.forEach(item=>{const b=$("button",{type:"button",className:"yscmt-attach-option"},item.icon+"  "+item.label);b.addEventListener("click",()=>{fileInput.accept=item.accept;fileInput.click();showMenu(false)});menu.append(b)});
+ document.addEventListener("click",event=>{if(!attachWrap.contains(event.target))showMenu(false)});
+ fileInput.addEventListener("change",()=>{
+  const files=Array.from(fileInput.files||[]);fileInput.value="";
+  if(state.queue.length+files.length>10){say("Send up to 10 files at a time.");return}
+  for(const file of files){
+   if(!file.type||!(/^(image|video|audio)\//.test(file.type))){say("Choose only photos, videos or audio files.");continue}
+   if(file.size>25*1024*1024){say(file.name+" is larger than 25 MB.");continue}
+   state.queue.push({id:uid(),file,kind:file.type.startsWith("image/")?"image":file.type.startsWith("video/")?"video":"audio"});
+  }
+  renderQueue();
+ });
+ function renderQueue(){
+  queueList.replaceChildren();
+  state.queue.forEach(item=>{
+   const row=$("div",{className:"yscmt-queue-item"});
+   const thumb=$("div",{className:"yscmt-queue-thumb"});
+   if(item.kind==="image"){const img=$("img",{src:URL.createObjectURL(item.file),alt:""});thumb.append(img)}
+   else thumb.textContent=item.kind==="video"?"▶":"♫";
+   const details=$("div",{className:"yscmt-queue-details"});
+   details.append($("strong",{},item.file.name||"Attachment"),$("small",{},item.kind.toUpperCase()+" · "+fmtSize(item.file.size)));
+   const remove=$("button",{type:"button",className:"yscmt-remove-file","aria-label":"Remove attachment"},"×");
+   remove.addEventListener("click",()=>{state.queue=state.queue.filter(x=>x.id!==item.id);renderQueue()});
+   row.append(thumb,details,remove);queueList.append(row);
+  });
+  preview.hidden=state.queue.length===0;
+  if(state.queue.length)previewTitle.textContent=state.queue.length+" attachment"+(state.queue.length===1?"":"s")+" ready";
  }
- async function renderMedia(message,bubble){
-  if(!message||!message.media_path)return;
-  const caption=$("div",{className:"yscmt-media-caption"},message.media_name||message.message_type);
-  bubble.append(caption);
-  try{
-   const url=await signedMedia(message),kind=message.message_type;
-   let media;
-   if(kind==="image"){media=$("img",{src:url,alt:message.media_name||"Shared image",loading:"lazy"});}
-   else if(kind==="video"){media=$("video",{src:url,controls:"",playsinline:"",preload:"metadata"});}
-   else{media=$("audio",{src:url,controls:"",preload:"metadata"});}
-   media.classList.add("yscmt-chat-media");bubble.append(media);
-   if(kind==="voice_note")caption.textContent="🎙 Voice note";
-  }catch(e){caption.textContent=(message.media_name||"Attachment")+" (could not load)";}
+ clearQueue.addEventListener("click",()=>{state.queue=[];renderQueue();say("")});
+ function uploadWithProgress(url,file,onProgress){
+  return new Promise((resolve,reject)=>{
+   const xhr=new XMLHttpRequest();xhr.open("PUT",url);xhr.setRequestHeader("Content-Type",file.type.split(";")[0]);
+   xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(e.loaded/e.total)};
+   xhr.onload=()=>xhr.status>=200&&xhr.status<300?resolve():reject(new Error("Upload failed ("+xhr.status+")."));
+   xhr.onerror=()=>reject(new Error("Network error while uploading the file."));
+   xhr.send(file);
+  });
  }
- async function sendFile(file,kind){
+ async function sendFile(file,kind,onProgress){
   await ensureConversation();
-  if(!file)return;
-  if(file.size>25*1024*1024)throw new Error("Each file must be 25 MB or smaller.");
-  if(!file.type||(!file.type.startsWith("image/")&&!file.type.startsWith("video/")&&!file.type.startsWith("audio/")))throw new Error("Only photos, videos and audio files are supported.");
-  say("Preparing secure upload…");
-  const init=await request("media_upload","POST",{file_name:file.name||("voice-note."+((file.type.split("/")[1]||"webm"))),file_mime:file.type,file_size:file.size,kind:kind||""});
-  const up=await fetch(init.upload_url,{method:"PUT",headers:{"Content-Type":file.type.split(";")[0]},body:file});
-  if(!up.ok)throw new Error("File upload failed. Please try again.");
-  await request("media_message","POST",{media_path:init.path,media_name:file.name||"Voice note",media_mime:file.type,media_size:file.size,kind:kind||""});
-  say("Attachment sent.");if(options.refresh)await options.refresh();
+  const mime=file.type.toLowerCase().split(";")[0];
+  const init=await request("media_upload","POST",{file_name:file.name||("voice-note."+(mime==="audio/mp4"?"m4a":"webm")),file_mime:mime,file_size:file.size,kind:kind||""});
+  await uploadWithProgress(init.upload_url,file,onProgress||(()=>{}));
+  await request("media_message","POST",{media_path:init.path,media_name:file.name||"Voice note",media_mime:mime,media_size:file.size,kind:kind||""});
  }
- choose.addEventListener("click",()=>fileInput.click());
- fileInput.addEventListener("change",async()=>{const file=fileInput.files&&fileInput.files[0];fileInput.value="";if(!file)return;try{await sendFile(file,"");}catch(e){say(e.message)}});
+ sendQueue.addEventListener("click",async()=>{
+  if(!state.queue.length)return;
+  sendQueue.disabled=true;clearQueue.disabled=true;const files=state.queue.slice();let sent=0;
+  try{
+   await ensureConversation();
+   for(const item of files){
+    await sendFile(item.file,"",fraction=>{progressBar.style.width=Math.round(((sent+fraction)/files.length)*100)+"%"});
+    sent++;progressBar.style.width=Math.round(sent/files.length*100)+"%";
+   }
+   state.queue=[];renderQueue();say("Files sent.");if(options.refresh)await options.refresh();
+  }catch(error){say(error.message+" You can retry the remaining attachments.");}
+  finally{sendQueue.disabled=false;clearQueue.disabled=false;uploadProgress.hidden=true;progressBar.style.width="0%"}
+ });
+ const originalSendQueue=sendQueue;
+ const queueObserver=new MutationObserver(()=>{if(state.queue.length&&sendQueue.disabled)uploadProgress.hidden=false});
+ queueObserver.observe(sendQueue,{attributes:true,attributeFilter:["disabled"]});
+
  async function startRecording(){
   await ensureConversation();
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder)throw new Error("Voice recording is not supported in this browser.");
   const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-  let mime="audio/webm";
-  if(MediaRecorder.isTypeSupported("audio/mp4"))mime="audio/mp4";
-  else if(MediaRecorder.isTypeSupported("audio/webm;codecs=opus"))mime="audio/webm;codecs=opus";
+  const mime=MediaRecorder.isTypeSupported("audio/mp4")?"audio/mp4":MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus":"audio/webm";
   const recorder=new MediaRecorder(stream,{mimeType:mime});
-  state.recorder=recorder;state.recordChunks=[];
-  recorder.ondataavailable=e=>{if(e.data&&e.data.size)state.recordChunks.push(e.data)};
-  recorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());record.textContent="🎙";record.title="Record voice note";const blob=new Blob(state.recordChunks,{type:recorder.mimeType||mime});if(blob.size){const ext=blob.type.includes("mp4")?"m4a":"webm";const file=new File([blob],"voice-note."+ext,{type:blob.type});try{await sendFile(file,"voice_note")}catch(e){say(e.message)}}};
-  recorder.start();record.textContent="■";record.title="Stop recording";say("Recording voice note… Tap ■ to finish.");
+  state.recorder=recorder;state.recordChunks=[];state.recordStarted=Date.now();state.recordFile=null;
+  recorder.ondataavailable=event=>{if(event.data&&event.data.size)state.recordChunks.push(event.data)};
+  recorder.onstop=()=>{
+   stream.getTracks().forEach(track=>track.stop());clearInterval(state.recordTimer);state.recordTimer=null;
+   record.textContent="🎙";record.classList.remove("is-recording");recorderClock.textContent="Recording ready";
+   const blob=new Blob(state.recordChunks,{type:recorder.mimeType||mime});
+   if(blob.size){const ext=blob.type.includes("mp4")?"m4a":"webm";state.recordFile=new File([blob],"voice-note."+ext,{type:blob.type});recorderAudio.src=URL.createObjectURL(state.recordFile);recorderAudio.hidden=false;sendRecording.disabled=false;recorderTitle.textContent="Listen before sending";}
+   else{recorderPanel.hidden=true;say("No audio was recorded.");}
+  };
+  recorder.start(250);recorderPanel.hidden=false;recorderAudio.hidden=true;sendRecording.disabled=true;record.textContent="■";record.classList.add("is-recording");recorderTitle.textContent="Recording voice note…";
+  const tick=()=>{const seconds=Math.floor((Date.now()-state.recordStarted)/1000);recorderClock.textContent=String(Math.floor(seconds/60)).padStart(2,"0")+":"+String(seconds%60).padStart(2,"0");if(seconds>=300)stopRecording()};
+  tick();state.recordTimer=setInterval(tick,250);
  }
- record.addEventListener("click",async()=>{try{if(state.recorder&&state.recorder.state==="recording"){state.recorder.stop();state.recorder=null;}else await startRecording();}catch(e){say(e.message)}});
- function callApiEvent(eventType,payload={}){return request("call_event","POST",{call_id:state.call&&state.call.id,event_type:eventType,payload});}
- function showCall(show){callBox.hidden=!show;bar.classList.toggle("call-active",show)}
+ function stopRecording(){if(state.recorder&&state.recorder.state==="recording")state.recorder.stop();state.recorder=null}
+ record.addEventListener("click",async()=>{
+  try{if(state.recorder&&state.recorder.state==="recording")stopRecording();else if(!state.recordFile)await startRecording();else{recorderPanel.hidden=!recorderPanel.hidden}}
+  catch(error){say(error.message)}
+ });
+ discardRecording.addEventListener("click",()=>{if(state.recorder&&state.recorder.state==="recording")stopRecording();state.recordFile=null;recorderAudio.pause();recorderAudio.removeAttribute("src");recorderAudio.hidden=true;recorderPanel.hidden=true;sendRecording.disabled=true;record.textContent="🎙";record.classList.remove("is-recording")});
+ sendRecording.addEventListener("click",async()=>{
+  if(!state.recordFile)return;sendRecording.disabled=true;
+  try{await sendFile(state.recordFile,"voice_note",fraction=>{say("Uploading voice note… "+Math.round(fraction*100)+"%")});state.recordFile=null;recorderPanel.hidden=true;recorderAudio.pause();recorderAudio.removeAttribute("src");recorderAudio.hidden=true;say("Voice note sent.");if(options.refresh)await options.refresh()}
+  catch(error){say(error.message);sendRecording.disabled=false}
+ });
+
+ function callApiEvent(eventType,payload={}){return request("call_event","POST",{call_id:state.call&&state.call.id,event_type:eventType,payload})}
+ function showCall(open){callBox.hidden=!open;bar.classList.toggle("call-active",open)}
  function stopPoller(){if(state.poller){clearInterval(state.poller);state.poller=null}}
  function cleanupCall(message){
-  stopPoller();if(state.pc){state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();state.pc=null;}
-  if(state.local)state.local.getTracks().forEach(t=>t.stop());state.local=null;state.remote=null;
-  remoteVideo.srcObject=null;localVideo.srcObject=null;remoteAudio.srcObject=null;
+  stopPoller();
+  if(state.pc){state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();state.pc=null}
+  if(state.local)state.local.getTracks().forEach(track=>track.stop());
+  state.local=null;state.remote=null;remoteVideo.srcObject=null;localVideo.srcObject=null;remoteAudio.srcObject=null;
   state.call=null;state.callCursor=0;state.pendingIce=[];state.seen.clear();state.incoming=null;state.callBusy=false;
-  accept.hidden=true;reject.hidden=true;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;showCall(false);if(message)say(message);
+  accept.hidden=true;reject.hidden=true;mute.hidden=true;camera.hidden=true;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;showCall(false);if(message)say(message);
  }
  function makePeer(callType){
   const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}]});
   state.pc=pc;state.remote=new MediaStream();
-  pc.ontrack=e=>{e.streams[0].getTracks().forEach(t=>state.remote.addTrack(t));remoteVideo.srcObject=state.remote;remoteAudio.srcObject=state.remote;if(callType==="video"){remoteVideo.hidden=false;remoteAudio.hidden=true;}else{remoteVideo.hidden=true;remoteAudio.hidden=false;}};
-  pc.onicecandidate=e=>{if(e.candidate){if(state.call)callApiEvent("ice",{candidate:e.candidate.toJSON()}).catch(()=>{});else state.pendingIce.push(e.candidate.toJSON());}};
-  pc.onconnectionstatechange=()=>{if(["failed","disconnected"].includes(pc.connectionState))say("Call connection interrupted. Check your network.");};
+  pc.ontrack=event=>{
+   const incoming=event.streams&&event.streams[0];
+   if(incoming)incoming.getTracks().forEach(track=>{if(!state.remote.getTracks().some(t=>t.id===track.id))state.remote.addTrack(track)});
+   if(callType==="video"){remoteVideo.srcObject=state.remote;remoteVideo.hidden=false;remoteAudio.hidden=true}
+   else{remoteAudio.srcObject=state.remote;remoteAudio.hidden=false;remoteVideo.hidden=true}
+  };
+  pc.onicecandidate=event=>{if(event.candidate){const candidate=event.candidate.toJSON();if(state.call)callApiEvent("ice",{candidate}).catch(()=>{});else state.pendingIce.push(candidate)}};
+  pc.onconnectionstatechange=()=>{
+   if(pc.connectionState==="connected"){callLabel.textContent=(callType==="video"?"Video":"Voice")+" call · Connected";say("Call connected.")}
+   else if(["failed","disconnected"].includes(pc.connectionState)){callLabel.textContent="Connection interrupted";say("Call connection interrupted. Check your internet connection.")}
+  };
   return pc;
  }
  async function prepareLocal(callType){
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("Your browser needs microphone/camera permission for calls.");
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("Allow microphone and camera access in your browser.");
   const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:callType==="video"});
   state.local=stream;localVideo.srcObject=stream;localVideo.hidden=callType!=="video";return stream;
  }
- async function flushIce(){const queued=state.pendingIce.splice(0);for(const candidate of queued)await callApiEvent("ice",{candidate});}
+ async function flushIce(){const candidates=state.pendingIce.splice(0);for(const candidate of candidates)await callApiEvent("ice",{candidate})}
  async function startCall(callType){
   if(state.callBusy||state.call)throw new Error("A call is already active.");
-  await ensureConversation();state.callBusy=true;say("Starting "+callType+" call…");
+  await ensureConversation();state.callBusy=true;say("Starting "+(callType==="video"?"video":"voice")+" call…");
   try{
-   const stream=await prepareLocal(callType),pc=makePeer(callType);stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+   const stream=await prepareLocal(callType),pc=makePeer(callType);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
-   const d=await request("call_start","POST",{call_type:callType,offer:pc.localDescription.toJSON()});
-   state.call=d.call;state.callCursor=0;showCall(true);callLabel.textContent=(callType==="video"?"Video":"Voice")+" call · Calling…";
-   accept.hidden=true;reject.hidden=true;end.hidden=false;await flushIce();beginPoll();
-  }catch(e){cleanupCall();throw e;}finally{state.callBusy=false;}
+   const result=await request("call_start","POST",{call_type:callType,offer:pc.localDescription.toJSON()});
+   state.call=result.call;state.callCursor=0;showCall(true);callLabel.textContent=(callType==="video"?"Video":"Voice")+" call · Calling…";
+   accept.hidden=true;reject.hidden=true;mute.hidden=false;camera.hidden=callType!=="video";end.hidden=false;
+   mute.textContent="Mute";camera.textContent="Camera off";await flushIce();beginPoll();
+  }catch(error){cleanupCall();throw error}
+  finally{state.callBusy=false}
  }
  async function acceptCall(){
   if(!state.incoming)return;
-  const call=state.incoming;state.call=call;state.callCursor=0;
   try{
-   const stream=await prepareLocal(call.call_type),pc=makePeer(call.call_type);stream.getTracks().forEach(t=>pc.addTrack(t,stream));
-   showCall(true);callLabel.textContent=(call.call_type==="video"?"Video":"Voice")+" call · Connecting…";accept.hidden=true;reject.hidden=true;end.hidden=false;beginPoll();
-  }catch(e){await callApiEvent("rejected",{}).catch(()=>{});cleanupCall(e.message);}
+   const stream=await prepareLocal(state.incoming.call_type),pc=makePeer(state.incoming.call_type);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
+   callLabel.textContent="Connecting…";accept.hidden=true;reject.hidden=true;mute.hidden=false;camera.hidden=state.incoming.call_type!=="video";end.hidden=false;beginPoll();
+  }catch(error){await callApiEvent("rejected",{}).catch(()=>{});cleanupCall(error.message)}
  }
- async function rejectCall(){if(!state.call)return;try{await callApiEvent("rejected",{})}catch{}cleanupCall("Call declined.");}
- async function endCall(){if(!state.call)return;try{await callApiEvent("ended",{})}catch{}cleanupCall("Call ended.");}
+ async function rejectCall(){if(!state.call)return;try{await callApiEvent("rejected",{})}catch{}cleanupCall("Call declined.")}
+ async function endCall(){if(!state.call)return;try{await callApiEvent("ended",{})}catch{}cleanupCall("Call ended.")}
  accept.addEventListener("click",acceptCall);reject.addEventListener("click",rejectCall);end.addEventListener("click",endCall);
+ mute.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getAudioTracks()[0];if(!track)return;track.enabled=!track.enabled;mute.textContent=track.enabled?"Mute":"Unmute"});
+ camera.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getVideoTracks()[0];if(!track)return;track.enabled=!track.enabled;camera.textContent=track.enabled?"Camera off":"Camera on"});
  async function processEvent(event){
   if(state.seen.has(event.id))return;state.seen.add(event.id);state.callCursor=Math.max(state.callCursor,Number(event.id)||0);
   if(event.sender_type===role)return;
   const pc=state.pc;
   if(event.event_type==="offer"&&pc&&!pc.remoteDescription){
    await pc.setRemoteDescription(new RTCSessionDescription(event.payload));
-   const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await callApiEvent("answer",pc.localDescription.toJSON());await flushIce();callLabel.textContent="Connected · "+(state.call.call_type==="video"?"Video":"Voice");
+   const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await callApiEvent("answer",pc.localDescription.toJSON());await flushIce();callLabel.textContent="Connecting…";
   }else if(event.event_type==="answer"&&pc&&!pc.remoteDescription){
-   await pc.setRemoteDescription(new RTCSessionDescription(event.payload));await flushIce();callLabel.textContent="Connected · "+(state.call.call_type==="video"?"Video":"Voice");
+   await pc.setRemoteDescription(new RTCSessionDescription(event.payload));await flushIce();callLabel.textContent="Connecting…";
   }else if(event.event_type==="ice"&&pc&&event.payload&&event.payload.candidate){
-   try{await pc.addIceCandidate(new RTCIceCandidate(event.payload.candidate));}catch(e){}
-  }else if(event.event_type==="rejected"){cleanupCall("The other person declined the call.");}
-  else if(event.event_type==="ended"){cleanupCall("The other person ended the call.");}
+   try{await pc.addIceCandidate(new RTCIceCandidate(event.payload.candidate))}catch(error){}
+  }else if(event.event_type==="rejected"){cleanupCall("The other person declined the call.")}
+  else if(event.event_type==="ended"){cleanupCall("The other person ended the call.")}
  }
  async function pollCall(){
   if(!state.call)return;
   try{
-   const d=await request("call_poll","GET",{id:state.call.id,after:state.callCursor});
-   if(d.call.status==="rejected"){cleanupCall("Call declined.");return}
-   if(d.call.status==="ended"||d.call.status==="missed"){cleanupCall("Call ended.");return}
-   for(const event of d.events||[])await processEvent(event);
-  }catch(e){say(e.message)}
+   const result=await request("call_poll","GET",{id:state.call.id,after:state.callCursor});
+   if(result.call.status==="rejected"){cleanupCall("Call declined.");return}
+   if(result.call.status==="ended"||result.call.status==="missed"){cleanupCall(result.call.status==="missed"?"Missed call.":"Call ended.");return}
+   for(const event of result.events||[])await processEvent(event);
+  }catch(error){say(error.message)}
  }
- function beginPoll(){stopPoller();pollCall();state.poller=setInterval(pollCall,1200)}
+ function beginPoll(){stopPoller();pollCall();state.poller=setInterval(pollCall,1000)}
  async function setConversation(id,activeCall){
   state.conversationId=id||null;
-  if(activeCall&&activeCall.status==="ringing"&&activeCall.caller_type!==role&&!state.call&&!state.incoming){
-   state.incoming=activeCall;state.call=activeCall;showCall(true);callLabel.textContent="Incoming "+(activeCall.call_type==="video"?"video":"voice")+" call…";accept.hidden=false;reject.hidden=false;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;
+  if(activeCall&&activeCall.status==="ringing"&&activeCall.caller_type!==role&&!state.call){
+   state.incoming=activeCall;state.call=activeCall;showCall(true);callLabel.textContent="Incoming "+(activeCall.call_type==="video"?"video":"voice")+" call";
+   accept.hidden=false;reject.hidden=false;mute.hidden=true;camera.hidden=true;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;
   }else if(activeCall&&state.call&&state.call.id===activeCall.id&&!state.poller)beginPoll();
  }
- choose.disabled=false;
- voice.addEventListener("click",()=>startCall("voice").catch(e=>say(e.message)));
- video.addEventListener("click",()=>startCall("video").catch(e=>say(e.message)));
- return {setConversation,renderMedia,sendFile,startCall,cleanup:cleanupCall};
+ voice.addEventListener("click",()=>startCall("voice").catch(error=>say(error.message)));
+ video.addEventListener("click",()=>startCall("video").catch(error=>say(error.message)));
+ return {setConversation,renderMedia,sendFile,cleanup:cleanupCall};
+}
+
+async function renderMedia(message,bubble,options){
+ if(!message||!message.media_path)return;
+ const card=$("div",{className:"yscmt-media-card"});
+ const label=message.message_type==="voice_note"?"Voice note":message.message_type==="image"?"Photo":message.message_type==="video"?"Video":"Audio file";
+ const heading=$("div",{className:"yscmt-media-heading"},(message.message_type==="voice_note"?"🎙 ":message.message_type==="image"?"▧ ":message.message_type==="video"?"▶ ":"♫ ")+label);
+ card.append(heading);
+ try{
+  const data=await options.request("media_url","GET",{id:message.id});
+  if(message.message_type==="image"){
+   const img=$("img",{src:data.url,alt:message.media_name||"Shared photo",loading:"lazy",className:"yscmt-chat-media"});img.addEventListener("click",()=>window.open(data.url,"_blank","noopener"));card.append(img);
+  }else if(message.message_type==="video"){
+   card.append($("video",{src:data.url,controls:true,playsinline:true,preload:"metadata",className:"yscmt-chat-media"}));
+  }else{
+   const audio=$("audio",{src:data.url,controls:true,preload:"metadata",className:"yscmt-chat-audio"});card.append(audio);
+  }
+  card.append($("div",{className:"yscmt-media-filename"},message.media_name||label));
+ }catch(error){card.append($("div",{className:"yscmt-media-filename"},"Could not load this attachment."))}
+ bubble.append(card);
 }
 window.YSCMTChatExtras={create};
 })();
