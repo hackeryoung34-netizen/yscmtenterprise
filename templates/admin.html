@@ -134,6 +134,21 @@
 @keyframes yscmt-ringing-breathe{0%,100%{box-shadow:0 16px 45px rgba(0,0,0,.16),0 0 0 0 rgba(111,239,202,.12)}50%{box-shadow:0 16px 45px rgba(0,0,0,.16),0 0 0 10px rgba(111,239,202,.08)}}
 @keyframes yscmt-calling-dots{0%{content:""}25%{content:"."}50%{content:".."}75%,100%{content:"..."}}
 @media(prefers-reduced-motion:reduce){.yscmt-call-screen.is-ringing .yscmt-call-avatar,.yscmt-call-screen.is-ringing .yscmt-call-avatar:before,.yscmt-call-screen.is-ringing .yscmt-call-avatar:after,.yscmt-call-screen.is-ringing .yscmt-call-label:after{animation:none!important}}
+
+/* Keep hidden call media truly out of the visual stack. The video element is
+   otherwise display:block + z-index:0 and can paint a black full-screen layer
+   over the call background before the remote stream arrives. */
+.yscmt-call-screen .yscmt-remote-video[hidden],
+.yscmt-call-screen .yscmt-local-video[hidden],
+.yscmt-call-screen audio[hidden] {
+  display: none !important;
+}
+.yscmt-call-screen.is-video-call {
+  background:
+    radial-gradient(ellipse at 50% 12%,rgba(37,99,235,.28),transparent 42%),
+    radial-gradient(ellipse at 12% 78%,rgba(13,148,136,.22),transparent 38%),
+    linear-gradient(155deg,#071426 0%,#0a2440 52%,#061321 100%) !important;
+}
 </style></head><body><main class="wrap"><header><div class="muted">YSCMT ENTERPRISE · PRIVATE AREA</div><h1>Template Store Admin</h1><p class="muted">Only accounts with the store_admin role can manage products. Never share service-role keys in this page.</p><div id="auth"><a href="/templates/account.html">Sign in to your account</a></div><div id="status" class="status">Loading admin service…</div></header>
 <section class="panel" id="editor" hidden><h2>Create / update a product</h2><form id="productForm">
 <div class="grid"><div><label>Product ID (leave blank for new)</label><input id="id" placeholder="UUID for update"></div><div><label>Product name</label><input id="name" required></div><div><label>Slug</label><input id="slug" placeholder="business-website-template" required></div><div><label>Category</label><select id="category"><option>Business Websites</option><option>E-commerce</option><option>Portfolio</option><option>School & LMS</option><option>Blog & News</option><option>Admin Dashboard</option></select></div><div><label>Download price (NGN)</label><input id="download" type="number" min="0" step="1" value="0"></div><div><label>Installation price (NGN, optional)</label><input id="installation" type="number" min="0" step="1"></div><div><label>Version</label><input id="version" value="1.0.0"></div><div><label>Licence</label><input id="license" value="single-project"></div><div><label>Technologies (comma-separated)</label><input id="technologies"></div><div><label>Screenshot URLs (one per line)</label><textarea id="screenshots"></textarea></div><div><label>Live demo URL</label><input id="demo" type="url"></div><div><label>Upload product ZIP archive (maximum 50 MB)</label><input id="archive" type="file" accept=".zip,application/zip"><p class="muted">The ZIP is uploaded directly to private Supabase Storage using your administrator session.</p></div><div><label>Private ZIP path</label><input id="artifact" placeholder="product-name/v1.0.0.zip" readonly></div></div>
@@ -148,7 +163,7 @@
 </section>
 <section class="panel" id="chatInbox" hidden><h2>Live Chat Inbox</h2><p class="muted">Reply to visitors who message YSCMT Enterprise from the website.</p><div class="grid"><div><h3>Conversations</h3><div id="chatConversations">Loading conversations…</div></div><div><div class="yscmt-admin-chat-head"><h3 id="chatThreadTitle">Select a conversation</h3><div id="adminChatCallActions"></div></div><div id="chatThread" class="status" style="min-height:220px;max-height:360px;overflow:auto">Choose a visitor from the inbox.</div><form id="chatReplyForm"><label for="chatReply">Your reply</label><textarea id="chatReply" maxlength="2000" required placeholder="Write a reply…"></textarea><button type="submit">Send reply</button></form><div id="adminChatTools"></div></div></div><div class="row" style="margin-top:12px"><button type="button" id="reloadChats">Refresh inbox</button></div></section>
 </main>
-<script src="/chat-client.js?v=yscmt-call-background-fix-20261118b"></script>
+<script src="/chat-client.js?v=yscmt-call-media-layer-fix-20261118c"></script>
 <script>
 const sessionKey="yscmt_store_session";let cfg=null;const el=id=>document.getElementById(id),statusBox=el("status");
 const val=id=>el(id).value;function say(s){statusBox.textContent=s}
