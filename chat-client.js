@@ -64,6 +64,7 @@ function create(options){
  const remoteVideo=$("video",{className:"yscmt-remote-video",autoplay:true,playsinline:true});
  const localVideo=$("video",{className:"yscmt-local-video",autoplay:true,muted:true,playsinline:true});
  const remoteAudio=$("audio",{autoplay:true});
+ remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;
  const callActions=$("div",{className:"yscmt-call-actions"});
  const accept=$("button",{type:"button",className:"yscmt-call-control yscmt-call-accept"},"Accept");
  const reject=$("button",{type:"button",className:"yscmt-call-control yscmt-call-reject"},"Decline");
