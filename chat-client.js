@@ -376,10 +376,29 @@ async function renderMedia(message,bubble,options){
    const img=$("img",{src:data.url,alt:message.media_name||"Shared photo",loading:"lazy",className:"yscmt-chat-media"});img.addEventListener("click",()=>window.open(data.url,"_blank","noopener"));card.append(img);
   }else if(message.message_type==="video"){
    card.append($("video",{src:data.url,controls:true,playsinline:true,preload:"metadata",className:"yscmt-chat-media"}));
+  }else if(message.message_type==="voice_note"){
+   const audio=$("audio",{src:data.url,preload:"metadata"});
+   const player=$("div",{className:"yscmt-voice-player"});
+   const play=$("button",{type:"button",className:"yscmt-voice-play","aria-label":"Play voice message"},"▶");
+   const visual=$("div",{className:"yscmt-voice-visual"});
+   const bars=$("div",{className:"yscmt-voice-bars","aria-hidden":"true"});
+   const heights=[8,13,18,11,22,15,9,19,25,13,17,10,22,14,8,18,24,12,16,9,21,14,18,11,23,15,9,19,13,22,10,17,24,12,8,18,14,21,10,16];
+   heights.forEach(height=>bars.append($("i",{style:"height:"+height+"px"})));
+   const track=$("input",{type:"range",min:"0",max:"1000",value:"0",step:"1",className:"yscmt-voice-progress","aria-label":"Seek voice message"});
+   const times=$("div",{className:"yscmt-voice-times"});
+   const elapsed=$("span",{},"0:00"),duration=$("span",{},"0:00");
+   times.append(elapsed,duration);visual.append(bars,track,times);player.append(play,visual,audio);card.append(player);
+   const fmtTime=value=>{if(!Number.isFinite(value))return"0:00";const n=Math.floor(value);return Math.floor(n/60)+":"+String(n%60).padStart(2,"0")};
+   audio.addEventListener("loadedmetadata",()=>{duration.textContent=fmtTime(audio.duration)});
+   audio.addEventListener("timeupdate",()=>{elapsed.textContent=fmtTime(audio.currentTime);track.value=String(audio.duration?Math.round(audio.currentTime/audio.duration*1000):0);const progress=Number(track.value)/10;bars.querySelectorAll("i").forEach((bar,index)=>bar.classList.toggle("played",index/40*100<=progress))});
+   audio.addEventListener("ended",()=>{play.textContent="▶";play.setAttribute("aria-label","Play voice message");track.value="0";elapsed.textContent="0:00";bars.querySelectorAll("i").forEach(bar=>bar.classList.remove("played"))});
+   play.addEventListener("click",async()=>{if(audio.paused){try{await audio.play();play.textContent="Ⅱ";play.setAttribute("aria-label","Pause voice message")}catch(error){say("Unable to play this voice message.")}}else{audio.pause();play.textContent="▶";play.setAttribute("aria-label","Play voice message")}});
+   audio.addEventListener("pause",()=>{if(!audio.ended){play.textContent="▶";play.setAttribute("aria-label","Play voice message")}});
+   track.addEventListener("input",()=>{if(Number.isFinite(audio.duration))audio.currentTime=audio.duration*Number(track.value)/1000});
   }else{
    const audio=$("audio",{src:data.url,controls:true,preload:"metadata",className:"yscmt-chat-audio"});card.append(audio);
   }
-  const meta=$("div",{className:"yscmt-media-filename"},(message.media_name||label)+(message.media_size?" · "+fmtSize(Number(message.media_size)):""));
+  const meta=$("div",{className:"yscmt-media-filename"},(message.message_type==="voice_note"?"Voice message":message.media_name||label)+(message.media_size?" · "+fmtSize(Number(message.media_size)):""));
   card.append(meta);
   const actions=$("div",{className:"yscmt-media-actions"});
   const download=$("a",{href:"#",rel:"noopener",className:"yscmt-media-download"},"Download");
