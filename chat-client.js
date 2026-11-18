@@ -287,7 +287,11 @@ async function renderMedia(message,bubble,options){
   }else{
    const audio=$("audio",{src:data.url,controls:true,preload:"metadata",className:"yscmt-chat-audio"});card.append(audio);
   }
-  card.append($("div",{className:"yscmt-media-filename"},message.media_name||label));
+  const meta=$("div",{className:"yscmt-media-filename"},(message.media_name||label)+(message.media_size?" · "+fmtSize(Number(message.media_size)):""));
+  card.append(meta);
+  const actions=$("div",{className:"yscmt-media-actions"});
+  const download=$("a",{href:data.url,download:message.media_name||"yscmt-attachment",rel:"noopener",className:"yscmt-media-download"},"Download");
+  actions.append(download);card.append(actions);
  }catch(error){card.append($("div",{className:"yscmt-media-filename"},"Could not load this attachment."))}
  bubble.append(card);
 }
