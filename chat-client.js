@@ -79,7 +79,7 @@ function create(options){
  bar.append(attachWrap,record,fileInput,preview,recorderPanel);
  document.body.append(callBox);
  callBar.append(voice,video);
- host.append(bar);
+ host.append(bar);if(role==="visitor"){const composerInput=document.getElementById("yscmt-chat-input"),composerSend=document.getElementById("yscmt-chat-send");if(composerInput)bar.insertBefore(composerInput,attachWrap);if(composerSend){composerSend.textContent="➤";composerSend.setAttribute("aria-label","Send message");composerSend.title="Send message";bar.insertBefore(composerSend,preview);}}
  if(callHost)callHost.append(callBar);else bar.append(voice,video);
 
  function say(message){if(status)status.textContent=message||""}
