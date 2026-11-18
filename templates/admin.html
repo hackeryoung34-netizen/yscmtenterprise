@@ -79,6 +79,50 @@
 @media(min-width:700px){.yscmt-call-screen{padding-left:max(26px,calc((100vw - 520px)/2))!important;padding-right:max(26px,calc((100vw - 520px)/2))!important}.yscmt-call-screen .yscmt-call-identity{padding-bottom:5vh}}
 
 .yscmt-call-screen .yscmt-call-speaker:after{content:"🔊";position:absolute;top:27px;left:50%;transform:translateX(-50%);font-size:25px}.yscmt-call-screen .yscmt-call-speaker[aria-pressed="true"]:before{background:rgba(48,198,106,.45);border-color:#30c66a}.yscmt-call-screen [hidden]{display:none!important}.yscmt-call-screen .yscmt-call-control{position:relative}.yscmt-call-screen .yscmt-call-mute:after{content:"♩";position:absolute;top:28px;left:50%;transform:translateX(-50%);font-size:28px}.yscmt-call-screen .yscmt-call-camera:after{content:"▣";position:absolute;top:29px;left:50%;transform:translateX(-50%);font-size:26px}
+
+/* YSCMT professional call UI refresh */
+.yscmt-call-screen{isolation:isolate;min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 18px) 22px calc(env(safe-area-inset-bottom) + 22px)!important;background:radial-gradient(ellipse at 50% 12%,rgba(37,99,235,.28),transparent 42%),radial-gradient(ellipse at 12% 78%,rgba(13,148,136,.22),transparent 38%),linear-gradient(155deg,#071426 0%,#0a2440 52%,#061321 100%)!important}
+.yscmt-call-screen .yscmt-call-header{z-index:5;margin-top:clamp(12px,3vh,34px);font-size:11px;letter-spacing:3.5px;color:#b8c8d9}
+.yscmt-call-screen .yscmt-call-identity{z-index:3;margin:auto 0;padding:28px 12px 22px;gap:0}
+.yscmt-call-screen .yscmt-call-avatar{width:clamp(104px,24vw,132px);height:clamp(104px,24vw,132px);margin-bottom:24px;border:1px solid #ffffff38;background:linear-gradient(145deg,#ffffff30,#ffffff0c);box-shadow:0 20px 65px #0005;font-size:48px}
+.yscmt-call-screen .yscmt-call-name{font-size:clamp(27px,7vw,42px);font-weight:700;letter-spacing:-1px}
+.yscmt-call-screen .yscmt-call-label{margin-top:12px!important;font-size:15px!important;font-weight:500!important;color:#c1d0df!important}
+.yscmt-call-screen .yscmt-call-timer{min-height:22px;margin-top:7px;color:#8fe5d4;font-size:14px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.yscmt-call-screen .yscmt-call-actions{z-index:6;width:min(100%,420px);grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:16px 10px;padding:18px 10px calc(12px + env(safe-area-inset-bottom));margin:0 auto;border:1px solid #ffffff17;border-radius:28px;background:linear-gradient(145deg,#ffffff12,#ffffff08);box-shadow:0 18px 55px #0003;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.yscmt-call-screen .yscmt-call-control{position:relative;min-width:0;min-height:94px;gap:9px;padding:0!important;color:#f7fbff!important;font-size:12px;font-weight:650;letter-spacing:.1px}
+.yscmt-call-screen .yscmt-call-control:before{width:58px;height:58px;background:#ffffff19;border:1px solid #ffffff1c;transition:background .18s,transform .18s}
+.yscmt-call-screen .yscmt-call-control:after{position:absolute;top:17px;left:50%;margin:0!important;transform:translateX(-50%);font-family:Arial,sans-serif;font-size:24px;line-height:1;color:#fff}
+.yscmt-call-screen .yscmt-call-control:nth-child(1):after,.yscmt-call-screen .yscmt-call-control:nth-child(2):after{content:none}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-accept{grid-column:1;background:transparent!important}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-accept:before{width:68px;height:68px;background:#16a765;border:0;box-shadow:0 8px 25px #16a76555}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-accept:after{content:"☎";top:17px;font-size:30px}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-reject{grid-column:3;background:transparent!important}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-reject:before{width:68px;height:68px;background:#e5484d;border:0;box-shadow:0 8px 25px #e5484d55}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-reject:after{content:"☎";top:17px;font-size:30px;transform:translateX(-50%) rotate(135deg)}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-mute:after{content:"🎙";font-size:23px}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-speaker:after{content:"🔊";font-size:22px}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-camera:after{content:"▣";font-size:25px}
+.yscmt-call-screen .yscmt-call-control.is-muted:before,.yscmt-call-screen .yscmt-call-control.is-camera-off:before{background:#e5484d}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-end{grid-column:2;background:transparent!important}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-end:before{width:72px;height:72px;background:#e5484d;border:0;box-shadow:0 8px 28px #e5484d55}
+.yscmt-call-screen .yscmt-call-control.yscmt-call-end:after{content:"☎";top:18px;font-size:31px;transform:translateX(-50%) rotate(135deg)}
+.yscmt-call-screen .yscmt-call-control[hidden]{display:none!important}
+.yscmt-call-screen .yscmt-remote-video{z-index:0;position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;background:#020711;border-radius:0}
+.yscmt-call-screen.is-video-call{background:#020711!important}
+.yscmt-call-screen.is-video-call .yscmt-call-backdrop{z-index:1;background:linear-gradient(180deg,#020711a8,transparent 32%,transparent 62%,#020711c9);filter:none}
+.yscmt-call-screen.is-video-call .yscmt-call-header{z-index:4}
+.yscmt-call-screen.is-video-call .yscmt-call-identity{z-index:4;margin:auto 0 0;padding:10px 12px 18px}
+.yscmt-call-screen.is-video-call .yscmt-call-avatar{display:none}
+.yscmt-call-screen.is-video-call .yscmt-call-name{font-size:22px;text-shadow:0 2px 12px #000}
+.yscmt-call-screen.is-video-call .yscmt-call-label{font-size:13px!important;text-shadow:0 2px 10px #000}
+.yscmt-call-screen .yscmt-local-video{z-index:5;position:absolute;top:calc(env(safe-area-inset-top) + 76px);right:18px;bottom:auto;width:clamp(88px,24vw,124px);height:clamp(124px,31vw,168px);max-height:none;object-fit:cover;border:2px solid #ffffffd9;border-radius:17px;background:#152538;box-shadow:0 10px 30px #0007}
+.yscmt-call-screen .yscmt-local-video[hidden],.yscmt-call-screen .yscmt-remote-video[hidden]{display:none!important}
+.yscmt-call-screen.is-video-call .yscmt-call-actions{background:#071426b8;border-color:#ffffff22}
+.yscmt-call-screen:not(.is-video-call) .yscmt-call-identity{padding-bottom:34px}
+@media(max-height:680px){.yscmt-call-screen{padding-top:calc(env(safe-area-inset-top) + 8px)!important;padding-bottom:calc(env(safe-area-inset-bottom) + 8px)!important}.yscmt-call-screen .yscmt-call-identity{padding:10px 8px}.yscmt-call-screen .yscmt-call-avatar{width:82px;height:82px;margin-bottom:12px}.yscmt-call-screen .yscmt-call-actions{gap:4px;padding:8px 8px}.yscmt-call-screen .yscmt-call-control{min-height:78px}.yscmt-call-screen .yscmt-call-control:before{width:50px;height:50px}.yscmt-call-screen .yscmt-call-control:after{top:14px}.yscmt-call-screen .yscmt-call-control.yscmt-call-end:before{width:60px;height:60px}.yscmt-call-screen .yscmt-call-control.yscmt-call-end:after{top:15px}}
+@media(min-width:700px){.yscmt-call-screen{padding-left:32px!important;padding-right:32px!important}.yscmt-call-screen .yscmt-call-identity{padding-top:34px;padding-bottom:34px}.yscmt-call-screen .yscmt-call-actions{width:min(100%,470px)}}
+@media(prefers-reduced-motion:no-preference){.yscmt-call-screen .yscmt-call-avatar{animation:yscmt-call-breathe 3s ease-in-out infinite}.yscmt-call-screen.is-video-call .yscmt-call-avatar{animation:none}@keyframes yscmt-call-breathe{50%{box-shadow:0 20px 75px #1d9a9a35,0 0 0 10px #ffffff08}}}
+
 </style></head><body><main class="wrap"><header><div class="muted">YSCMT ENTERPRISE · PRIVATE AREA</div><h1>Template Store Admin</h1><p class="muted">Only accounts with the store_admin role can manage products. Never share service-role keys in this page.</p><div id="auth"><a href="/templates/account.html">Sign in to your account</a></div><div id="status" class="status">Loading admin service…</div></header>
 <section class="panel" id="editor" hidden><h2>Create / update a product</h2><form id="productForm">
 <div class="grid"><div><label>Product ID (leave blank for new)</label><input id="id" placeholder="UUID for update"></div><div><label>Product name</label><input id="name" required></div><div><label>Slug</label><input id="slug" placeholder="business-website-template" required></div><div><label>Category</label><select id="category"><option>Business Websites</option><option>E-commerce</option><option>Portfolio</option><option>School & LMS</option><option>Blog & News</option><option>Admin Dashboard</option></select></div><div><label>Download price (NGN)</label><input id="download" type="number" min="0" step="1" value="0"></div><div><label>Installation price (NGN, optional)</label><input id="installation" type="number" min="0" step="1"></div><div><label>Version</label><input id="version" value="1.0.0"></div><div><label>Licence</label><input id="license" value="single-project"></div><div><label>Technologies (comma-separated)</label><input id="technologies"></div><div><label>Screenshot URLs (one per line)</label><textarea id="screenshots"></textarea></div><div><label>Live demo URL</label><input id="demo" type="url"></div><div><label>Upload product ZIP archive (maximum 50 MB)</label><input id="archive" type="file" accept=".zip,application/zip"><p class="muted">The ZIP is uploaded directly to private Supabase Storage using your administrator session.</p></div><div><label>Private ZIP path</label><input id="artifact" placeholder="product-name/v1.0.0.zip" readonly></div></div>
@@ -93,7 +137,7 @@
 </section>
 <section class="panel" id="chatInbox" hidden><h2>Live Chat Inbox</h2><p class="muted">Reply to visitors who message YSCMT Enterprise from the website.</p><div class="grid"><div><h3>Conversations</h3><div id="chatConversations">Loading conversations…</div></div><div><div class="yscmt-admin-chat-head"><h3 id="chatThreadTitle">Select a conversation</h3><div id="adminChatCallActions"></div></div><div id="chatThread" class="status" style="min-height:220px;max-height:360px;overflow:auto">Choose a visitor from the inbox.</div><form id="chatReplyForm"><label for="chatReply">Your reply</label><textarea id="chatReply" maxlength="2000" required placeholder="Write a reply…"></textarea><button type="submit">Send reply</button></form><div id="adminChatTools"></div></div></div><div class="row" style="margin-top:12px"><button type="button" id="reloadChats">Refresh inbox</button></div></section>
 </main>
-<script src="/chat-client.js?v=yscmt-chat-controls-refresh-20261118c"></script>
+<script src="/chat-client.js?v=yscmt-pro-call-screen-20261118a"></script>
 <script>
 const sessionKey="yscmt_store_session";let cfg=null;const el=id=>document.getElementById(id),statusBox=el("status");
 const val=id=>el(id).value;function say(s){statusBox.textContent=s}
