@@ -1,6 +1,14 @@
 (function(){
 "use strict";
 const $=(tag,attrs={},content)=>{const el=document.createElement(tag);Object.entries(attrs).forEach(([key,value])=>{if(key==="className")el.className=value;else if(key==="style")el.style.cssText=value;else if(value!==false&&value!=null)el.setAttribute(key,value)});if(content!==undefined)el.textContent=content;return el};
+function callIcon(kind){
+ const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+ svg.setAttribute("viewBox","0 0 24 24");svg.setAttribute("width","21");svg.setAttribute("height","21");
+ svg.setAttribute("fill","none");svg.setAttribute("stroke","currentColor");svg.setAttribute("stroke-width","2");svg.setAttribute("stroke-linecap","round");svg.setAttribute("stroke-linejoin","round");svg.setAttribute("aria-hidden","true");
+ const shape=document.createElementNS("http://www.w3.org/2000/svg",kind==="video"?"path":"path");
+ shape.setAttribute("d",kind==="video"?"M15 10l5-3v10l-5-3z M3 6h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z":"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.14 4.2 2 2 0 0 1 4.13 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.84.58 2.8.7A2 2 0 0 1 22 16.92z");
+ svg.append(shape);return svg;
+}
 const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+" MB";
 const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
@@ -20,8 +28,9 @@ function create(options){
  ];
  const fileInput=$("input",{type:"file",accept:"image/*,video/*,audio/*",multiple:true,hidden:true});
  const record=$("button",{type:"button",className:"yscmt-tool",title:"Record a voice note","aria-label":"Record voice note"},"🎙");
- const voice=$("button",{type:"button",className:"yscmt-tool",title:"Start voice call","aria-label":"Voice call"},"☎");
- const video=$("button",{type:"button",className:"yscmt-tool",title:"Start video call","aria-label":"Video call"},"▣");
+ const voice=$("button",{type:"button",className:"yscmt-tool yscmt-call-icon",title:"Start voice call","aria-label":"Voice call"});
+ const video=$("button",{type:"button",className:"yscmt-tool yscmt-call-icon",title:"Start video call","aria-label":"Video call"});
+ voice.append(callIcon("voice"));video.append(callIcon("video"));
  const preview=$("div",{className:"yscmt-upload-preview",hidden:true});
  const previewTitle=$("div",{className:"yscmt-preview-title"},"Attachments");
  const queueList=$("div",{className:"yscmt-queue-list"});
