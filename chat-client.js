@@ -13,7 +13,7 @@ const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+
 const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
  const role=options.role,host=options.host,status=options.status,callHost=options.callHost;
- const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,pollInFlight:false,callTimer:null,callStartedAt:0,callToneContext:null,callToneGain:null,callToneTimer:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
+ const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,pollInFlight:false,callTimer:null,callStartedAt:0,callToneContext:null,callToneGain:null,callToneTimer:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,holdReleased:false,queue:[],callBusy:false,incoming:null};
  if(!host)return {setConversation(){},renderMedia:async()=>{}};
 
  const bar=$("div",{className:"yscmt-chat-tools"});
@@ -177,21 +177,40 @@ function create(options){
   recorder.ondataavailable=event=>{if(event.data&&event.data.size)state.recordChunks.push(event.data)};
   recorder.onstop=()=>{
    stream.getTracks().forEach(track=>track.stop());clearInterval(state.recordTimer);state.recordTimer=null;
-   record.textContent="🎙";record.classList.remove("is-recording");recorderClock.textContent="Recording ready";
+   record.textContent="🎙";record.title="Hold to record a voice message";record.classList.remove("is-recording","is-pressed");recorderClock.textContent="Recording ready";
    const blob=new Blob(state.recordChunks,{type:recorder.mimeType||mime});
    if(blob.size){const ext=blob.type.includes("mp4")?"m4a":"webm";state.recordFile=new File([blob],"voice-note."+ext,{type:blob.type});recorderAudio.src=URL.createObjectURL(state.recordFile);recorderAudio.hidden=false;sendRecording.disabled=false;recorderTitle.textContent="Listen before sending";}
    else{recorderPanel.hidden=true;say("No audio was recorded.");}
   };
-  recorder.start(250);recorderPanel.hidden=false;recorderAudio.hidden=true;sendRecording.disabled=true;record.textContent="■";record.classList.add("is-recording");recorderTitle.textContent="Recording voice note…";
+  recorder.start(250);recorderPanel.hidden=false;recorderAudio.hidden=true;sendRecording.disabled=true;record.textContent="■";record.classList.add("is-recording");record.title="Release to finish recording";recorderTitle.textContent="Recording… release to finish";if(state.holdReleased)stopRecording();
   const tick=()=>{const seconds=Math.floor((Date.now()-state.recordStarted)/1000);recorderClock.textContent=String(Math.floor(seconds/60)).padStart(2,"0")+":"+String(seconds%60).padStart(2,"0");if(seconds>=300)stopRecording()};
   tick();state.recordTimer=setInterval(tick,250);
  }
  function stopRecording(){if(state.recorder&&state.recorder.state==="recording")state.recorder.stop();state.recorder=null}
- record.addEventListener("click",async()=>{
-  try{if(state.recorder&&state.recorder.state==="recording")stopRecording();else if(!state.recordFile)await startRecording();else{recorderPanel.hidden=!recorderPanel.hidden}}
+ let recordPointerActive=false;
+ async function beginHoldRecording(){
+  if(recordPointerActive||state.recorder&&state.recorder.state==="recording")return;
+  recordPointerActive=true;state.holdReleased=false;record.classList.add("is-pressed");
+  try{await startRecording();if(state.holdReleased)stopRecording();}
+  catch(error){recordPointerActive=false;record.classList.remove("is-pressed");say(error.message)}
+ }
+ function finishHoldRecording(cancelled){
+  if(!recordPointerActive)return;
+  recordPointerActive=false;state.holdReleased=true;record.classList.remove("is-pressed");
+  if(state.recorder&&state.recorder.state==="recording")stopRecording();
+  if(cancelled){state.recordFile=null;recorderPanel.hidden=true;recorderAudio.pause();recorderAudio.removeAttribute("src");sendRecording.disabled=true;say("Voice recording cancelled.");}
+ }
+ record.addEventListener("pointerdown",event=>{if(event.button!==undefined&&event.button!==0)return;event.preventDefault();try{record.setPointerCapture(event.pointerId)}catch(error){}beginHoldRecording()});
+ record.addEventListener("pointerup",()=>finishHoldRecording(false));
+ record.addEventListener("pointercancel",()=>finishHoldRecording(true));
+ record.addEventListener("lostpointercapture",()=>finishHoldRecording(false));
+ record.addEventListener("contextmenu",event=>event.preventDefault());
+ record.addEventListener("click",async event=>{
+  if(event.detail!==0)return;
+  try{if(state.recorder&&state.recorder.state==="recording")stopRecording();else if(!state.recordFile)await startRecording();else recorderPanel.hidden=!recorderPanel.hidden}
   catch(error){say(error.message)}
  });
- discardRecording.addEventListener("click",()=>{if(state.recorder&&state.recorder.state==="recording")stopRecording();state.recordFile=null;recorderAudio.pause();recorderAudio.removeAttribute("src");recorderAudio.hidden=true;recorderPanel.hidden=true;sendRecording.disabled=true;record.textContent="🎙";record.classList.remove("is-recording")});
+ discardRecording.addEventListener("click",()=>{if(state.recorder&&state.recorder.state==="recording")stopRecording();state.recordFile=null;recorderAudio.pause();recorderAudio.removeAttribute("src");recorderAudio.hidden=true;recorderPanel.hidden=true;sendRecording.disabled=true;record.textContent="🎙";record.title="Hold to record a voice message";record.classList.remove("is-recording","is-pressed")});
  sendRecording.addEventListener("click",async()=>{
   if(!state.recordFile)return;sendRecording.disabled=true;
   try{await sendFile(state.recordFile,"voice_note",fraction=>{say("Uploading voice note… "+Math.round(fraction*100)+"%")});state.recordFile=null;recorderPanel.hidden=true;recorderAudio.pause();recorderAudio.removeAttribute("src");recorderAudio.hidden=true;say("Voice note sent.");if(options.refresh)await options.refresh()}
