@@ -267,7 +267,7 @@ function create(options){
  }
  voice.addEventListener("click",()=>startCall("voice").catch(error=>say(error.message)));
  video.addEventListener("click",()=>startCall("video").catch(error=>say(error.message)));
- return {setConversation,renderMedia,sendFile,cleanup:cleanupCall};
+ return {setConversation,renderMedia:(message,bubble)=>renderMedia(message,bubble,{request}),sendFile,cleanup:cleanupCall};
 }
 
 async function renderMedia(message,bubble,options){
