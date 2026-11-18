@@ -66,8 +66,8 @@ function create(options){
  const callActions=$("div",{className:"yscmt-call-actions"});
  const accept=$("button",{type:"button",className:"yscmt-call-control yscmt-call-accept"},"Accept");
  const reject=$("button",{type:"button",className:"yscmt-call-control yscmt-call-end"},"Decline");
- const mute=$("button",{type:"button",className:"yscmt-call-control"},"Mute");
- const camera=$("button",{type:"button",className:"yscmt-call-control"},"Camera off");
+ const mute=$("button",{type:"button",className:"yscmt-call-control yscmt-call-mute"},"Mute");
+ const camera=$("button",{type:"button",className:"yscmt-call-control yscmt-call-camera"},"Camera off");
  const end=$("button",{type:"button",className:"yscmt-call-control yscmt-call-end"},"End call");
  callIdentity.append(callAvatar,callName,callLabel);
  callActions.append(accept,reject,mute,camera,end);
