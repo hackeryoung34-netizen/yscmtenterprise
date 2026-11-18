@@ -13,7 +13,7 @@ const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+
 const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
  const role=options.role,host=options.host,status=options.status,callHost=options.callHost;
- const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,callTimer:null,callStartedAt:0,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
+ const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,pollInFlight:false,callTimer:null,callStartedAt:0,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
  if(!host)return {setConversation(){},renderMedia:async()=>{}};
 
  const bar=$("div",{className:"yscmt-chat-tools"});
@@ -199,7 +199,7 @@ function create(options){
 
  function callApiEvent(eventType,payload={}){return request("call_event","POST",{call_id:state.call&&state.call.id,event_type:eventType,payload})}
  function showCall(open){callBox.hidden=!open;document.body.classList.toggle("yscmt-call-open",open);bar.classList.toggle("call-active",open)}
- function stopPoller(){if(state.poller){clearInterval(state.poller);state.poller=null}}
+ function stopPoller(){if(state.poller){clearInterval(state.poller);state.poller=null}state.pollInFlight=false}
  function stopCallClock(){if(state.callTimer){clearInterval(state.callTimer);state.callTimer=null}state.callStartedAt=0;callTimer.textContent="";}
  function startCallClock(){if(state.callTimer)return;state.callStartedAt=Date.now();const tick=()=>{const seconds=Math.max(0,Math.floor((Date.now()-state.callStartedAt)/1000));const mm=String(Math.floor(seconds/60)).padStart(2,"0"),ss=String(seconds%60).padStart(2,"0");callTimer.textContent=mm+":"+ss};tick();state.callTimer=setInterval(tick,1000)}
  function cleanupCall(message){
@@ -216,8 +216,9 @@ function create(options){
   pc.ontrack=event=>{
    const incoming=event.streams&&event.streams[0];
    if(incoming)incoming.getTracks().forEach(track=>{if(!state.remote.getTracks().some(t=>t.id===track.id))state.remote.addTrack(track)});
-   if(callType==="video"){remoteVideo.srcObject=state.remote;remoteVideo.hidden=false;remoteAudio.hidden=true}
-   else{remoteAudio.srcObject=state.remote;remoteAudio.hidden=false;remoteVideo.hidden=true}
+   if(event.track&&!state.remote.getTracks().some(track=>track.id===event.track.id))state.remote.addTrack(event.track);
+   if(callType==="video"){remoteVideo.srcObject=state.remote;remoteVideo.hidden=false;remoteAudio.hidden=true;remoteVideo.play().catch(()=>say("Tap the video to start playback."))}
+   else{remoteAudio.srcObject=state.remote;remoteAudio.hidden=false;remoteVideo.hidden=true;remoteAudio.play().catch(()=>say("Tap the screen once to enable call audio."))}
   };
   pc.onicecandidate=event=>{if(event.candidate){const candidate=event.candidate.toJSON();if(state.call)callApiEvent("ice",{candidate}).catch(()=>{});else state.pendingIce.push(candidate)}};
   pc.onconnectionstatechange=()=>{
@@ -271,9 +272,14 @@ function create(options){
  speaker.addEventListener("click",async()=>{
   const output=callBox.classList.contains("is-video-call")?remoteVideo:remoteAudio;
   try{
-   if(typeof output.setSinkId==="function"){await output.setSinkId("");speaker.textContent="Speaker on";speaker.setAttribute("aria-pressed","true");say("Audio output set to the default speaker device.")}
-   else{speaker.textContent="Speaker help";say("Choose Speaker from your phone audio output menu. On iPhone, open Control Centre, tap the audio output icon, then choose Speaker.")}
-  }catch(error){speaker.textContent="Speaker help";say("Could not change audio output. Use your phone audio output menu to choose Speaker.")}
+   if(typeof output.setSinkId==="function"&&navigator.mediaDevices&&navigator.mediaDevices.enumerateDevices){
+    const devices=await navigator.mediaDevices.enumerateDevices();
+    const speakerDevice=devices.find(device=>device.kind==="audiooutput"&&/speaker|loudspeaker|speakerphone/i.test(device.label));
+    if(speakerDevice){await output.setSinkId(speakerDevice.deviceId);speaker.textContent="Speaker on";speaker.setAttribute("aria-pressed","true");say("Speaker output selected.");return}
+   }
+   speaker.textContent="Speaker help";speaker.setAttribute("aria-pressed","false");
+   say("Select Speaker from your phone audio output menu. On iPhone, open Control Centre, tap the audio output icon, then choose Speaker.");
+  }catch(error){speaker.textContent="Speaker help";speaker.setAttribute("aria-pressed","false");say("Could not change audio output. Choose Speaker from your phone audio output menu.")}
  });
  mute.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getAudioTracks()[0];if(!track)return;track.enabled=!track.enabled;mute.textContent=track.enabled?"Mute":"Unmute";mute.classList.toggle("is-muted",!track.enabled)});
  camera.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getVideoTracks()[0];if(!track)return;track.enabled=!track.enabled;camera.textContent=track.enabled?"Camera off":"Camera on";camera.classList.toggle("is-camera-off",!track.enabled)});
@@ -293,13 +299,16 @@ function create(options){
   else if(event.event_type==="ended"){cleanupCall("The other person ended the call.")}
  }
  async function pollCall(){
-  if(!state.call)return;
+  if(!state.call||state.pollInFlight)return;
+  state.pollInFlight=true;
   try{
    const result=await request("call_poll","GET",{id:state.call.id,after:state.callCursor});
+   if(!state.call||!result.call)return;
    if(result.call.status==="rejected"){cleanupCall("Call declined.");return}
    if(result.call.status==="ended"||result.call.status==="missed"){cleanupCall(result.call.status==="missed"?"Missed call.":"Call ended.");return}
    for(const event of result.events||[])await processEvent(event);
   }catch(error){say(error.message)}
+  finally{state.pollInFlight=false}
  }
  function beginPoll(){stopPoller();pollCall();state.poller=setInterval(pollCall,1000)}
  async function setConversation(id,activeCall){
