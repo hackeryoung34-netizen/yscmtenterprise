@@ -62,7 +62,7 @@
 </section>
 <section class="panel" id="chatInbox" hidden><h2>Live Chat Inbox</h2><p class="muted">Reply to visitors who message YSCMT Enterprise from the website.</p><div class="grid"><div><h3>Conversations</h3><div id="chatConversations">Loading conversations…</div></div><div><div class="yscmt-admin-chat-head"><h3 id="chatThreadTitle">Select a conversation</h3><div id="adminChatCallActions"></div></div><div id="chatThread" class="status" style="min-height:220px;max-height:360px;overflow:auto">Choose a visitor from the inbox.</div><form id="chatReplyForm"><label for="chatReply">Your reply</label><textarea id="chatReply" maxlength="2000" required placeholder="Write a reply…"></textarea><button type="submit">Send reply</button></form><div id="adminChatTools"></div></div></div><div class="row" style="margin-top:12px"><button type="button" id="reloadChats">Refresh inbox</button></div></section>
 </main>
-<script src="/chat-client.js"></script>
+<script src="/chat-client.js?v=yscmt-call-screen-20261118"></script>
 <script>
 const sessionKey="yscmt_store_session";let cfg=null;const el=id=>document.getElementById(id),statusBox=el("status");
 const val=id=>el(id).value;function say(s){statusBox.textContent=s}
