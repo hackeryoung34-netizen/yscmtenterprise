@@ -2,9 +2,9 @@ const crypto = require("crypto");
 const BUCKET = "yscmt-chat-media";
 const MAX_MEDIA = 25 * 1024 * 1024;
 const MIME_TYPES = new Set([
-  "image/jpeg","image/png","image/webp","image/gif",
-  "video/mp4","video/webm",
-  "audio/mpeg","audio/mp4","audio/aac","audio/ogg","audio/webm","audio/wav","audio/x-wav"
+  "image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif",
+  "video/mp4","video/webm","video/quicktime",
+  "audio/mpeg","audio/mp4","audio/m4a","audio/x-m4a","audio/aac","audio/ogg","audio/webm","audio/wav","audio/x-wav"
 ]);
 function send(res,status,body){res.status(status).setHeader("Content-Type","application/json; charset=utf-8").setHeader("Cache-Control","no-store").send(JSON.stringify(body));}
 function cleanText(value,max){return typeof value==="string"?value.trim().slice(0,max):"";}
