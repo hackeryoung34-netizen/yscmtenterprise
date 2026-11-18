@@ -24,7 +24,8 @@ module.exports=async function handler(req,res){
     await requireAdmin(req,root,anon);
     const id=cleanText(req.query&&req.query.id,36);if(!/^[0-9a-f-]{36}$/i.test(id))return send(res,400,{error:"Invalid conversation ID."});
     const conversation=await getConversation(root,service,id);if(!conversation)return send(res,404,{error:"Conversation not found."});
-    return send(res,200,{conversation,messages:await getMessages(root,service,id)});
+    const {visitor_token_hash,...safeConversation}=conversation;
+    return send(res,200,{conversation:safeConversation,messages:await getMessages(root,service,id)});
    }
    if(action==="visitor_thread"){
     const id=cleanText(req.query&&req.query.id,36),token=cleanText(req.query&&req.query.token,128);
