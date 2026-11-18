@@ -13,7 +13,7 @@ const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+
 const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
  const role=options.role,host=options.host,status=options.status,callHost=options.callHost;
- const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
+ const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,callTimer:null,callStartedAt:0,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
  if(!host)return {setConversation(){},renderMedia:async()=>{}};
 
  const bar=$("div",{className:"yscmt-chat-tools"});
@@ -60,6 +60,7 @@ function create(options){
  const callAvatar=$("div",{className:"yscmt-call-avatar"},"Y");
  const callName=$("div",{className:"yscmt-call-name"},role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");
  const callLabel=$("div",{className:"yscmt-call-label"},"Calling…");
+ const callTimer=$("div",{className:"yscmt-call-timer"},"");
  const remoteVideo=$("video",{className:"yscmt-remote-video",autoplay:true,playsinline:true});
  const localVideo=$("video",{className:"yscmt-local-video",autoplay:true,muted:true,playsinline:true});
  const remoteAudio=$("audio",{autoplay:true});
@@ -70,7 +71,7 @@ function create(options){
  const speaker=$("button",{type:"button",className:"yscmt-call-control yscmt-call-speaker","aria-pressed":"false"},"Speaker");
  const camera=$("button",{type:"button",className:"yscmt-call-control yscmt-call-camera"},"Camera off");
  const end=$("button",{type:"button",className:"yscmt-call-control yscmt-call-end"},"End call");
- callIdentity.append(callAvatar,callName,callLabel);
+ callIdentity.append(callAvatar,callName,callLabel,callTimer);
  callActions.append(accept,reject,mute,speaker,camera,end);
  callBox.append(callBackdrop,callHeader,callIdentity,remoteVideo,localVideo,remoteAudio,callActions);
  attachWrap.append(attach,menu);
@@ -199,8 +200,10 @@ function create(options){
  function callApiEvent(eventType,payload={}){return request("call_event","POST",{call_id:state.call&&state.call.id,event_type:eventType,payload})}
  function showCall(open){callBox.hidden=!open;document.body.classList.toggle("yscmt-call-open",open);bar.classList.toggle("call-active",open)}
  function stopPoller(){if(state.poller){clearInterval(state.poller);state.poller=null}}
+ function stopCallClock(){if(state.callTimer){clearInterval(state.callTimer);state.callTimer=null}state.callStartedAt=0;callTimer.textContent="";}
+ function startCallClock(){if(state.callTimer)return;state.callStartedAt=Date.now();const tick=()=>{const seconds=Math.max(0,Math.floor((Date.now()-state.callStartedAt)/1000));const mm=String(Math.floor(seconds/60)).padStart(2,"0"),ss=String(seconds%60).padStart(2,"0");callTimer.textContent=mm+":"+ss};tick();state.callTimer=setInterval(tick,1000)}
  function cleanupCall(message){
-  stopPoller();
+  stopPoller();stopCallClock();
   if(state.pc){state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();state.pc=null}
   if(state.local)state.local.getTracks().forEach(track=>track.stop());
   state.local=null;state.remote=null;remoteVideo.srcObject=null;localVideo.srcObject=null;remoteAudio.srcObject=null;
@@ -218,8 +221,9 @@ function create(options){
   };
   pc.onicecandidate=event=>{if(event.candidate){const candidate=event.candidate.toJSON();if(state.call)callApiEvent("ice",{candidate}).catch(()=>{});else state.pendingIce.push(candidate)}};
   pc.onconnectionstatechange=()=>{
-   if(pc.connectionState==="connected"){callLabel.textContent="Connected";say("Call connected.")}
-   else if(["failed","disconnected"].includes(pc.connectionState)){callLabel.textContent="Connection interrupted";say("Call connection interrupted. Check your internet connection.")}
+   if(pc.connectionState==="connected"){callLabel.textContent="Connected";startCallClock();say("Call connected.")}
+   else if(pc.connectionState==="disconnected"){callLabel.textContent="Reconnecting…";say("Trying to restore the call connection…")}
+   else if(pc.connectionState==="failed"){callLabel.textContent="Connection failed";say("Call connection failed. Check your internet connection or network restrictions.")}
   };
   return pc;
  }
@@ -232,8 +236,9 @@ function create(options){
  async function flushRemoteIce(){if(!state.pc||!state.pc.remoteDescription)return;const candidates=state.remoteIceQueue.splice(0);for(const candidate of candidates){try{await state.pc.addIceCandidate(new RTCIceCandidate(candidate))}catch(error){}}}
  async function startCall(callType){
   if(state.callBusy||state.call)throw new Error("A call is already active.");
+  stopCallClock();
   state.callBusy=true;say("Starting "+(callType==="video"?"video":"voice")+" call…");
-  callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callLabel.textContent="Preparing call…";showCall(true);
+  callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callLabel.textContent="Preparing call…";callTimer.textContent="";showCall(true);
   accept.hidden=true;reject.hidden=true;mute.hidden=true;speaker.hidden=true;camera.hidden=true;end.hidden=false;end.textContent="Cancel";
   try{
    await ensureConversation();
@@ -243,7 +248,7 @@ function create(options){
    const result=await request("call_start","POST",{call_type:callType,offer:pc.localDescription.toJSON()});
    state.call=result.call;state.callCursor=0;callLabel.textContent="Calling…";
    accept.hidden=true;reject.hidden=true;mute.hidden=false;camera.hidden=callType!=="video";end.hidden=false;
-   mute.textContent="Mute";speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";end.textContent="End call";speaker.hidden=false;await flushIce();beginPoll();
+   mute.textContent="Mute";mute.classList.remove("is-muted");speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";camera.classList.remove("is-camera-off");end.textContent="End call";speaker.hidden=false;await flushIce();beginPoll();
   }catch(error){
    stopPoller();if(state.pc){state.pc.close();state.pc=null}
    if(state.local)state.local.getTracks().forEach(track=>track.stop());
@@ -257,20 +262,21 @@ function create(options){
   if(!state.incoming)return;
   try{
    const stream=await prepareLocal(state.incoming.call_type),pc=makePeer(state.incoming.call_type);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
-   await callApiEvent("accepted",{});callLabel.textContent="Connecting…";accept.hidden=true;reject.hidden=true;mute.hidden=false;speaker.hidden=false;camera.hidden=state.incoming.call_type!=="video";end.hidden=false;beginPoll();
+   await callApiEvent("accepted",{});callLabel.textContent="Connecting…";callTimer.textContent="";accept.hidden=true;reject.hidden=true;mute.hidden=false;speaker.hidden=false;camera.hidden=state.incoming.call_type!=="video";end.hidden=false;mute.textContent="Mute";mute.classList.remove("is-muted");speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";camera.classList.remove("is-camera-off");beginPoll();
   }catch(error){await callApiEvent("rejected",{}).catch(()=>{});cleanupCall(error.message)}
  }
  async function rejectCall(){if(!state.call)return;try{await callApiEvent("rejected",{})}catch{}cleanupCall("Call declined.")}
  async function endCall(){if(!state.call){cleanupCall("");return}try{await callApiEvent("ended",{})}catch{}cleanupCall("Call ended.")}
  accept.addEventListener("click",acceptCall);reject.addEventListener("click",rejectCall);end.addEventListener("click",endCall);
  speaker.addEventListener("click",async()=>{
+  const output=callBox.classList.contains("is-video-call")?remoteVideo:remoteAudio;
   try{
-   if(typeof remoteAudio.setSinkId==="function"){await remoteAudio.setSinkId("");speaker.textContent="Speaker on";speaker.setAttribute("aria-pressed","true");say("Audio output set to the default speaker device.")}
-   else{say("Your browser controls call audio routing. On iPhone, open Control Centre, tap the audio output button and choose Speaker.");speaker.textContent="Speaker help";}
-  }catch(error){say("Could not change audio output. Use your phone audio output menu to choose Speaker.")}
+   if(typeof output.setSinkId==="function"){await output.setSinkId("");speaker.textContent="Speaker on";speaker.setAttribute("aria-pressed","true");say("Audio output set to the default speaker device.")}
+   else{speaker.textContent="Speaker help";say("Choose Speaker from your phone audio output menu. On iPhone, open Control Centre, tap the audio output icon, then choose Speaker.")}
+  }catch(error){speaker.textContent="Speaker help";say("Could not change audio output. Use your phone audio output menu to choose Speaker.")}
  });
- mute.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getAudioTracks()[0];if(!track)return;track.enabled=!track.enabled;mute.textContent=track.enabled?"Mute":"Unmute"});
- camera.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getVideoTracks()[0];if(!track)return;track.enabled=!track.enabled;camera.textContent=track.enabled?"Camera off":"Camera on"});
+ mute.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getAudioTracks()[0];if(!track)return;track.enabled=!track.enabled;mute.textContent=track.enabled?"Mute":"Unmute";mute.classList.toggle("is-muted",!track.enabled)});
+ camera.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getVideoTracks()[0];if(!track)return;track.enabled=!track.enabled;camera.textContent=track.enabled?"Camera off":"Camera on";camera.classList.toggle("is-camera-off",!track.enabled)});
  async function processEvent(event){
   if(state.seen.has(event.id))return;state.seen.add(event.id);state.callCursor=Math.max(state.callCursor,Number(event.id)||0);
   if(event.sender_type===role)return;
@@ -299,7 +305,7 @@ function create(options){
  async function setConversation(id,activeCall){
   state.conversationId=id||null;
   if(activeCall&&activeCall.status==="ringing"&&activeCall.caller_type!==role&&!state.call){
-   state.incoming=activeCall;state.call=activeCall;showCall(true);callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",activeCall.call_type==="video");callLabel.textContent="Incoming call";
+   state.incoming=activeCall;state.call=activeCall;showCall(true);callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",activeCall.call_type==="video");callLabel.textContent="Incoming call";callTimer.textContent="YSCMT Enterprise calling";
    accept.hidden=false;reject.hidden=false;mute.hidden=true;speaker.hidden=true;camera.hidden=true;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;
   }else if(activeCall&&state.call&&state.call.id===activeCall.id&&!state.poller)beginPoll();
  }
