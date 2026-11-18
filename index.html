@@ -789,6 +789,18 @@ html.yscmt-chat-fullscreen #yscmt-chat-launch {
 .yscmt-recorder-panel audio{width:100%;height:38px;margin:7px 0}
 .yscmt-chat-tools .yscmt-call-icon{color:#087f5b!important}
 @media(prefers-reduced-motion:reduce){.yscmt-chat-tools .yscmt-tool[aria-label="Record voice note"].is-recording{animation:none}}
+
+/* WhatsApp-like voice message player */
+.yscmt-voice-player{display:flex;align-items:center;gap:11px;min-width:220px;max-width:290px;padding:9px 10px;border-radius:13px;background:#e7f5ed}
+.yscmt-voice-play{flex:0 0 38px!important;width:38px!important;height:38px!important;min-width:38px!important;padding:0!important;border:0!important;border-radius:50%!important;background:#087f5b!important;color:#fff!important;font-size:16px!important;display:grid;place-items:center}
+.yscmt-voice-visual{flex:1;min-width:0}
+.yscmt-voice-bars{height:30px;display:flex;align-items:center;justify-content:space-between;gap:2px;overflow:hidden}
+.yscmt-voice-bars i{display:block;flex:1;max-width:3px;min-width:2px;border-radius:4px;background:#8bb6a1;transition:background .12s}
+.yscmt-voice-bars i.played{background:#087f5b}
+.yscmt-voice-progress{display:block;width:100%;height:12px;margin:0;accent-color:#087f5b;cursor:pointer}
+.yscmt-voice-times{display:flex;justify-content:space-between;font-size:10px;line-height:1;color:#58766a;font-variant-numeric:tabular-nums}
+.yscmt-voice-player audio{display:none}
+@media(max-width:480px){.yscmt-voice-player{min-width:205px;max-width:260px}}
 </style>
 </head>
 
