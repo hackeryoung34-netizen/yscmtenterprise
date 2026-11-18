@@ -5,7 +5,7 @@ const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+
 const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
  const role=options.role,host=options.host,status=options.status;
- const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],seen:new Set(),poller:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
+ const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,queue:[],callBusy:false,incoming:null};
  if(!host)return {setConversation(){},renderMedia:async()=>{}};
 
  const bar=$("div",{className:"yscmt-chat-tools"});
@@ -184,7 +184,7 @@ function create(options){
   if(state.pc){state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();state.pc=null}
   if(state.local)state.local.getTracks().forEach(track=>track.stop());
   state.local=null;state.remote=null;remoteVideo.srcObject=null;localVideo.srcObject=null;remoteAudio.srcObject=null;
-  state.call=null;state.callCursor=0;state.pendingIce=[];state.seen.clear();state.incoming=null;state.callBusy=false;
+  state.call=null;state.callCursor=0;state.pendingIce=[];state.remoteIceQueue=[];state.seen.clear();state.incoming=null;state.callBusy=false;
   accept.hidden=true;reject.hidden=true;mute.hidden=true;camera.hidden=true;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;showCall(false);if(message)say(message);
  }
  function makePeer(callType){
@@ -209,6 +209,7 @@ function create(options){
   state.local=stream;localVideo.srcObject=stream;localVideo.hidden=callType!=="video";return stream;
  }
  async function flushIce(){const candidates=state.pendingIce.splice(0);for(const candidate of candidates)await callApiEvent("ice",{candidate})}
+ async function flushRemoteIce(){if(!state.pc||!state.pc.remoteDescription)return;const candidates=state.remoteIceQueue.splice(0);for(const candidate of candidates){try{await state.pc.addIceCandidate(new RTCIceCandidate(candidate))}catch(error){}}}
  async function startCall(callType){
   if(state.callBusy||state.call)throw new Error("A call is already active.");
   await ensureConversation();state.callBusy=true;say("Starting "+(callType==="video"?"video":"voice")+" call…");
@@ -226,7 +227,7 @@ function create(options){
   if(!state.incoming)return;
   try{
    const stream=await prepareLocal(state.incoming.call_type),pc=makePeer(state.incoming.call_type);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
-   callLabel.textContent="Connecting…";accept.hidden=true;reject.hidden=true;mute.hidden=false;camera.hidden=state.incoming.call_type!=="video";end.hidden=false;beginPoll();
+   await callApiEvent("accepted",{});callLabel.textContent="Connecting…";accept.hidden=true;reject.hidden=true;mute.hidden=false;camera.hidden=state.incoming.call_type!=="video";end.hidden=false;beginPoll();
   }catch(error){await callApiEvent("rejected",{}).catch(()=>{});cleanupCall(error.message)}
  }
  async function rejectCall(){if(!state.call)return;try{await callApiEvent("rejected",{})}catch{}cleanupCall("Call declined.")}
@@ -239,13 +240,14 @@ function create(options){
   if(event.sender_type===role)return;
   const pc=state.pc;
   if(event.event_type==="offer"&&pc&&!pc.remoteDescription){
-   await pc.setRemoteDescription(new RTCSessionDescription(event.payload));
+   await pc.setRemoteDescription(new RTCSessionDescription(event.payload));await flushRemoteIce();
    const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await callApiEvent("answer",pc.localDescription.toJSON());await flushIce();callLabel.textContent="Connecting…";
   }else if(event.event_type==="answer"&&pc&&!pc.remoteDescription){
-   await pc.setRemoteDescription(new RTCSessionDescription(event.payload));await flushIce();callLabel.textContent="Connecting…";
+   await pc.setRemoteDescription(new RTCSessionDescription(event.payload));await flushRemoteIce();await flushIce();callLabel.textContent="Connecting…";
   }else if(event.event_type==="ice"&&pc&&event.payload&&event.payload.candidate){
-   try{await pc.addIceCandidate(new RTCIceCandidate(event.payload.candidate))}catch(error){}
-  }else if(event.event_type==="rejected"){cleanupCall("The other person declined the call.")}
+   if(pc.remoteDescription){try{await pc.addIceCandidate(new RTCIceCandidate(event.payload.candidate))}catch(error){}}else state.remoteIceQueue.push(event.payload.candidate);
+  }else if(event.event_type==="accepted"){callLabel.textContent="Call accepted · Connecting…"}
+  else if(event.event_type==="rejected"){cleanupCall("The other person declined the call.")}
   else if(event.event_type==="ended"){cleanupCall("The other person ended the call.")}
  }
  async function pollCall(){
