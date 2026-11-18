@@ -263,7 +263,13 @@ function create(options){
  async function rejectCall(){if(!state.call)return;try{await callApiEvent("rejected",{})}catch{}cleanupCall("Call declined.")}
  async function endCall(){if(!state.call){cleanupCall("");return}try{await callApiEvent("ended",{})}catch{}cleanupCall("Call ended.")}
  accept.addEventListener("click",acceptCall);reject.addEventListener("click",rejectCall);end.addEventListener("click",endCall);
- speaker.addEventListener("click",async()=>{\n  try{\n   if(typeof remoteAudio.setSinkId==="function"){await remoteAudio.setSinkId("");speaker.textContent="Speaker on";speaker.setAttribute("aria-pressed","true");say("Audio output set to the default speaker device.")}\n   else{say("Your browser controls call audio routing. On iPhone, open Control Centre, tap the audio output button and choose Speaker.");speaker.textContent="Speaker help";}\n  }catch(error){say("Could not change audio output. Use your phone audio output menu to choose Speaker.")}\n });\n mute.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getAudioTracks()[0];if(!track)return;track.enabled=!track.enabled;mute.textContent=track.enabled?"Mute":"Unmute"});
+ speaker.addEventListener("click",async()=>{
+  try{
+   if(typeof remoteAudio.setSinkId==="function"){await remoteAudio.setSinkId("");speaker.textContent="Speaker on";speaker.setAttribute("aria-pressed","true");say("Audio output set to the default speaker device.")}
+   else{say("Your browser controls call audio routing. On iPhone, open Control Centre, tap the audio output button and choose Speaker.");speaker.textContent="Speaker help";}
+  }catch(error){say("Could not change audio output. Use your phone audio output menu to choose Speaker.")}
+ });
+ mute.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getAudioTracks()[0];if(!track)return;track.enabled=!track.enabled;mute.textContent=track.enabled?"Mute":"Unmute"});
  camera.addEventListener("click",()=>{if(!state.local)return;const track=state.local.getVideoTracks()[0];if(!track)return;track.enabled=!track.enabled;camera.textContent=track.enabled?"Camera off":"Camera on"});
  async function processEvent(event){
   if(state.seen.has(event.id))return;state.seen.add(event.id);state.callCursor=Math.max(state.callCursor,Number(event.id)||0);
