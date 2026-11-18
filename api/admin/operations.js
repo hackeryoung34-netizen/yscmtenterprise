@@ -59,13 +59,19 @@ module.exports = async function handler(req, res) {
       return send(res, 200, { orders, installations });
     }
 
-    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const body = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
     const id = typeof body.id === "string" ? body.id : "";
     const status = typeof body.status === "string" ? body.status : "";
+    if (Object.prototype.hasOwnProperty.call(body, "admin_notes") && typeof body.admin_notes !== "string") {
+      return send(res, 400, { error: "Admin notes must be text." });
+    }
     const adminNotes = typeof body.admin_notes === "string" ? body.admin_notes : undefined;
+
     if (!/^[0-9a-f-]{36}$/i.test(id)) return send(res, 400, { error: "A valid installation request ID is required." });
     if (!installationStatuses.has(status)) return send(res, 400, { error: "Invalid installation status." });
-    if (adminNotes !== undefined && adminNotes.length > 5000) return send(res, 400, { error: "Admin notes must be 5,000 characters or fewer." });
+    if (adminNotes !== undefined && adminNotes.length > 5000) {
+      return send(res, 400, { error: "Admin notes must be 5,000 characters or fewer." });
+    }
 
     const updateUrl = new URL(root + "/rest/v1/store_installations");
     updateUrl.searchParams.set("id", "eq." + id);
