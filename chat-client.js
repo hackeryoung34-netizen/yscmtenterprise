@@ -207,7 +207,7 @@ function create(options){
   if(state.pc){state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();state.pc=null}
   if(state.local)state.local.getTracks().forEach(track=>track.stop());
   state.local=null;state.remote=null;remoteVideo.srcObject=null;localVideo.srcObject=null;remoteAudio.srcObject=null;
-  state.call=null;state.callCursor=0;state.pendingIce=[];state.remoteIceQueue=[];state.seen.clear();state.incoming=null;state.callBusy=false;
+  state.call=null;callBox.classList.remove("is-ringing");state.callCursor=0;state.pendingIce=[];state.remoteIceQueue=[];state.seen.clear();state.incoming=null;state.callBusy=false;
   accept.hidden=true;reject.hidden=true;mute.hidden=true;speaker.hidden=true;camera.hidden=true;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;showCall(false);if(message)say(message);
  }
  function makePeer(callType){
@@ -222,7 +222,7 @@ function create(options){
   };
   pc.onicecandidate=event=>{if(event.candidate){const candidate=event.candidate.toJSON();if(state.call)callApiEvent("ice",{candidate}).catch(()=>{});else state.pendingIce.push(candidate)}};
   pc.onconnectionstatechange=()=>{
-   if(pc.connectionState==="connected"){callLabel.textContent="Connected";startCallClock();say("Call connected.")}
+   if(pc.connectionState==="connected"){callBox.classList.remove("is-ringing");callLabel.textContent="Connected";startCallClock();say("Call connected.")}
    else if(pc.connectionState==="disconnected"){callLabel.textContent="Reconnecting…";say("Trying to restore the call connection…")}
    else if(pc.connectionState==="failed"){callLabel.textContent="Connection failed";say("Call connection failed. Check your internet connection or network restrictions.")}
   };
@@ -239,7 +239,7 @@ function create(options){
   if(state.callBusy||state.call)throw new Error("A call is already active.");
   stopCallClock();
   state.callBusy=true;say("Starting "+(callType==="video"?"video":"voice")+" call…");
-  callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callLabel.textContent="Preparing call…";callTimer.textContent="";showCall(true);
+  callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callBox.classList.add("is-ringing");callLabel.textContent="Preparing call…";callTimer.textContent="";showCall(true);
   accept.hidden=true;reject.hidden=true;mute.hidden=true;speaker.hidden=true;camera.hidden=true;end.hidden=false;end.textContent="Cancel";
   try{
    await ensureConversation();
@@ -314,7 +314,7 @@ function create(options){
  async function setConversation(id,activeCall){
   state.conversationId=id||null;
   if(activeCall&&activeCall.status==="ringing"&&activeCall.caller_type!==role&&!state.call){
-   state.incoming=activeCall;state.call=activeCall;showCall(true);callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",activeCall.call_type==="video");callLabel.textContent="Incoming call";callTimer.textContent="YSCMT Enterprise calling";
+   state.incoming=activeCall;state.call=activeCall;showCall(true);callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",activeCall.call_type==="video");callBox.classList.remove("is-ringing");callLabel.textContent="Incoming call";callTimer.textContent="YSCMT Enterprise calling";
    accept.hidden=false;reject.hidden=false;mute.hidden=true;speaker.hidden=true;camera.hidden=true;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;
   }else if(activeCall&&state.call&&state.call.id===activeCall.id&&!state.poller)beginPoll();
  }
