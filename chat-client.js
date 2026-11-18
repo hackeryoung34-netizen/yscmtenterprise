@@ -233,10 +233,13 @@ function create(options){
   if(state.callBusy||state.call)throw new Error("A call is already active.");
   await ensureConversation();state.callBusy=true;say("Starting "+(callType==="video"?"video":"voice")+" call…");
   try{
+   callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callLabel.textContent="Preparing call…";showCall(true);
+   accept.hidden=true;reject.hidden=true;mute.hidden=true;camera.hidden=true;end.hidden=true;
    const stream=await prepareLocal(callType),pc=makePeer(callType);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
+   callLabel.textContent="Calling…";
    const result=await request("call_start","POST",{call_type:callType,offer:pc.localDescription.toJSON()});
-   state.call=result.call;state.callCursor=0;showCall(true);callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callLabel.textContent="Calling…";
+   state.call=result.call;state.callCursor=0;callLabel.textContent="Calling…";
    accept.hidden=true;reject.hidden=true;mute.hidden=false;camera.hidden=callType!=="video";end.hidden=false;
    mute.textContent="Mute";camera.textContent="Camera off";await flushIce();beginPoll();
   }catch(error){cleanupCall();throw error}
