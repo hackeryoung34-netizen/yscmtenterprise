@@ -38,7 +38,8 @@ async function directory(req,res,sql){
   if(clean(body.website_confirm,200))return send(res,202,{accepted:true});
   const ip=String(req.headers["x-forwarded-for"]||req.socket&&req.socket.remoteAddress||"unknown").split(",")[0].trim();
   if(limited(ip))return send(res,429,{error:"Too many submissions. Please try again later."});
-  const name=clean(body.business_name,160),category=clean(body.category,40),description=clean(body.description,3000),state=clean(body.state,80),city=clean(body.city,100);\n  if(body.public_contact_consent!==true&&body.public_contact_consent!=="true")return send(res,400,{error:"Confirm that you have permission to publish these business contact details."});
+  const name=clean(body.business_name,160),category=clean(body.category,40),description=clean(body.description,3000),state=clean(body.state,80),city=clean(body.city,100);
+  if(body.public_contact_consent!==true&&body.public_contact_consent!=="true")return send(res,400,{error:"Confirm that you have permission to publish these business contact details."});
   const phone=clean(body.phone,30).replace(/[\s()-]/g,""),whatsapp=clean(body.whatsapp,30).replace(/[\s()-]/g,"")||null,email=clean(body.email,254)||null,website=clean(body.website_url,2048)||null;
   if(name.length<2||description.length<20)return send(res,400,{error:"Business name and a description of at least 20 characters are required."});
   if(!categories.has(category))return send(res,400,{error:"Select a valid business category."});
@@ -84,7 +85,8 @@ async function jobs(req,res,sql){
   if(clean(body.website_confirm,200))return send(res,202,{accepted:true});
   const ip=String(req.headers["x-forwarded-for"]||req.socket&&req.socket.remoteAddress||"unknown").split(",")[0].trim();
   if(limited(ip))return send(res,429,{error:"Too many submissions. Please try again later."});
-  const title=clean(body.job_title,160),employer=clean(body.employer_name,160),description=clean(body.description,5000),category=clean(body.category,40),type=clean(body.employment_type,24),state=clean(body.state,80),city=clean(body.city,100);\n  if(body.public_contact_consent!==true&&body.public_contact_consent!=="true")return send(res,400,{error:"Confirm that you have permission to publish these employer contact details."});
+  const title=clean(body.job_title,160),employer=clean(body.employer_name,160),description=clean(body.description,5000),category=clean(body.category,40),type=clean(body.employment_type,24),state=clean(body.state,80),city=clean(body.city,100);
+  if(body.public_contact_consent!==true&&body.public_contact_consent!=="true")return send(res,400,{error:"Confirm that you have permission to publish these employer contact details."});
   const email=clean(body.application_email,254)||null,url=clean(body.application_url,2048)||null,whatsapp=clean(body.whatsapp,30).replace(/[\\s()-]/g,"")||null;
   const min=body.salary_min===""||body.salary_min===undefined||body.salary_min===null?null:Number(body.salary_min),max=body.salary_max===""||body.salary_max===undefined||body.salary_max===null?null:Number(body.salary_max),period=clean(body.salary_period,16)||"monthly",closing=clean(body.closing_date,10)||null;
   if(title.length<3||employer.length<2||description.length<30)return send(res,400,{error:"Job title, employer name and a description of at least 30 characters are required."});
