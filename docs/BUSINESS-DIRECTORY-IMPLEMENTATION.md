@@ -30,7 +30,7 @@ The schema has been applied and verified on the Neon development branch only. It
 
 ## Payments and featured placement
 
-Owner-approved pricing for the launch plan: Featured Business placement is ₦5,000 for 30 days. Job Ads remain free during the initial launch period. The Directory page now displays this price with a clear notice that online payment is not yet enabled; users must not send money until an official checkout is released. A listing cannot become featured through its public submission payload. Featured status must only be activated after a separate server-side Paystack verification and payment record are implemented.
+Owner-approved pricing for the launch plan: Featured Business placement is ₦5,000 for 30 days. Job Ads remain free during the initial launch period. The Directory page now displays this price with a clear notice that online payment is not yet enabled; users must not send money until an official checkout is released. A listing cannot become featured through its public submission payload. A separate Neon payment-order table is defined in `neon/migrations/005_featured_business_payments.sql` and has been applied to the `revenue-development` branch only. The new `POST /api/featured-payment` route initializes a fixed NGN 500,000-kobo Paystack checkout only when a listing is approved and the supplied email matches its published contact email. It uses the dedicated `REVENUE_PAYSTACK_SECRET_KEY`, which must begin with `sk_test_`; the existing Template Store Paystack secret is not reused. The callback is verified server-side through `GET /api/featured-payment/verify`; only a successful Paystack transaction with test domain, exact amount/currency/reference, and matching order metadata can activate a 30-day featured period. Repeated verification is idempotent and does not extend the period again. This is test-mode code only; no live key, Production variable, or live payment has been enabled. The dedicated test key still needs to be added to the Preview environment before checkout can be exercised end-to-end.
 
 ## Release gates
 
@@ -54,6 +54,14 @@ A separate Job Ads feature has been added on the same isolated Neon development 
 - `/revenue-admin/`: private moderation dashboard for Business Directory and Job Ads. It reuses the existing YSCMT account session, checks the Supabase `store_admin` role, and calls protected moderation APIs; it does not expose service-role credentials. It also includes an admin-only database and Object Storage smoke-test button that performs temporary PUT/GET/DELETE operations and cleans up the test object. Applicant CV uploads and storage of applicant personal data are intentionally not included in this first version.
 
 Both Job Ads routes are rewrites to the existing consolidated `api/revenue.js` function so the project remains within the Vercel Hobby function-count limit. The homepage and Production environment remain unchanged.
+
+## Featured Business Paystack test checkout
+
+- `POST /api/featured-payment` creates a fixed-price NGN 5,000 checkout for an approved listing only, and requires the email to match the contact email displayed on that listing.
+- `GET /api/featured-payment/verify?reference=...` calls Paystack Verify from the server and checks `status`, `domain=test`, exact NGN amount (500,000 kobo), reference, and `metadata.order_id` before setting `is_featured` and a 30-day expiry.
+- The new payment-order schema is migration `005_featured_business_payments.sql`, applied to Neon `revenue-development` only. Payment orders are separate from the Template Store tables.
+- Add `REVENUE_PAYSTACK_SECRET_KEY` as a sensitive Preview-only variable scoped to `feature/revenue-monetization-2026`; it must be a Paystack **test** secret beginning `sk_test_`. Do not reuse the Template Store key. Do not add a live key.
+- End-to-end testing remains blocked until the dedicated test key is supplied and set in Preview. Test with Paystack test credentials/payment method only; verify pending, success, failed, wrong amount/reference/metadata, repeat callback, and listing status changes. No real funds should move.
 
 ## Additional Job Ads release gates
 
