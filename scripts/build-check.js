@@ -22,6 +22,45 @@ for (const name of roots) {
 }
 
 let failed = false;
+
+const configPath = path.join(root, "vercel.json");
+try {
+  const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  const rewrites = config.rewrites || [];
+  const sources = rewrites.map((rule) => rule.source);
+  if (new Set(sources).size !== sources.length) {
+    failed = true;
+    process.stderr.write("Duplicate Vercel rewrite source detected.\\n");
+  }
+  const requiredRoutes = new Map([
+    ["/api/business-directory", "/api/revenue?route=directory"],
+    ["/api/admin/business-directory", "/api/revenue?route=admin-directory"],
+    ["/api/revenue/health", "/api/revenue?route=health"],
+    ["/api/jobs", "/api/revenue?route=jobs"],
+    ["/api/admin/jobs", "/api/revenue?route=admin-jobs"],
+    ["/api/admin/revenue-health", "/api/revenue?route=admin-health"]
+  ]);
+  for (const [source, destination] of requiredRoutes) {
+    const rule = rewrites.find((item) => item.source === source);
+    if (!rule || rule.destination !== destination) {
+      failed = true;
+      process.stderr.write("Missing or incorrect Vercel rewrite: " + source + "\\n");
+    }
+  }
+} catch (error) {
+  failed = true;
+  process.stderr.write("Invalid vercel.json: " + error.message + "\\n");
+}
+
+const apiFunctionFiles = files.filter((file) => {
+  const relative = path.relative(root, file).split(path.sep);
+  return relative[0] === "api" && !relative.some((part) => part.startsWith("_"));
+});
+if (apiFunctionFiles.length > 12) {
+  failed = true;
+  process.stderr.write("Vercel Hobby function limit exceeded: " + apiFunctionFiles.length + " API functions (maximum 12).\\n");
+}
+
 for (const file of files) {
   const result = spawnSync(process.execPath, ["--check", file], { encoding: "utf8" });
   if (result.status !== 0) {
@@ -50,4 +89,4 @@ for (const name of htmlRoots) {
 }
 
 if (failed) process.exit(1);
-process.stdout.write("Build check passed: " + files.length + " JavaScript files and inline HTML scripts passed syntax checks.\n");
+process.stdout.write("Build check passed: " + files.length + " JavaScript files, inline HTML scripts, Vercel rewrites, and " + apiFunctionFiles.length + " API functions checked.\n");
