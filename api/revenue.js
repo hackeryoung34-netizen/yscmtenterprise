@@ -199,7 +199,7 @@ async function featuredPaymentVerify(req,res,sql){
     if(["failed","abandoned"].includes(payment.status))await sql`update public.featured_business_payment_orders set status='failed',updated_at=now() where reference=${reference} and status='pending'`;
     return send(res,409,{paid:false,payment_status:clean(payment.status,30),message:"Paystack has not confirmed a successful payment."});
   }
-  if(payment.domain!=="test"||payment.currency!=="NGN"||payment.amount!==FEATURED_AMOUNT_KOBO||order.amount_kobo!==FEATURED_AMOUNT_KOBO||order.currency!=="NGN"||!payment.customer||String(payment.customer.email||"").trim().toLowerCase()!==order.customer_email||!payment.metadata||payment.metadata.order_id!==order.id)return send(res,409,{paid:false,error:"Payment details do not match this YSCMT test order. No featured access was granted."});
+  if(!Number.isSafeInteger(Number(payment.id))||payment.domain!=="test"||payment.currency!=="NGN"||payment.amount!==FEATURED_AMOUNT_KOBO||order.amount_kobo!==FEATURED_AMOUNT_KOBO||order.currency!=="NGN"||!payment.customer||String(payment.customer.email||"").trim().toLowerCase()!==order.customer_email||!payment.metadata||payment.metadata.order_id!==order.id)return send(res,409,{paid:false,error:"Payment details do not match this YSCMT test order. No featured access was granted."});
   const updated=await sql`with target as materialized (
     select o.id,o.listing_id,o.status,l.status as listing_status
     from public.featured_business_payment_orders o
