@@ -69,11 +69,11 @@ if(!item.featured&&item.email){
  promo.append(node("strong","Promote this business — ₦5,000 / 30 days"));
  const emailLabel=node("label","Confirm listed contact email");
  const emailInput=document.createElement("input");emailInput.type="email";emailInput.required=true;emailInput.value=item.email;emailInput.autocomplete="email";emailLabel.append(emailInput);
- const payButton=node("button","Continue to test checkout");payButton.type="button";
+ const payButton=node("button","Continue to secure checkout");payButton.type="button";
  const payStatus=node("p","","status");payStatus.setAttribute("role","status");
  payButton.addEventListener("click",async()=>{
    if(!emailInput.reportValidity())return;
-   payButton.disabled=true;payStatus.textContent="Preparing secure Paystack test checkout…";
+   payButton.disabled=true;payStatus.textContent="Preparing secure Paystack checkout…";
    try{
      const response=await fetch("/api/featured-payment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({listing_id:item.id,email:emailInput.value.trim()})});
      const result=await response.json();if(!response.ok)throw new Error(result.error||"Checkout could not start.");
