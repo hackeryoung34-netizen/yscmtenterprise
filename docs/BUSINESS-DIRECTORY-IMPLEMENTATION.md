@@ -45,7 +45,7 @@ No payment endpoint or pricing is enabled for directory listings. A listing cann
 
 A separate Job Ads feature has been added on the same isolated Neon development branch:
 
-- Tables: `public.job_ads` and `public.job_ad_audit_logs`, with status constraints, salary-range validation, closing dates, and moderation audit records.
+- Tables: `public.job_ads` and `public.job_ad_audit_logs`, with status constraints, salary-range validation, closing dates, and moderation audit records. The reproducible migration is `neon/migrations/002_job_ads.sql`.
 - `GET /api/jobs`: approved, non-expired adverts only; bounded search and filters for state, category, and employment type.
 - `POST /api/jobs`: validates vacancy details and requires at least one application contact method. New adverts are always `pending`; public users cannot approve or feature an advert.
 - `GET/PATCH /api/admin/jobs`: uses the same Supabase administrator role check as Business Directory and records moderation actions.
