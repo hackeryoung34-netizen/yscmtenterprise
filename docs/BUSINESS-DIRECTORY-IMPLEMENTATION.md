@@ -24,8 +24,8 @@ The schema has been applied and verified on the Neon development branch only. It
 ## Environment and storage
 
 - `REVENUE_DATABASE_URL` has been configured as a sensitive Vercel Preview variable scoped to `feature/revenue-monetization-2026`; it points to Neon `revenue-development`. No Production environment variable was changed.
-- The private Neon bucket `yscmt-revenue-assets` exists. S3-compatible access credentials have not yet been connected to Vercel, so logo upload is not enabled.
-- The health endpoint requires a separate `REVENUE_HEALTH_TOKEN` and Object Storage credentials; it is not yet ready for end-to-end health verification.
+- The private Neon bucket `yscmt-revenue-assets` exists. A scoped Neon Object Storage credential (storage read/write, expires 2027-02-17) and the S3 endpoint, access key, secret, region, and bucket name are now configured as sensitive Vercel Preview variables for `feature/revenue-monetization-2026`. No Production variables were changed. Logo upload is not yet implemented in the Directory UI.
+- A separate `REVENUE_HEALTH_TOKEN` is configured as a sensitive Preview-only variable. The protected health endpoint can be checked after a fresh Preview deployment loads the new variables.
 
 ## Payments and featured placement
 
