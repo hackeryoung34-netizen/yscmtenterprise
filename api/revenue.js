@@ -65,6 +65,55 @@ async function admin(req,res,sql){
   await sql`insert into public.business_directory_audit_logs(listing_id,actor_user_id,action,details) values(${id}::uuid,${auth.user.id},${"listing_"+status},${JSON.stringify({status,admin_notes:notes})}::jsonb)`;
   return send(res,200,{listing:updated[0]});
 }
+
+const jobCategories = new Set(["technology","sales","administration","customer-service","finance","education","healthcare","skilled-trades","logistics","hospitality","other"]);
+const employmentTypes = new Set(["full-time","part-time","contract","internship","temporary","remote"]);
+function validDate(value){if(!value)return true;if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value))return false;const d=new Date(value+"T00:00:00Z");return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===value;}
+function validSalary(value){return value===""||value===null||value===undefined||(Number.isFinite(Number(value))&&Number(value)>=0&&Number(value)<=100000000000);}
+async function jobs(req,res,sql){
+  if(req.method==="GET"){
+    const q=clean(req.query&&req.query.q,100),state=clean(req.query&&req.query.state,80),city=clean(req.query&&req.query.city,100),category=clean(req.query&&req.query.category,40),type=clean(req.query&&req.query.type,24);
+    const page=Math.max(1,Math.min(10000,Number.parseInt(req.query&&req.query.page,10)||1)),limit=Math.max(1,Math.min(50,Number.parseInt(req.query&&req.query.limit,10)||20));
+    if(category&&!jobCategories.has(category))return send(res,400,{error:"Invalid job category."});
+    if(type&&!employmentTypes.has(type))return send(res,400,{error:"Invalid employment type."});
+    const rows=await sql`select id,job_title,employer_name,description,category,employment_type,state,city,is_remote,salary_min,salary_max,salary_period,application_email,application_url,whatsapp,closing_date,created_at from public.job_ads where status='approved' and (closing_date is null or closing_date>=current_date) and (${state||null}::text is null or state ilike ${state||null}) and (${city||null}::text is null or city ilike ${city||null}) and (${category||null}::text is null or category=${category||null}) and (${type||null}::text is null or employment_type=${type||null}) and (${q||null}::text is null or job_title ilike ('%'||${q||null}||'%') or employer_name ilike ('%'||${q||null}||'%') or description ilike ('%'||${q||null}||'%')) order by created_at desc limit ${limit} offset ${(page-1)*limit}`;
+    return send(res,200,{jobs:rows,page,limit});
+  }
+  if(req.method!=="POST"){res.setHeader("Allow","GET, POST");return send(res,405,{error:"Method not allowed"});}
+  const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
+  if(clean(body.website_confirm,200))return send(res,202,{accepted:true});
+  const ip=String(req.headers["x-forwarded-for"]||req.socket&&req.socket.remoteAddress||"unknown").split(",")[0].trim();
+  if(limited(ip))return send(res,429,{error:"Too many submissions. Please try again later."});
+  const title=clean(body.job_title,160),employer=clean(body.employer_name,160),description=clean(body.description,5000),category=clean(body.category,40),type=clean(body.employment_type,24),state=clean(body.state,80),city=clean(body.city,100);
+  const email=clean(body.application_email,254)||null,url=clean(body.application_url,2048)||null,whatsapp=clean(body.whatsapp,30).replace(/[\\s()-]/g,"")||null;
+  const min=body.salary_min===""||body.salary_min===undefined?null:Number(body.salary_min),max=body.salary_max===""||body.salary_max===undefined?null:Number(body.salary_max),period=clean(body.salary_period,16)||"monthly",closing=clean(body.closing_date,10)||null;
+  if(title.length<3||employer.length<2||description.length<30)return send(res,400,{error:"Job title, employer name and a description of at least 30 characters are required."});
+  if(!jobCategories.has(category)||!employmentTypes.has(type))return send(res,400,{error:"Select a valid job category and employment type."});
+  if(!states.has(state)||city.length<2)return send(res,400,{error:"Select a valid Nigerian state and enter a city."});
+  if(!validEmail(email)||!validUrl(url)||(!email&&!url&&!whatsapp))return send(res,400,{error:"Provide at least one valid application email, website link or WhatsApp number."});
+  if(whatsapp&&!/^\\+?[0-9]{7,15}$/.test(whatsapp))return send(res,400,{error:"Enter a valid WhatsApp number."});
+  if(!validSalary(body.salary_min)||!validSalary(body.salary_max)||(min!==null&&max!==null&&max<min))return send(res,400,{error:"Check the salary range."});
+  if(!["hourly","daily","weekly","monthly","yearly"].includes(period)||!validDate(closing))return send(res,400,{error:"Check the salary period or closing date."});
+  const remote=body.is_remote===true;
+  const inserted=await sql`insert into public.job_ads(job_title,employer_name,description,category,employment_type,state,city,is_remote,salary_min,salary_max,salary_period,application_email,application_url,whatsapp,closing_date) values(${title},${employer},${description},${category},${type},${state},${city},${remote},${min},${max},${period},${email},${url},${whatsapp},${closing}) returning id,job_title,employer_name,status,created_at`;
+  return send(res,201,{job:inserted[0],message:"Your job advert has been submitted for review."});
+}
+async function adminJobs(req,res,sql){
+  const auth=await adminUser(req);if(auth.error)return send(res,auth.status,{error:auth.error});
+  if(req.method==="GET"){
+    const listings=await sql`select id,job_title,employer_name,category,employment_type,state,city,status,closing_date,created_at,admin_notes from public.job_ads order by created_at desc limit 200`;
+    return send(res,200,{jobs:listings});
+  }
+  if(req.method!=="PATCH"){res.setHeader("Allow","GET, PATCH");return send(res,405,{error:"Method not allowed"});}
+  const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{},id=typeof body.id==="string"?body.id:"",status=typeof body.status==="string"?body.status:"",notes=typeof body.admin_notes==="string"?body.admin_notes.trim().slice(0,2000):null;
+  if(!/^[0-9a-f-]{36}$/i.test(id))return send(res,400,{error:"A valid job advert ID is required."});
+  if(!["approved","rejected","suspended"].includes(status))return send(res,400,{error:"Invalid moderation status."});
+  const updated=await sql`update public.job_ads set status=${status},admin_notes=${notes},approved_at=case when ${status}='approved' then coalesce(approved_at,now()) else approved_at end where id=${id}::uuid returning id,job_title,employer_name,status,admin_notes,approved_at`;
+  if(!updated[0])return send(res,404,{error:"Job advert not found."});
+  await sql`insert into public.job_ad_audit_logs(job_ad_id,actor_user_id,action,details) values(${id}::uuid,${auth.user.id},${"job_"+status},${JSON.stringify({status,admin_notes:notes})}::jsonb)`;
+  return send(res,200,{job:updated[0]});
+}
+
 function tokenOk(req){const expected=process.env.REVENUE_HEALTH_TOKEN||"",auth=req.headers.authorization||"",actual=auth.startsWith("Bearer ")?auth.slice(7):"";if(!expected||!actual)return false;const a=Buffer.from(actual),b=Buffer.from(expected);return a.length===b.length&&timingSafeEqual(a,b);}
 async function health(req,res){
   if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
@@ -81,6 +130,8 @@ module.exports=async function handler(req,res){
     if(route==="directory")return await directory(req,res,getRevenueSql());
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
     if(route==="health")return await health(req,res);
+    if(route==="jobs")return await jobs(req,res,getRevenueSql());
+    if(route==="admin-jobs")return await adminJobs(req,res,getRevenueSql());
     return send(res,404,{error:"Revenue route not found."});
   }catch{return send(res,503,{error:"YSCMT revenue service is temporarily unavailable."});}
 };
