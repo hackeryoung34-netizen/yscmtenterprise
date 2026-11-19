@@ -39,3 +39,23 @@ No payment endpoint or pricing is enabled for directory listings. A listing cann
 - Test listing submission, duplicate handling, search/pagination, admin authorization, moderation, and audit records.
 - Add Job Ads as a separate schema/API/payment workflow; do not reuse Template Store order tables.
 - Do not merge to `main`, alter DNS, set Production environment variables, activate live payments, or deploy Production without explicit owner approval.
+
+
+## Job Ads — development implementation
+
+A separate Job Ads feature has been added on the same isolated Neon development branch:
+
+- Tables: `public.job_ads` and `public.job_ad_audit_logs`, with status constraints, salary-range validation, closing dates, and moderation audit records.
+- `GET /api/jobs`: approved, non-expired adverts only; bounded search and filters for state, category, and employment type.
+- `POST /api/jobs`: validates vacancy details and requires at least one application contact method. New adverts are always `pending`; public users cannot approve or feature an advert.
+- `GET/PATCH /api/admin/jobs`: uses the same Supabase administrator role check as Business Directory and records moderation actions.
+- `/jobs/`: standalone responsive vacancy search and employer submission page. Applicant CV uploads and storage of applicant personal data are intentionally not included in this first version.
+
+Both Job Ads routes are rewrites to the existing consolidated `api/revenue.js` function so the project remains within the Vercel Hobby function-count limit. The homepage and Production environment remain unchanged.
+
+## Additional Job Ads release gates
+
+- Test job submission, filters, expired adverts, admin authorization, moderation, and audit logging through an authenticated Preview session.
+- Add durable rate limiting / bot protection before opening public submissions.
+- Define employer identity checks, privacy notice, job-ad retention/deletion rules, and a separate verified payment workflow before charging employers.
+- No paid promotion or Paystack workflow is active; no job advert is published automatically.
