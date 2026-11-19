@@ -57,3 +57,27 @@ This repository currently has no `npm run build`; do not invent a framework buil
 - A Vercel Preview build/deployment check only; never Production during this phase.
 
 Never print environment variable values in logs or paste them into chat.
+
+
+## Current repository implementation
+
+The repository now includes:
+- `api/_lib/revenue-db.js`: lazy Neon serverless SQL client, using `REVENUE_DATABASE_URL`.
+- `api/_lib/revenue-storage.js`: private S3-compatible Neon storage client, using the branch-scoped `AWS_*` credentials.
+- `api/revenue/health.js`: private diagnostic route; requires `Authorization: Bearer <REVENUE_HEALTH_TOKEN>` and checks Postgres plus bucket availability.
+- `neon/migrations/001_business_directory.sql`: Neon-native Business Directory schema. It intentionally does not use Supabase Auth roles or RLS; all reads/writes must go through authenticated server routes.
+- `scripts/test-revenue-services.js`: creates a temporary object, reads it back, and deletes it after checking a Postgres query.
+
+## Local development checks
+
+After dependencies and development-only environment variables are configured:
+
+```bash
+npm install
+npm run build
+npm run test:revenue-services
+```
+
+The build command is a syntax/build sanity check for this static-site + Vercel Functions repository. It is not a framework bundler. The service smoke test requires a real development Neon branch and a private bucket; it must not be run against production.
+
+The CLI-generated `neon.ts` is intentionally not committed yet: run the requested `neon init` locally first, inspect its output, and confirm the target branch before provisioning. Do not run `neon deploy` while linked to the production branch.
