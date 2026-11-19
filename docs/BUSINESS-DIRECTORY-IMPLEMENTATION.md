@@ -16,7 +16,7 @@ The schema has been applied and verified on the Neon development branch only. It
 ## Implemented routes and page
 
 - `GET /api/business-directory`: approved listings only; bounded search, state/city/category filters, page size capped at 50, featured status calculated by the database.
-- `POST /api/business-directory`: validates submitted business details and creates a `pending` listing only. Client cannot set approval or featured fields. Includes a honeypot and per-instance in-memory throttling; this is basic abuse resistance, not a substitute for Turnstile or durable distributed rate limiting.
+- `POST /api/business-directory`: validates submitted business details, requires explicit permission to publish contact details, records the consent timestamp, and creates a `pending` listing only. Client cannot set approval or featured fields. Includes a honeypot and per-instance in-memory throttling; this is basic abuse resistance, not a substitute for Turnstile or durable distributed rate limiting.
 - `GET /api/admin/business-directory`: requires a valid Supabase session with `app_metadata.role = store_admin`; returns recent listings for moderation.
 - `PATCH /api/admin/business-directory`: same admin check; supports approve/reject/suspend and records an audit event.
 - `/business-directory/`: standalone responsive directory and submission page. The existing homepage/navigation has not been changed.
@@ -35,8 +35,8 @@ No payment endpoint or pricing is enabled for directory listings. A listing cann
 
 - Confirm the Vercel Preview deployment and database connectivity.
 - Add Turnstile or durable distributed rate limiting before public launch.
-- Connect Neon Object Storage credentials in Preview only and test upload/download/delete.
-- Test listing submission, duplicate handling, search/pagination, admin authorization, moderation, and audit records.
+- Credentials are connected in Preview only; still test actual upload/download/delete before enabling logo uploads.
+- Test listing submission, consent enforcement, duplicate handling, search/pagination, admin authorization, moderation, and audit records.
 - Add Job Ads as a separate schema/API/payment workflow; do not reuse Template Store order tables.
 - Do not merge to `main`, alter DNS, set Production environment variables, activate live payments, or deploy Production without explicit owner approval.
 
@@ -45,9 +45,9 @@ No payment endpoint or pricing is enabled for directory listings. A listing cann
 
 A separate Job Ads feature has been added on the same isolated Neon development branch:
 
-- Tables: `public.job_ads` and `public.job_ad_audit_logs`, with status constraints, salary-range validation, closing dates, and moderation audit records. The reproducible migration is `neon/migrations/002_job_ads.sql`.
+- Tables: `public.job_ads` and `public.job_ad_audit_logs`, with status constraints, salary-range validation, closing dates, and moderation audit records. Reproducible migrations are `neon/migrations/002_job_ads.sql` and `neon/migrations/003_public_contact_consent.sql`.
 - `GET /api/jobs`: approved, non-expired adverts only; bounded search and filters for state, category, and employment type.
-- `POST /api/jobs`: validates vacancy details and requires at least one application contact method. New adverts are always `pending`; public users cannot approve or feature an advert.
+- `POST /api/jobs`: validates vacancy details, requires at least one application contact method and explicit permission to publish employer contact details, records the consent timestamp, and creates `pending` adverts only. Public users cannot approve or feature an advert.
 - `GET/PATCH /api/admin/jobs`: uses the same Supabase administrator role check as Business Directory and records moderation actions.
 - `/jobs/`: standalone responsive vacancy search and employer submission page.
 - `/revenue-admin/`: private moderation dashboard for Business Directory and Job Ads. It reuses the existing YSCMT account session, checks the Supabase `store_admin` role, and calls protected moderation APIs; it does not expose service-role credentials. Applicant CV uploads and storage of applicant personal data are intentionally not included in this first version.
