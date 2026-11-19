@@ -1,0 +1,17 @@
+{
+  "name": "yscmt-enterprise",
+  "version": "1.0.0",
+  "private": true,
+  "description": "YSCMT Enterprise static website and Vercel API functions",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build-check.js",
+    "check": "node scripts/build-check.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.900.0",
+    "@neondatabase/serverless": "^1.0.2"
+  }
+}
