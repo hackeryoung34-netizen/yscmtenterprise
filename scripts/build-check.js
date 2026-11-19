@@ -64,6 +64,7 @@ if (fs.existsSync(revenueApiPath)) {
     ['Payment domain is environment-specific', 'payment.domain!==expectedPaystackDomain()'],
     ['Webhook signatures are checked', 'verifyWebhookSignature(req,raw)'],
     ['Webhook raw body parsing is enabled', 'bodyParser:false'],
+    ['Raw body parser config is assigned after handler export', 'module.exports.config={api:{bodyParser:false}};'],
     ['Webhook delivery idempotency is enabled', 'on conflict(payload_hash)'],
     ['Webhook route is dispatched', 'route==="featured-webhook"']
   ];
