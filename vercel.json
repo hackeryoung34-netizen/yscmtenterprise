@@ -18,5 +18,19 @@
       ]
     }
   ],
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/api/business-directory",
+      "destination": "/api/revenue?route=directory"
+    },
+    {
+      "source": "/api/admin/business-directory",
+      "destination": "/api/revenue?route=admin-directory"
+    },
+    {
+      "source": "/api/revenue/health",
+      "destination": "/api/revenue?route=health"
+    }
+  ]
 }
