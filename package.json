@@ -8,7 +8,8 @@
   },
   "scripts": {
     "build": "node scripts/build-check.js",
-    "check": "node scripts/build-check.js"
+    "check": "node scripts/build-check.js",
+    "test:revenue-services": "node scripts/test-revenue-services.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.900.0",
