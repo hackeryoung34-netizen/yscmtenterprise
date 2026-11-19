@@ -398,11 +398,17 @@ function create(options){
   if(!state.incoming)return;
   try{
    const stream=await prepareLocal(state.incoming.call_type),pc=makePeer(state.incoming.call_type);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
-   await callApiEvent("accepted",{});callLabel.textContent="Connecting…";callTimer.textContent="";accept.hidden=true;reject.hidden=true;mute.hidden=false;speaker.hidden=false;camera.hidden=state.incoming.call_type!=="video";end.hidden=false;mute.textContent="Mute";mute.classList.remove("is-muted");speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";camera.classList.remove("is-camera-off");beginPoll();
+   await callApiEvent("accepted",{});state.incoming=null;callLabel.textContent="Connecting…";callTimer.textContent="";accept.hidden=true;reject.hidden=true;mute.hidden=false;speaker.hidden=false;camera.hidden=state.incoming.call_type!=="video";end.hidden=false;mute.textContent="Mute";mute.classList.remove("is-muted");speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";camera.classList.remove("is-camera-off");beginPoll();
   }catch(error){await callApiEvent("rejected",{}).catch(()=>{});cleanupCall(error.message)}
  }
  async function rejectCall(){if(!state.call)return;try{await callApiEvent("rejected",{})}catch{}cleanupCall("Call declined.")}
-undefined
+ async function endCall(){
+  if(!state.call){cleanupCall("Call cancelled.");return;}
+  const incomingRinging=!!state.incoming&&!state.pc;
+  try{await callApiEvent(incomingRinging?"rejected":"ended",{})}
+  catch(error){say("The call screen was closed, but the other device may take a moment to update.")}
+  cleanupCall(incomingRinging?"Call declined.":"Call ended.");
+ }
  accept.addEventListener("click",acceptCall);reject.addEventListener("click",rejectCall);end.addEventListener("click",endCall);
  speaker.addEventListener("click",async()=>{
   const output=callBox.classList.contains("is-video-call")?remoteVideo:remoteAudio;
