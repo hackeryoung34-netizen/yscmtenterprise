@@ -94,7 +94,7 @@ async function jobs(req,res,sql){
   if(whatsapp&&!/^\\+?[0-9]{7,15}$/.test(whatsapp))return send(res,400,{error:"Enter a valid WhatsApp number."});
   if(!validSalary(body.salary_min)||!validSalary(body.salary_max)||(min!==null&&max!==null&&max<min))return send(res,400,{error:"Check the salary range."});
   if(!["hourly","daily","weekly","monthly","yearly"].includes(period)||!validDate(closing))return send(res,400,{error:"Check the salary period or closing date."});
-  const remote=body.is_remote===true;
+  const remote=body.is_remote===true||type==="remote";
   const inserted=await sql`insert into public.job_ads(job_title,employer_name,description,category,employment_type,state,city,is_remote,salary_min,salary_max,salary_period,application_email,application_url,whatsapp,closing_date) values(${title},${employer},${description},${category},${type},${state},${city},${remote},${min},${max},${period},${email},${url},${whatsapp},${closing}) returning id,job_title,employer_name,status,created_at`;
   return send(res,201,{job:inserted[0],message:"Your job advert has been submitted for review."});
 }
