@@ -466,10 +466,10 @@ async function renderMedia(message,bubble,options){
  card.append($("div",{className:"yscmt-media-heading"},(isVoice?"🎙 ":message.message_type==="image"?"▧ ":message.message_type==="video"?"▶ ":"♫ ")+label));
  const loading=$("div",{className:"yscmt-media-filename"},isVoice?"Preparing voice message…":"Loading attachment…");
  card.append(loading);bubble.append(card);
- let audio=null,play=null,track=null,elapsed=null,bars=null;
+ let audio=null,play=null,track=null,elapsed=null,bars=null,speed=null,duration=null;
  const fmtTime=value=>{if(!Number.isFinite(value))return"0:00";const n=Math.floor(value);return Math.floor(n/60)+":"+String(n%60).padStart(2,"0")};
  if(isVoice){
-  audio=$("audio",{preload:"metadata"});
+  audio=$("audio",{preload:"metadata",playsinline:true});
   const player=$("div",{className:"yscmt-voice-player"});
   play=$("button",{type:"button",className:"yscmt-voice-play","aria-label":"Play voice message",disabled:true},"▶");
   const visual=$("div",{className:"yscmt-voice-visual"});
@@ -478,26 +478,32 @@ async function renderMedia(message,bubble,options){
   heights.forEach(height=>bars.append($("i",{style:"height:"+height+"px"})));
   track=$("input",{type:"range",min:"0",max:"1000",value:"0",step:"1",className:"yscmt-voice-progress","aria-label":"Seek voice message"});
   const times=$("div",{className:"yscmt-voice-times"});
-  elapsed=$("span",{},"0:00");const duration=$("span",{},"0:00");
-  times.append(elapsed,duration);visual.append(bars,track,times);player.append(play,visual,audio);card.append(player);
-  audio.addEventListener("loadedmetadata",()=>{duration.textContent=fmtTime(audio.duration)});
+  elapsed=$("span",{},"0:00");duration=$("span",{},"0:00");
+  times.append(elapsed,duration);visual.append(bars,track,times);
+  speed=$("button",{type:"button",className:"yscmt-voice-speed","aria-label":"Change playback speed"},"1×");
+  player.append(play,visual,speed,audio);card.append(player);
+  const updatePlay=playing=>{play.textContent=playing?"Ⅱ":"▶";play.setAttribute("aria-label",playing?"Pause voice message":"Play voice message")};
+  audio.addEventListener("loadedmetadata",()=>{duration.textContent=fmtTime(audio.duration);play.disabled=false});
+  audio.addEventListener("canplay",()=>{play.disabled=false});
+  audio.addEventListener("play",()=>updatePlay(true));
+  audio.addEventListener("pause",()=>updatePlay(false));
   audio.addEventListener("timeupdate",()=>{elapsed.textContent=fmtTime(audio.currentTime);track.value=String(audio.duration?Math.round(audio.currentTime/audio.duration*1000):0);const progress=Number(track.value)/10;bars.querySelectorAll("i").forEach((bar,index)=>bar.classList.toggle("played",index/40*100<=progress))});
-  audio.addEventListener("ended",()=>{play.textContent="▶";play.setAttribute("aria-label","Play voice message");track.value="0";elapsed.textContent="0:00";bars.querySelectorAll("i").forEach(bar=>bar.classList.remove("played"))});
-  audio.addEventListener("pause",()=>{if(!audio.ended){play.textContent="▶";play.setAttribute("aria-label","Play voice message")}});
-  audio.addEventListener("error",()=>{loading.textContent="Audio could not be played. Try Download."});
-  play.addEventListener("click",async()=>{if(audio.paused){try{await audio.play();play.textContent="Ⅱ";play.setAttribute("aria-label","Pause voice message")}catch(error){if(options.say)options.say("Unable to play this voice message.")}}else{audio.pause();play.textContent="▶";play.setAttribute("aria-label","Play voice message")}});
+  audio.addEventListener("ended",()=>{updatePlay(false);track.value="0";elapsed.textContent="0:00";bars.querySelectorAll("i").forEach(bar=>bar.classList.remove("played"))});
+  audio.addEventListener("error",()=>{loading.textContent="This audio file could not be played on this device. Try downloading the .m4a file.";play.disabled=true});
+  play.addEventListener("click",async()=>{if(audio.paused){try{await audio.play()}catch(error){if(options.say)options.say("Unable to play this voice message. Please check the audio format or connection.")}}else audio.pause()});
   track.addEventListener("input",()=>{if(Number.isFinite(audio.duration))audio.currentTime=audio.duration*Number(track.value)/1000});
+  speed.addEventListener("click",()=>{const next=audio.playbackRate===1?1.5:audio.playbackRate===1.5?2:1;audio.playbackRate=next;speed.textContent=String(next).replace(".0","")+"×";speed.setAttribute("aria-label","Playback speed "+next+" times")});
  }
  try{
   const data=await options.request("media_url","GET",{id:message.id});
   if(!data||!data.url)throw new Error("No media URL was returned.");
   loading.remove();
-  if(isVoice){audio.src=data.url;audio.load();play.disabled=false}
+  if(isVoice){audio.src=data.url;audio.load()}
   else if(message.message_type==="image"){
    const img=$("img",{src:data.url,alt:message.media_name||"Shared photo",loading:"lazy",className:"yscmt-chat-media"});img.addEventListener("click",()=>window.open(data.url,"_blank","noopener"));card.append(img);
   }else if(message.message_type==="video")card.append($("video",{src:data.url,controls:true,playsinline:true,preload:"metadata",className:"yscmt-chat-media"}));
   else card.append($("audio",{src:data.url,controls:true,preload:"metadata",className:"yscmt-chat-audio"}));
-  const meta=$("div",{className:"yscmt-media-filename"},(isVoice?"Voice message":message.media_name||label)+(message.media_size?" · "+fmtSize(Number(message.media_size)):""));
+  const meta=$("div",{className:"yscmt-media-filename"},(isVoice?(message.media_name||"voice-note.m4a"):message.media_name||label)+(message.media_size?" · "+fmtSize(Number(message.media_size)):""));
   card.append(meta);
   const actions=$("div",{className:"yscmt-media-actions"});
   const download=$("a",{href:"#",rel:"noopener",className:"yscmt-media-download"},"Download");
