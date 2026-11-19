@@ -288,6 +288,8 @@ async function featuredPaymentWebhook(req,res,sql){
     values(${payloadHash},${eventType},${reference},${txid},'received')
     on conflict(payload_hash) do update set processing_status='received',received_at=now()
     where public.featured_business_payment_webhook_events.processing_status='failed'
+       or (public.featured_business_payment_webhook_events.processing_status='received'
+           and public.featured_business_payment_webhook_events.received_at<now()-interval '5 minutes')
     returning id`;
   if(!inserted.length)return send(res,200,{received:true,duplicate:true});
   const eventId=inserted[0].id;
@@ -301,8 +303,13 @@ async function featuredPaymentWebhook(req,res,sql){
     setHeader(){return this;},
     send(value){try{this.body=JSON.parse(value);}catch{this.body={};}return this;}
   };
-  await featuredPaymentVerify({method:"GET",query:{reference}},fakeRes,sql);
-  const successful=fakeRes.statusCode===200||fakeRes.statusCode===202;
+  let successful=false;
+  try{
+    await featuredPaymentVerify({method:"GET",query:{reference}},fakeRes,sql);
+    successful=fakeRes.statusCode===200||fakeRes.statusCode===202;
+  }catch{
+    successful=false;
+  }
   await sql`update public.featured_business_payment_webhook_events
     set processing_status=${successful?"processed":"failed"},processed_at=now() where id=${eventId}`;
   if(!successful)return send(res,500,{received:true,retry:true});
