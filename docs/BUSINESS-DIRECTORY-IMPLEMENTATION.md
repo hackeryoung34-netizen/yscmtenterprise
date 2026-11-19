@@ -19,7 +19,7 @@ The schema has been applied and verified on the Neon development branch only. It
 - `POST /api/business-directory`: validates submitted business details, requires explicit permission to publish contact details, records the consent timestamp, and creates a `pending` listing only. Client cannot set approval or featured fields. Includes a honeypot and Neon-backed durable throttling (maximum three submissions per IP hash per feature per hour). IP addresses are HMAC-hashed with a Preview-only secret; raw IP addresses are not stored. An in-memory fallback remains if the secret is not configured. This is not a substitute for Turnstile.
 - `GET /api/admin/business-directory`: requires a valid Supabase session with `app_metadata.role = store_admin`; returns recent listings for moderation.
 - `PATCH /api/admin/business-directory`: same admin check; supports approve/reject/suspend and records an audit event.
-- `/business-directory/`: standalone responsive directory and submission page. The existing homepage/navigation has not been changed.
+- `/business-directory/`: standalone responsive directory and submission page. The existing homepage sections and features remain unchanged; two additive main-navigation links now expose Business Directory and Find Jobs.
 
 ## Environment and storage
 
