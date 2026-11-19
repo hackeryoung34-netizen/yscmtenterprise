@@ -70,11 +70,14 @@ for (const file of files) {
 }
 
 for (const name of htmlRoots) {
-  const dir = path.join(root, name);
-  if (!fs.existsSync(dir)) continue;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (!entry.isFile() || !entry.name.endsWith(".html")) continue;
-    const file = path.join(dir, entry.name);
+  const target = path.join(root, name);
+  if (!fs.existsSync(target)) continue;
+  const htmlFiles = fs.statSync(target).isFile()
+    ? [target]
+    : fs.readdirSync(target, { withFileTypes: true })
+        .filter((entry) => entry.isFile() && entry.name.endsWith(".html"))
+        .map((entry) => path.join(target, entry.name));
+  for (const file of htmlFiles) {
     const source = fs.readFileSync(file, "utf8");
     const scripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter((match) => !/\btype\s*=\s*["']application\/ld\+json["']/i.test(match[1]));
     for (let i = 0; i < scripts.length; i++) {
