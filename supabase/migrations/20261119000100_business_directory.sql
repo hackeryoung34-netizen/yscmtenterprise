@@ -66,8 +66,8 @@ create policy "Public can read approved business directory listings"
   to anon, authenticated
   using (
     status = 'approved'
-    and (is_featured = false or featured_until > now() or featured_until is null
-         or featured_until <= now())
+    -- Expired featured placements remain ordinary approved listings; only the
+    -- featured badge/ranking expires, not the public listing itself.
   );
 
 -- No anon/authenticated INSERT, UPDATE, or DELETE policies are intentional.
