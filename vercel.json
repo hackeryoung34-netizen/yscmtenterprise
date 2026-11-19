@@ -51,6 +51,10 @@
     {
       "source": "/api/featured-payment/verify",
       "destination": "/api/revenue?route=featured-verify"
+    },
+    {
+      "source": "/api/featured-payment/webhook",
+      "destination": "/api/revenue?route=featured-webhook"
     }
   ]
 }
