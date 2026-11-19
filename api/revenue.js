@@ -140,6 +140,94 @@ async function adminJobs(req,res,sql){
   return send(res,200,{job:updated[0]});
 }
 
+
+const FEATURED_AMOUNT_KOBO = 500000;
+function revenuePaystackSecret(){
+  const key=process.env.REVENUE_PAYSTACK_SECRET_KEY||"";
+  if(!key.startsWith("sk_test_"))throw new Error("YSCMT featured payments are available only in Paystack Test Mode.");
+  return key;
+}
+async function featuredPaymentInit(req,res,sql){
+  if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
+  const secret=revenuePaystackSecret();
+  const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
+  const listingId=clean(body.listing_id,36),email=clean(body.email,254).toLowerCase();
+  if(!/^[0-9a-f-]{36}$/i.test(listingId)||!validEmail(email)||!email)return send(res,400,{error:"A valid listing and contact email are required."});
+  const ip=String(req.headers["x-forwarded-for"]||req.socket&&req.socket.remoteAddress||"unknown").split(",")[0].trim();
+  if(await limited(sql,ip,"featured_checkout"))return send(res,429,{error:"Too many checkout attempts. Please try again later."});
+  const listings=await sql`select id,business_name,email,status from public.business_directory_listings where id=${listingId}::uuid limit 1`;
+  const listing=listings[0];
+  if(!listing||listing.status!=="approved")return send(res,404,{error:"Only an approved business listing can be featured."});
+  if(!listing.email||String(listing.email).trim().toLowerCase()!==email)return send(res,400,{error:"Use the contact email already shown on this approved listing."});
+  const host=String(req.headers["x-forwarded-host"]||req.headers.host||"").split(",")[0].trim().toLowerCase().replace(/:\d+$/,"");
+  if(!(host.endsWith(".vercel.app")||host==="yscmtenterprise.ng"||host==="www.yscmtenterprise.ng"))return send(res,400,{error:"Checkout can only start from an approved YSCMT website host."});
+  const reference="YSCMTFEAT"+randomUUID().replace(/-/g,"");
+  const inserted=await sql`insert into public.featured_business_payment_orders(listing_id,reference,customer_email,amount_kobo,currency,status) values(${listing.id}::uuid,${reference},${email},${FEATURED_AMOUNT_KOBO},'NGN','pending') returning id`;
+  const orderId=inserted[0].id;
+  try{
+    const response=await fetch("https://api.paystack.co/transaction/initialize",{
+      method:"POST",
+      headers:{Authorization:"Bearer "+secret,"Content-Type":"application/json",Accept:"application/json"},
+      body:JSON.stringify({email,amount:FEATURED_AMOUNT_KOBO,currency:"NGN",reference,
+        callback_url:"https://"+host+"/business-directory/?featured_payment=1",
+        metadata:{order_id:orderId,listing_id:listing.id,feature:"business_directory_featured",custom_fields:[{display_name:"Business",variable_name:"business_name",value:listing.business_name},{display_name:"Featured duration",variable_name:"duration",value:"30 days"}]}}),
+      signal:AbortSignal.timeout(15000)
+    });
+    const result=await response.json();
+    if(!response.ok||result.status!==true||!result.data||!/^https:\/\/checkout\.paystack\.com\//.test(result.data.authorization_url||""))throw new Error("Paystack could not initialize checkout.");
+    return send(res,200,{authorization_url:result.data.authorization_url,reference,amount_kobo:FEATURED_AMOUNT_KOBO,currency:"NGN"});
+  }catch{
+    await sql`update public.featured_business_payment_orders set status='failed',updated_at=now() where id=${orderId}::uuid and status='pending'`;
+    return send(res,502,{error:"Unable to start Paystack checkout. Please try again later."});
+  }
+}
+async function featuredPaymentVerify(req,res,sql){
+  if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
+  const secret=revenuePaystackSecret();
+  const reference=clean(req.query&&req.query.reference,100);
+  if(!/^[A-Za-z0-9.=-]{12,100}$/.test(reference))return send(res,400,{error:"A valid payment reference is required."});
+  const orders=await sql`select o.id,o.listing_id,o.reference,o.customer_email,o.amount_kobo,o.currency,o.status,l.business_name,l.status as listing_status,l.is_featured,l.featured_until from public.featured_business_payment_orders o join public.business_directory_listings l on l.id=o.listing_id where o.reference=${reference} limit 1`;
+  const order=orders[0];
+  if(!order)return send(res,404,{error:"This payment reference is not a YSCMT featured-listing order."});
+  if(order.status==="paid")return send(res,200,{paid:true,featured:order.is_featured,featured_until:order.featured_until,business_name:order.business_name,message:order.is_featured?"Payment confirmed. Your listing is featured for 30 days.":"Payment was already recorded; contact YSCMT support for listing review."});
+  if(order.status==="needs_review")return send(res,202,{paid:true,featured:false,message:"Payment was received, but this listing needs administrator review. Please contact YSCMT support."});
+  const response=await fetch("https://api.paystack.co/transaction/verify/"+encodeURIComponent(reference),{headers:{Authorization:"Bearer "+secret,Accept:"application/json"},signal:AbortSignal.timeout(15000)});
+  if(!response.ok)return send(res,502,{error:"Paystack verification is temporarily unavailable. Please retry."});
+  const result=await response.json(),payment=result&&result.data;
+  if(!result.status||!payment||payment.reference!==reference)return send(res,502,{error:"Paystack did not return a valid verification response."});
+  if(payment.status!=="success"){
+    if(["failed","abandoned"].includes(payment.status))await sql`update public.featured_business_payment_orders set status='failed',updated_at=now() where reference=${reference} and status='pending'`;
+    return send(res,409,{paid:false,payment_status:clean(payment.status,30),message:"Paystack has not confirmed a successful payment."});
+  }
+  if(payment.domain!=="test"||payment.currency!=="NGN"||payment.amount!==FEATURED_AMOUNT_KOBO||order.amount_kobo!==FEATURED_AMOUNT_KOBO||order.currency!=="NGN"||!payment.metadata||payment.metadata.order_id!==order.id)return send(res,409,{paid:false,error:"Payment details do not match this YSCMT test order. No featured access was granted."});
+  const updated=await sql`with target as materialized (
+    select o.id,o.listing_id,o.status,l.status as listing_status
+    from public.featured_business_payment_orders o
+    join public.business_directory_listings l on l.id=o.listing_id
+    where o.reference=${reference}
+    for update of o,l
+  ), changed_order as (
+    update public.featured_business_payment_orders o
+    set status=case when t.listing_status='approved' then 'paid' else 'needs_review' end,
+        paystack_transaction_id=${String(payment.id)},paid_at=coalesce(o.paid_at,now()),updated_at=now()
+    from target t where o.id=t.id and t.status='pending'
+    returning o.id,o.listing_id,o.status,o.paid_at
+  ), changed_listing as (
+    update public.business_directory_listings l
+    set is_featured=true,featured_until=greatest(coalesce(l.featured_until,now()),now())+interval '30 days'
+    from changed_order o where l.id=o.listing_id and o.status='paid'
+    returning l.id,l.featured_until
+  )
+  select o.status,l.business_name,l.is_featured,l.featured_until
+  from public.featured_business_payment_orders o
+  join public.business_directory_listings l on l.id=o.listing_id
+  where o.reference=${reference}`;
+  const state=updated[0];
+  if(!state)return send(res,503,{error:"Payment was verified but could not be applied. Contact YSCMT support with your reference."});
+  if(state.status==="needs_review")return send(res,202,{paid:true,featured:false,message:"Payment was received, but this listing needs administrator review. Please contact YSCMT support."});
+  return send(res,200,{paid:true,featured:state.is_featured,featured_until:state.featured_until,business_name:state.business_name,message:"Payment confirmed. Your listing is now featured for 30 days."});
+}
+
 async function adminHealth(req,res){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
   const auth=await adminUser(req);if(auth.error)return send(res,auth.status,{error:auth.error});
@@ -183,6 +271,8 @@ module.exports=async function handler(req,res){
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
     if(route==="health")return await health(req,res);
     if(route==="admin-health")return await adminHealth(req,res);
+    if(route==="featured-init")return await featuredPaymentInit(req,res,getRevenueSql());
+    if(route==="featured-verify")return await featuredPaymentVerify(req,res,getRevenueSql());
     if(route==="jobs")return await jobs(req,res,getRevenueSql());
     if(route==="admin-jobs")return await adminJobs(req,res,getRevenueSql());
     return send(res,404,{error:"Revenue route not found."});
