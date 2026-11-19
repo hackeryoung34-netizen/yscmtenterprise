@@ -43,6 +43,14 @@
     {
       "source": "/api/admin/revenue-health",
       "destination": "/api/revenue?route=admin-health"
+    },
+    {
+      "source": "/api/featured-payment",
+      "destination": "/api/revenue?route=featured-init"
+    },
+    {
+      "source": "/api/featured-payment/verify",
+      "destination": "/api/revenue?route=featured-verify"
     }
   ]
 }
