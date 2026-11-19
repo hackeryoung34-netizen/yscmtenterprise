@@ -140,7 +140,7 @@ function create(options){
    const xhr=new XMLHttpRequest();xhr.open("PUT",url);xhr.timeout=120000;
    xhr.setRequestHeader("Content-Type",(file.type||"application/octet-stream").split(";")[0]);
    xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(e.loaded/e.total)};
-   xhr.onload=()=>xhr.status>=200&&xhr.status<300?resolve():reject(new Error("Voice upload failed ("+xhr.status+")."));
+   xhr.onload=()=>{if(xhr.status>=200&&xhr.status<300){resolve();return;}let detail="";try{const payload=JSON.parse(xhr.responseText||"{}");detail=payload.message||payload.error||payload.msg||payload.statusCode||"";}catch(error){detail=(xhr.responseText||"").replace(/<[^>]*>/g," ").trim().slice(0,240);}reject(new Error("Voice upload failed ("+xhr.status+")"+(detail?": "+detail:".")));};
    xhr.onerror=()=>reject(new Error("Network error while uploading the voice message."));
    xhr.ontimeout=()=>reject(new Error("Voice upload timed out. Check your connection and try again."));
    xhr.onabort=()=>reject(new Error("Voice upload was cancelled."));
