@@ -31,6 +31,14 @@
     {
       "source": "/api/revenue/health",
       "destination": "/api/revenue?route=health"
+    },
+    {
+      "source": "/api/jobs",
+      "destination": "/api/revenue?route=jobs"
+    },
+    {
+      "source": "/api/admin/jobs",
+      "destination": "/api/revenue?route=admin-jobs"
     }
   ]
 }
