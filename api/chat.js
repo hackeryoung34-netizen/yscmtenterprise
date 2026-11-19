@@ -118,7 +118,7 @@ module.exports=async function handler(req,res){
     const signed=await storage(root,service,"object/upload/sign/"+BUCKET+"/"+safePath(path),{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
     if(!signed||!signed.url)throw new Error("Could not prepare secure media upload.");
     const baseUploadUrl=signed.url.startsWith("http")?signed.url:root+"/storage/v1"+signed.url;
-    const uploadUrl=baseUploadUrl+(baseUploadUrl.includes("?")?"&":"?")+"token="+encodeURIComponent(signed.token);
+    const uploadTarget=new URL(baseUploadUrl);uploadTarget.searchParams.set("token",signed.token);const uploadUrl=uploadTarget.toString();
     return send(res,200,{path,token:signed.token,upload_url:uploadUrl,message_type:kind});
   }
   if(action==="media_message"){
