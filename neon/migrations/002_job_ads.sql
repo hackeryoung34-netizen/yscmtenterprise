@@ -56,6 +56,7 @@ create table if not exists public.job_ad_audit_logs (
 create index if not exists job_ad_audit_logs_job_created_idx
   on public.job_ad_audit_logs (job_ad_id, created_at desc);
 
+drop trigger if exists job_ads_set_updated_at on public.job_ads;
 create trigger job_ads_set_updated_at
   before update on public.job_ads
   for each row execute function public.set_business_directory_updated_at();
