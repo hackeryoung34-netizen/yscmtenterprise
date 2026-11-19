@@ -1,6 +1,6 @@
-const { timingSafeEqual, createHmac } = require("node:crypto");
+const { timingSafeEqual, createHmac, randomUUID } = require("node:crypto");
 const { getRevenueSql } = require("./_lib/revenue-db");
-const { getRevenueStorage, HeadBucketCommand } = require("./_lib/revenue-storage");
+const { getRevenueStorage, HeadBucketCommand, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("./_lib/revenue-storage");
 
 function send(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
@@ -140,6 +140,32 @@ async function adminJobs(req,res,sql){
   return send(res,200,{job:updated[0]});
 }
 
+async function adminHealth(req,res){
+  if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
+  const auth=await adminUser(req);if(auth.error)return send(res,auth.status,{error:auth.error});
+  const result={ok:false,postgres:"error",object_storage:"error",cleanup:"not_needed"};
+  try{const rows=await getRevenueSql()`select 1 as health_check`;if(Number(rows[0]?.health_check)===1)result.postgres="ok";}catch{}
+  let uploaded=false,client,bucket,key,marker;
+  try{
+    ({client,bucket}=getRevenueStorage());
+    key="health-check/"+randomUUID()+".txt";
+    marker="yscmt-revenue-check:"+randomUUID();
+    await client.send(new PutObjectCommand({Bucket:bucket,Key:key,Body:marker,ContentType:"text/plain"}));
+    uploaded=true;
+    const response=await client.send(new GetObjectCommand({Bucket:bucket,Key:key}));
+    const received=await response.Body.transformToString();
+    if(received!==marker)throw new Error("Object Storage read-back mismatch");
+    result.object_storage="ok";
+  }catch{result.object_storage="error";}
+  finally{
+    if(uploaded){
+      try{await client.send(new DeleteObjectCommand({Bucket:bucket,Key:key}));result.cleanup="ok";}
+      catch{result.cleanup="error";}
+    }
+  }
+  result.ok=result.postgres==="ok"&&result.object_storage==="ok"&&result.cleanup!=="error";
+  return send(res,200,result);
+}
 function tokenOk(req){const expected=process.env.REVENUE_HEALTH_TOKEN||"",auth=req.headers.authorization||"",actual=auth.startsWith("Bearer ")?auth.slice(7):"";if(!expected||!actual)return false;const a=Buffer.from(actual),b=Buffer.from(expected);return a.length===b.length&&timingSafeEqual(a,b);}
 async function health(req,res){
   if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
@@ -155,7 +181,7 @@ module.exports=async function handler(req,res){
   try{
     if(route==="directory")return await directory(req,res,getRevenueSql());
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
-    if(route==="health")return await health(req,res);
+    if(route==="health")return await health(req,res);\n    if(route==="admin-health")return await adminHealth(req,res);
     if(route==="jobs")return await jobs(req,res,getRevenueSql());
     if(route==="admin-jobs")return await adminJobs(req,res,getRevenueSql());
     return send(res,404,{error:"Revenue route not found."});
