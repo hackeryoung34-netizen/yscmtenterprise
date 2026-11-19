@@ -30,7 +30,7 @@ The schema has been applied and verified on the Neon development branch only. It
 
 ## Payments and featured placement
 
-No payment endpoint or pricing is enabled for directory listings. A listing cannot become featured through its public submission payload. Featured status must only be activated after a separate server-side Paystack verification and payment record are implemented. The previously discussed ₦5,000 / 30-day option remains a proposal, not an active price.
+Owner-approved pricing for the launch plan: Featured Business placement is ₦5,000 for 30 days. Job Ads remain free during the initial launch period. The Directory page now displays this price with a clear notice that online payment is not yet enabled; users must not send money until an official checkout is released. A listing cannot become featured through its public submission payload. Featured status must only be activated after a separate server-side Paystack verification and payment record are implemented.
 
 ## Release gates
 
