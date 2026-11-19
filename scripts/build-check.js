@@ -38,7 +38,9 @@ try {
     ["/api/revenue/health", "/api/revenue?route=health"],
     ["/api/jobs", "/api/revenue?route=jobs"],
     ["/api/admin/jobs", "/api/revenue?route=admin-jobs"],
-    ["/api/admin/revenue-health", "/api/revenue?route=admin-health"]
+    ["/api/admin/revenue-health", "/api/revenue?route=admin-health"],
+    ["/api/featured-payment", "/api/revenue?route=featured-init"],
+    ["/api/featured-payment/verify", "/api/revenue?route=featured-verify"]
   ]);
   for (const [source, destination] of requiredRoutes) {
     const rule = rewrites.find((item) => item.source === source);
