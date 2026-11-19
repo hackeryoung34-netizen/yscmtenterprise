@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Discover and list trusted Nigerian businesses with YSCMT Enterprise.">
+<title>Business Directory | YSCMT Enterprise</title>
+<style>
+:root{color-scheme:light;--ink:#152238;--muted:#64748b;--line:#e2e8f0;--brand:#123b68;--soft:#f5f8fc}
+*{box-sizing:border-box}body{margin:0;background:var(--soft);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:#102f52;color:white;padding:22px max(20px,calc((100% - 1080px)/2))}
+header a{color:white;text-decoration:none;font-weight:700}.wrap{max-width:1080px;margin:32px auto;padding:0 18px}
+.hero{padding:24px 0 12px}.hero h1{font-size:clamp(2rem,5vw,3rem);line-height:1.1;margin:0 0 12px}.hero p{color:var(--muted);max-width:680px}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:22px;align-items:start}
+.panel,.listing{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 8px 24px #15223808}
+h2{font-size:1.2rem;margin:0 0 14px}label{display:block;font-weight:650;font-size:.9rem;margin:12px 0 5px}
+input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:11px 12px;font:inherit;background:white;color:var(--ink)}
+textarea{min-height:105px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:0;border-radius:9px;padding:12px 16px;background:var(--brand);color:white;font:inherit;font-weight:700;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}.muted{color:var(--muted);font-size:.9rem}.status{min-height:24px;margin:10px 0;color:var(--brand)}
+.results{display:grid;gap:12px}.listing h3{margin:0 0 5px}.tag{display:inline-block;background:#edf4fb;color:#19466f;border-radius:30px;padding:3px 9px;font-size:.78rem}
+.listing p{margin:8px 0}.listing a{color:#174d7e;overflow-wrap:anywhere}.toolbar{display:grid;grid-template-columns:1fr 150px;gap:10px;margin:12px 0 16px}
+.hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><a href="/">YSCMT ENTERPRISE</a></header>
+<main class="wrap">
+<section class="hero"><h1>Nigerian Business Directory</h1><p>Find local businesses, discover services, and submit your business for review. Listings are checked before they appear publicly.</p></section>
+<div class="layout">
+<section>
+<div class="panel"><h2>Find a business</h2>
+<div class="toolbar"><input id="search" type="search" placeholder="Search business or service"><select id="filterCategory"><option value="">All categories</option></select></div>
+<div class="grid"><select id="filterState"><option value="">All states</option></select><input id="filterCity" placeholder="City (optional)"></div>
+<p id="loadStatus" class="status" role="status"></p></div>
+<div id="results" class="results" aria-live="polite"></div>
+</section>
+<aside class="panel"><h2>List your business</h2><p class="muted">Submit your details. Your listing will remain pending until an administrator reviews it.</p>
+<form id="listingForm">
+<label>Business name<input name="business_name" required maxlength="160"></label>
+<label>Category<select name="category" id="category" required></select></label>
+<label>Description<textarea name="description" required minlength="20" maxlength="3000"></textarea></label>
+<div class="grid"><div><label>State<select name="state" id="state" required></select></label></div><div><label>City<input name="city" required maxlength="100"></label></div></div>
+<label>Phone<input name="phone" type="tel" required maxlength="30" placeholder="+234..."></label>
+<label>WhatsApp (optional)<input name="whatsapp" type="tel" maxlength="30"></label>
+<label>Email (optional)<input name="email" type="email" maxlength="254"></label>
+<label>Website (optional)<input name="website_url" type="url" maxlength="2048" placeholder="https://..."></label>
+<div class="hp" aria-hidden="true"><label>Leave this field empty<input name="website_confirm" tabindex="-1" autocomplete="off"></label></div>
+<button id="submitButton" type="submit">Submit business</button><p id="formStatus" class="status" role="status"></p>
+</form></aside>
+</div>
+</main>
+<script>
+const states=["Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta","Ebonyi","Edo","Ekiti","Enugu","FCT","Gombe","Imo","Jigawa","Kaduna","Kano","Katsina","Kebbi","Kogi","Kwara","Lagos","Nasarawa","Niger","Ogun","Ondo","Osun","Oyo","Plateau","Rivers","Sokoto","Taraba","Yobe","Zamfara"];
+const categories=[["technology","Technology"],["education","Education"],["professional-services","Professional services"],["health","Health"],["retail","Retail"],["food-hospitality","Food & hospitality"],["construction","Construction"],["transport","Transport"],["beauty-wellness","Beauty & wellness"],["agriculture","Agriculture"],["other","Other"]];
+const $=id=>document.getElementById(id);
+function fill(id,items,placeholder){const el=$(id);el.innerHTML="";const first=document.createElement("option");first.value="";first.textContent=placeholder;el.append(first);items.forEach(item=>{const o=document.createElement("option");o.value=Array.isArray(item)?item[0]:item;o.textContent=Array.isArray(item)?item[1]:item;el.append(o);});}
+fill("state",states,"Choose state");fill("filterState",states,"All states");fill("category",categories,"Choose category");fill("filterCategory",categories,"All categories");
+function node(tag,text,className){const el=document.createElement(tag);el.textContent=text;if(className)el.className=className;return el;}
+async function load(){ $("loadStatus").textContent="Loading approved listings…";const p=new URLSearchParams();if($("search").value.trim())p.set("q",$("search").value.trim());if($("filterState").value)p.set("state",$("filterState").value);if($("filterCity").value.trim())p.set("city",$("filterCity").value.trim());if($("filterCategory").value)p.set("category",$("filterCategory").value);
+try{const r=await fetch("/api/business-directory?"+p.toString());const data=await r.json();if(!r.ok)throw new Error(data.error||"Unable to load listings.");$("results").replaceChildren();if(!data.listings.length)$("results").append(node("div","No approved businesses found yet. Be the first to submit a listing.","panel"));data.listings.forEach(item=>{const card=node("article","","listing");const title=node("h3",item.business_name);card.append(title,node("span",item.category.replaceAll("-"," "),"tag"),node("p",item.description),node("p",item.city+", "+item.state),node("p","Phone: "+item.phone));if(item.whatsapp)card.append(node("p","WhatsApp: "+item.whatsapp));if(item.email){const p=node("p","");const a=node("a",item.email);a.href="mailto:"+item.email;p.append(a);card.append(p);}if(item.website_url){const p=node("p","");const a=node("a",item.website_url);a.href=item.website_url;a.target="_blank";a.rel="noopener noreferrer";p.append(a);card.append(p);}if(item.featured)card.prepend(node("span","Featured","tag"));$("results").append(card);});$("loadStatus").textContent=data.listings.length+" listing(s) shown.";}catch(e){$("loadStatus").textContent=e.message;}}
+let searchTimer;["search","filterState","filterCity","filterCategory"].forEach(id=>$(id).addEventListener(id==="search"||id==="filterCity"?"input":"change",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(load,250);}));
+$("listingForm").addEventListener("submit",async event=>{event.preventDefault();const button=$("submitButton");const status=$("formStatus");button.disabled=true;status.textContent="Submitting…";const payload=Object.fromEntries(new FormData(event.currentTarget).entries());try{const r=await fetch("/api/business-directory",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await r.json();if(!r.ok)throw new Error(data.error||"Submission failed.");event.currentTarget.reset();status.textContent="Thank you. Your listing is pending administrator review."; }catch(e){status.textContent=e.message;}finally{button.disabled=false;}});
+load();
+</script>
+</body></html>
