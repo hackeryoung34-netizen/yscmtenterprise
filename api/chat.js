@@ -64,6 +64,19 @@ module.exports=async function handler(req,res){
     await authorize(req,root,anon,service,conversation,req.query);
     return send(res,200,{url:await signMedia(root,service,message.media_path,cleanText(message.media_name,160)||"attachment")});
    }
+   if(action==="call_config"){
+    const id=cleanText(req.query&&req.query.id,36);
+    if(!/^[0-9a-f-]{36}$/i.test(id))return send(res,400,{error:"Invalid conversation."});
+    const conversation=await getConversation(root,service,id);
+    if(!conversation)return send(res,404,{error:"Conversation not found."});
+    await authorize(req,root,anon,service,conversation,req.query);
+    const ice_servers=[{urls:"stun:stun.cloudflare.com:3478"},{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}];
+    const turnUrls=String(process.env.YSCMT_TURN_URLS||"").split(",").map(value=>value.trim()).filter(value=>/^turns?:/i.test(value));
+    const turnUsername=String(process.env.YSCMT_TURN_USERNAME||"").trim();
+    const turnCredential=String(process.env.YSCMT_TURN_CREDENTIAL||"").trim();
+    if(turnUrls.length&&turnUsername&&turnCredential)ice_servers.push({urls:turnUrls,username:turnUsername,credential:turnCredential});
+    return send(res,200,{ice_servers,turn_configured:turnUrls.length>0&&!!turnUsername&&!!turnCredential});
+   }
    if(action==="call_poll"){
     const callId=cleanText(req.query&&req.query.id,36);if(!/^[0-9a-f-]{36}$/i.test(callId))return send(res,400,{error:"Invalid call."});
     const call=await getCall(root,service,callId);if(!call)return send(res,404,{error:"Call not found."});
