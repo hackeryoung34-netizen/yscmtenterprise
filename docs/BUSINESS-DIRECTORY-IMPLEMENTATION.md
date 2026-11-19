@@ -16,13 +16,14 @@ The schema has been applied and verified on the Neon development branch only. It
 ## Implemented routes and page
 
 - `GET /api/business-directory`: approved listings only; bounded search, state/city/category filters, page size capped at 50, featured status calculated by the database.
-- `POST /api/business-directory`: validates submitted business details, requires explicit permission to publish contact details, records the consent timestamp, and creates a `pending` listing only. Client cannot set approval or featured fields. Includes a honeypot and per-instance in-memory throttling; this is basic abuse resistance, not a substitute for Turnstile or durable distributed rate limiting.
+- `POST /api/business-directory`: validates submitted business details, requires explicit permission to publish contact details, records the consent timestamp, and creates a `pending` listing only. Client cannot set approval or featured fields. Includes a honeypot and Neon-backed durable throttling (maximum three submissions per IP hash per feature per hour). IP addresses are HMAC-hashed with a Preview-only secret; raw IP addresses are not stored. An in-memory fallback remains if the secret is not configured. This is not a substitute for Turnstile.
 - `GET /api/admin/business-directory`: requires a valid Supabase session with `app_metadata.role = store_admin`; returns recent listings for moderation.
 - `PATCH /api/admin/business-directory`: same admin check; supports approve/reject/suspend and records an audit event.
 - `/business-directory/`: standalone responsive directory and submission page. The existing homepage/navigation has not been changed.
 
 ## Environment and storage
 
+- `REVENUE_RATE_LIMIT_SECRET` is configured as a sensitive Preview-only variable scoped to `feature/revenue-monetization-2026`; it HMAC-hashes client IPs before writing rate-limit records.
 - `REVENUE_DATABASE_URL` has been configured as a sensitive Vercel Preview variable scoped to `feature/revenue-monetization-2026`; it points to Neon `revenue-development`. No Production environment variable was changed.
 - The private Neon bucket `yscmt-revenue-assets` exists. A scoped Neon Object Storage credential (storage read/write, expires 2027-02-17) and the S3 endpoint, access key, secret, region, and bucket name are now configured as sensitive Vercel Preview variables for `feature/revenue-monetization-2026`. No Production variables were changed. Logo upload is not yet implemented in the Directory UI.
 - A separate `REVENUE_HEALTH_TOKEN` is configured as a sensitive Preview-only variable. The protected health endpoint can be checked after a fresh Preview deployment loads the new variables.
@@ -34,7 +35,7 @@ No payment endpoint or pricing is enabled for directory listings. A listing cann
 ## Release gates
 
 - Confirm the Vercel Preview deployment and database connectivity.
-- Add Turnstile or durable distributed rate limiting before public launch.
+- Add Turnstile before public launch; durable Neon-backed throttling is now implemented for Preview.
 - Credentials are connected in Preview only; still test actual upload/download/delete before enabling logo uploads.
 - Test listing submission, consent enforcement, duplicate handling, search/pagination, admin authorization, moderation, and audit records.
 - Add Job Ads as a separate schema/API/payment workflow; do not reuse Template Store order tables.
@@ -45,7 +46,7 @@ No payment endpoint or pricing is enabled for directory listings. A listing cann
 
 A separate Job Ads feature has been added on the same isolated Neon development branch:
 
-- Tables: `public.job_ads` and `public.job_ad_audit_logs`, with status constraints, salary-range validation, closing dates, and moderation audit records. Reproducible migrations are `neon/migrations/002_job_ads.sql` and `neon/migrations/003_public_contact_consent.sql`.
+- Tables: `public.job_ads` and `public.job_ad_audit_logs`, with status constraints, salary-range validation, closing dates, and moderation audit records. Reproducible migrations are `neon/migrations/002_job_ads.sql`, `neon/migrations/003_public_contact_consent.sql`, and `neon/migrations/004_submission_rate_limits.sql`.
 - `GET /api/jobs`: approved, non-expired adverts only; bounded search and filters for state, category, and employment type.
 - `POST /api/jobs`: validates vacancy details, requires at least one application contact method and explicit permission to publish employer contact details, records the consent timestamp, and creates `pending` adverts only. Public users cannot approve or feature an advert.
 - `GET/PATCH /api/admin/jobs`: uses the same Supabase administrator role check as Business Directory and records moderation actions.
@@ -57,6 +58,6 @@ Both Job Ads routes are rewrites to the existing consolidated `api/revenue.js` f
 ## Additional Job Ads release gates
 
 - Test job submission, filters, expired adverts, admin authorization, moderation, and audit logging through an authenticated Preview session.
-- Add durable rate limiting / bot protection before opening public submissions.
+- Add Turnstile / stronger bot protection before opening public submissions; durable Neon-backed throttling is implemented for Preview.
 - Define employer identity checks, privacy notice, job-ad retention/deletion rules, and a separate verified payment workflow before charging employers.
 - No paid promotion or Paystack workflow is active; no job advert is published automatically.
