@@ -345,7 +345,6 @@ async function health(req,res){
   result.ok=result.postgres==="ok"&&result.object_storage==="ok";
   return send(res,result.ok?200:503,result);
 }
-module.exports.config={api:{bodyParser:false}};
 module.exports=async function handler(req,res){
   try{if(req.method==="POST"||req.method==="PATCH")await readRawRequestBody(req);}catch{return send(res,400,{error:"Invalid or oversized request body."});}
   const route=clean(req.query&&req.query.route,30);
@@ -362,3 +361,4 @@ module.exports=async function handler(req,res){
     return send(res,404,{error:"Revenue route not found."});
   }catch{return send(res,503,{error:"YSCMT revenue service is temporarily unavailable."});}
 };
+module.exports.config={api:{bodyParser:false}};
