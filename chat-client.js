@@ -141,20 +141,41 @@ function create(options){
    xhr.setRequestHeader("Content-Type",(file.type||"application/octet-stream").split(";")[0]);
    xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(e.loaded/e.total)};
    xhr.onload=()=>{if(xhr.status>=200&&xhr.status<300){resolve();return;}let detail="";try{const payload=JSON.parse(xhr.responseText||"{}");detail=payload.message||payload.error||payload.msg||payload.statusCode||"";}catch(error){detail=(xhr.responseText||"").replace(/<[^>]*>/g," ").trim().slice(0,240);}reject(new Error("Voice upload failed ("+xhr.status+")"+(detail?": "+detail:".")));};
-   xhr.onerror=()=>reject(new Error("Network error while uploading the voice message."));
+   xhr.onerror=()=>{const error=new Error("Network error while uploading the voice message.");error.code="NETWORK_ERROR";reject(error)};
    xhr.ontimeout=()=>reject(new Error("Voice upload timed out. Check your connection and try again."));
    xhr.onabort=()=>reject(new Error("Voice upload was cancelled."));
    xhr.send(file);
   });
  }
+ async function createMediaUpload(file,mime,kind){
+  const init=await request("media_upload","POST",{file_name:file.name||("voice-note."+(mime==="audio/mp4"?"m4a":"webm")),file_mime:mime,file_size:file.size,kind:kind||""});
+  if(!init||!init.path||!init.upload_url)throw new Error("The server did not provide a secure upload link.");
+  return init;
+ }
+ async function saveMediaMessage(file,mime,kind,path){
+  return request("media_message","POST",{media_path:path,media_name:file.name||"Voice note",media_mime:mime,media_size:file.size,kind:kind||""});
+ }
  async function sendFile(file,kind,onProgress){
   await ensureConversation();
   const mime=(file.type||"").toLowerCase().split(";")[0];
   if(!mime||!file.size)throw new Error("The voice recording is empty or has no supported audio format.");
-  const init=await request("media_upload","POST",{file_name:file.name||("voice-note."+(mime==="audio/mp4"?"m4a":"webm")),file_mime:mime,file_size:file.size,kind:kind||""});
-  if(!init||!init.path||!init.upload_url)throw new Error("The server did not provide a secure upload link.");
-  await uploadWithProgress(init.upload_url,file,onProgress||(()=>{}));
-  await request("media_message","POST",{media_path:init.path,media_name:file.name||"Voice note",media_mime:mime,media_size:file.size,kind:kind||""});
+  let init=await createMediaUpload(file,mime,kind);
+  try{
+   await uploadWithProgress(init.upload_url,file,onProgress||(()=>{}));
+  }catch(error){
+   if(!error||error.code!=="NETWORK_ERROR")throw error;
+   // The browser can lose the upload response even after Storage received the file.
+   // Verify the original path before retrying so we don't create duplicate uploads.
+   try{
+    await saveMediaMessage(file,mime,kind,init.path);
+    return;
+   }catch(verifyError){
+    // The object is not available yet; create a fresh signed path and retry once.
+   }
+   init=await createMediaUpload(file,mime,kind);
+   await uploadWithProgress(init.upload_url,file,onProgress||(()=>{}));
+  }
+  await saveMediaMessage(file,mime,kind,init.path);
  }
  sendQueue.addEventListener("click",async()=>{
   if(!state.queue.length)return;
