@@ -29,7 +29,7 @@ button:disabled{opacity:.55;cursor:wait}.muted{color:var(--muted);font-size:.9re
 <header><a href="/">YSCMT ENTERPRISE</a></header>
 <main class="wrap">
 <section class="hero"><h1>Nigerian Business Directory</h1><p>Find local businesses, discover services, and submit your business for review. Listings are checked before they appear publicly.</p></section>
-<section class="panel" style="margin:0 0 18px"><h2>Featured Business — ₦5,000 / 30 days</h2><p class="muted">Give your approved business listing extra visibility at the top of the directory. Featured placement is planned at ₦5,000 for 30 days. Online payment is not enabled yet; please do not send money until YSCMT publishes an official payment option.</p></section>
+<section class="panel" style="margin:0 0 18px"><h2>Featured Business — ₦5,000 / 30 days</h2><p class="muted">Give your approved business listing extra visibility at the top of the directory. Featured placement costs ₦5,000 for 30 days. Checkout is for testing only at this stage; no real payment will be collected. Do not enter real card details.</p></section>
 <div class="layout">
 <section>
 <div class="panel"><h2>Find a business</h2>
@@ -62,9 +62,42 @@ function fill(id,items,placeholder){const el=$(id);el.innerHTML="";const first=d
 fill("state",states,"Choose state");fill("filterState",states,"All states");fill("category",categories,"Choose category");fill("filterCategory",categories,"All categories");
 function node(tag,text,className){const el=document.createElement(tag);el.textContent=text;if(className)el.className=className;return el;}
 async function load(){ $("loadStatus").textContent="Loading approved listings…";const p=new URLSearchParams();if($("search").value.trim())p.set("q",$("search").value.trim());if($("filterState").value)p.set("state",$("filterState").value);if($("filterCity").value.trim())p.set("city",$("filterCity").value.trim());if($("filterCategory").value)p.set("category",$("filterCategory").value);
-try{const r=await fetch("/api/business-directory?"+p.toString());const data=await r.json();if(!r.ok)throw new Error(data.error||"Unable to load listings.");$("results").replaceChildren();if(!data.listings.length)$("results").append(node("div","No approved businesses found yet. Be the first to submit a listing.","panel"));data.listings.forEach(item=>{const card=node("article","","listing");const title=node("h3",item.business_name);card.append(title,node("span",item.category.replaceAll("-"," "),"tag"),node("p",item.description),node("p",item.city+", "+item.state),node("p","Phone: "+item.phone));if(item.whatsapp)card.append(node("p","WhatsApp: "+item.whatsapp));if(item.email){const p=node("p","");const a=node("a",item.email);a.href="mailto:"+item.email;p.append(a);card.append(p);}if(item.website_url){const p=node("p","");const a=node("a",item.website_url);a.href=item.website_url;a.target="_blank";a.rel="noopener noreferrer";p.append(a);card.append(p);}if(item.featured)card.prepend(node("span","Featured","tag"));$("results").append(card);});$("loadStatus").textContent=data.listings.length+" listing(s) shown.";}catch(e){$("loadStatus").textContent=e.message;}}
+try{const r=await fetch("/api/business-directory?"+p.toString());const data=await r.json();if(!r.ok)throw new Error(data.error||"Unable to load listings.");$("results").replaceChildren();if(!data.listings.length)$("results").append(node("div","No approved businesses found yet. Be the first to submit a listing.","panel"));data.listings.forEach(item=>{const card=node("article","","listing");const title=node("h3",item.business_name);card.append(title,node("span",item.category.replaceAll("-"," "),"tag"),node("p",item.description),node("p",item.city+", "+item.state),node("p","Phone: "+item.phone));if(item.whatsapp)card.append(node("p","WhatsApp: "+item.whatsapp));if(item.email){const p=node("p","");const a=node("a",item.email);a.href="mailto:"+item.email;p.append(a);card.append(p);}if(item.website_url){const p=node("p","");const a=node("a",item.website_url);a.href=item.website_url;a.target="_blank";a.rel="noopener noreferrer";p.append(a);card.append(p);}if(item.featured)card.prepend(node("span","Featured","tag"));
+if(!item.featured&&item.email){
+ const promo=node("div","","panel");
+ promo.style.marginTop="12px";
+ promo.append(node("strong","Promote this business — ₦5,000 / 30 days"));
+ const emailLabel=node("label","Confirm listed contact email");
+ const emailInput=document.createElement("input");emailInput.type="email";emailInput.required=true;emailInput.value=item.email;emailInput.autocomplete="email";emailLabel.append(emailInput);
+ const payButton=node("button","Continue to test checkout");payButton.type="button";
+ const payStatus=node("p","","status");payStatus.setAttribute("role","status");
+ payButton.addEventListener("click",async()=>{
+   if(!emailInput.reportValidity())return;
+   payButton.disabled=true;payStatus.textContent="Preparing secure Paystack test checkout…";
+   try{
+     const response=await fetch("/api/featured-payment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({listing_id:item.id,email:emailInput.value.trim()})});
+     const result=await response.json();if(!response.ok)throw new Error(result.error||"Checkout could not start.");
+     location.assign(result.authorization_url);
+   }catch(error){payStatus.textContent=error.message;payButton.disabled=false;}
+ });
+ promo.append(emailLabel,payButton,payStatus);card.append(promo);
+}
+$("results").append(card);});$("loadStatus").textContent=data.listings.length+" listing(s) shown.";}catch(e){$("loadStatus").textContent=e.message;}}
 let searchTimer;["search","filterState","filterCity","filterCategory"].forEach(id=>$(id).addEventListener(id==="search"||id==="filterCity"?"input":"change",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(load,250);}));
 $("listingForm").addEventListener("submit",async event=>{event.preventDefault();const button=$("submitButton");const status=$("formStatus");button.disabled=true;status.textContent="Submitting…";const payload=Object.fromEntries(new FormData(event.currentTarget).entries());try{const r=await fetch("/api/business-directory",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await r.json();if(!r.ok)throw new Error(data.error||"Submission failed.");event.currentTarget.reset();status.textContent="Thank you. Your listing is pending administrator review."; }catch(e){status.textContent=e.message;}finally{button.disabled=false;}});
+async function verifyFeaturedReturn(){
+ const params=new URLSearchParams(location.search),reference=params.get("reference");
+ if(!reference)return;
+ $("loadStatus").textContent="Checking your Paystack payment securely…";
+ try{
+   const response=await fetch("/api/featured-payment/verify?reference="+encodeURIComponent(reference),{cache:"no-store"});
+   const result=await response.json();
+   if(!response.ok)throw new Error(result.message||result.error||"Payment is not yet confirmed. You can retry this page shortly.");
+   $("loadStatus").textContent=result.message||"Payment status updated.";
+   if(result.featured)load();
+ }catch(error){$("loadStatus").textContent=error.message;}
+}
 load();
+verifyFeaturedReturn();
 </script>
 </body></html>
