@@ -334,7 +334,7 @@ function create(options){
   if(state.pc){state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();state.pc=null}
   if(state.local)state.local.getTracks().forEach(track=>track.stop());
   state.local=null;state.remote=null;remoteVideo.srcObject=null;localVideo.srcObject=null;remoteAudio.srcObject=null;
-  state.call=null;state.callBusy=false;callBox.classList.remove("is-ringing");state.callCursor=0;state.pendingIce=[];state.remoteIceQueue=[];state.seen.clear();state.incoming=null;state.callBusy=false;
+  state.call=null;state.callBusy=false;callBox.classList.remove("is-ringing");state.callCursor=0;state.pendingIce=[];state.remoteIceQueue=[];state.seen.clear();state.incoming=null;
   accept.hidden=true;reject.hidden=true;mute.hidden=true;speaker.hidden=true;camera.hidden=true;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;showCall(false);if(message)say(message);
  }
  async function makePeer(callType){
