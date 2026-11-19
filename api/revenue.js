@@ -181,7 +181,8 @@ module.exports=async function handler(req,res){
   try{
     if(route==="directory")return await directory(req,res,getRevenueSql());
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
-    if(route==="health")return await health(req,res);\n    if(route==="admin-health")return await adminHealth(req,res);
+    if(route==="health")return await health(req,res);
+    if(route==="admin-health")return await adminHealth(req,res);
     if(route==="jobs")return await jobs(req,res,getRevenueSql());
     if(route==="admin-jobs")return await adminJobs(req,res,getRevenueSql());
     return send(res,404,{error:"Revenue route not found."});
