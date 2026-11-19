@@ -1,4 +1,4 @@
-const { timingSafeEqual } = require("node:crypto");
+const { timingSafeEqual, createHmac } = require("node:crypto");
 const { getRevenueSql } = require("./_lib/revenue-db");
 const { getRevenueStorage, HeadBucketCommand } = require("./_lib/revenue-storage");
 
@@ -14,7 +14,31 @@ function clean(value,max){return typeof value==="string"?value.trim().slice(0,ma
 function validEmail(value){return !value||(value.length<=254&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value));}
 function validUrl(value){if(!value)return true;if(value.length>2048)return false;try{const u=new URL(value);return u.protocol==="https:"||u.protocol==="http:";}catch{return false;}}
 function slugify(value){return value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,90);}
-function limited(ip){const now=Date.now(),entry=recentSubmissions.get(ip);if(entry&&now-entry.started<3600000&&entry.count>=3)return true;if(!entry||now-entry.started>=3600000)recentSubmissions.set(ip,{started:now,count:1});else entry.count++;if(recentSubmissions.size>5000){for(const [k,v] of recentSubmissions)if(now-v.started>=3600000)recentSubmissions.delete(k);}return false;}
+async function limited(sql,ip,feature){
+  const secret=process.env.REVENUE_RATE_LIMIT_SECRET||"";
+  if(secret){
+    const hash=createHmac("sha256",secret).update(ip).digest("hex");
+    const rows=await sql`with cleanup as (
+      delete from public.revenue_submission_rate_limits
+      where window_started_at < now()-interval '48 hours'
+    )
+    insert into public.revenue_submission_rate_limits(ip_hash,feature,window_started_at,submission_count)
+    values(${hash},${feature},now(),1)
+    on conflict(ip_hash,feature) do update set
+      window_started_at=case when public.revenue_submission_rate_limits.window_started_at<=now()-interval '1 hour' then now() else public.revenue_submission_rate_limits.window_started_at end,
+      submission_count=case when public.revenue_submission_rate_limits.window_started_at<=now()-interval '1 hour' then 1 else public.revenue_submission_rate_limits.submission_count+1 end
+    where public.revenue_submission_rate_limits.window_started_at<=now()-interval '1 hour'
+      or public.revenue_submission_rate_limits.submission_count<3
+    returning submission_count`;
+    return rows.length===0;
+  }
+  const now=Date.now(),entry=recentSubmissions.get(ip);
+  if(entry&&now-entry.started<3600000&&entry.count>=3)return true;
+  if(!entry||now-entry.started>=3600000)recentSubmissions.set(ip,{started:now,count:1});
+  else entry.count++;
+  if(recentSubmissions.size>5000){for(const [k,v] of recentSubmissions)if(now-v.started>=3600000)recentSubmissions.delete(k);}
+  return false;
+}
 async function adminUser(req){
   const root=(process.env.SUPABASE_URL||"").replace(/\/$/,""),key=process.env.SUPABASE_ANON_KEY||"";
   const auth=req.headers.authorization||"",token=auth.startsWith("Bearer ")?auth.slice(7):"";
@@ -37,7 +61,7 @@ async function directory(req,res,sql){
   const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
   if(clean(body.website_confirm,200))return send(res,202,{accepted:true});
   const ip=String(req.headers["x-forwarded-for"]||req.socket&&req.socket.remoteAddress||"unknown").split(",")[0].trim();
-  if(limited(ip))return send(res,429,{error:"Too many submissions. Please try again later."});
+  if(await limited(sql,ip,"business_directory"))return send(res,429,{error:"Too many submissions. Please try again later."});
   const name=clean(body.business_name,160),category=clean(body.category,40),description=clean(body.description,3000),state=clean(body.state,80),city=clean(body.city,100);
   if(body.public_contact_consent!==true&&body.public_contact_consent!=="true")return send(res,400,{error:"Confirm that you have permission to publish these business contact details."});
   const phone=clean(body.phone,30).replace(/[\s()-]/g,""),whatsapp=clean(body.whatsapp,30).replace(/[\s()-]/g,"")||null,email=clean(body.email,254)||null,website=clean(body.website_url,2048)||null;
@@ -84,7 +108,7 @@ async function jobs(req,res,sql){
   const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
   if(clean(body.website_confirm,200))return send(res,202,{accepted:true});
   const ip=String(req.headers["x-forwarded-for"]||req.socket&&req.socket.remoteAddress||"unknown").split(",")[0].trim();
-  if(limited(ip))return send(res,429,{error:"Too many submissions. Please try again later."});
+  if(await limited(sql,ip,"job_ads"))return send(res,429,{error:"Too many submissions. Please try again later."});
   const title=clean(body.job_title,160),employer=clean(body.employer_name,160),description=clean(body.description,5000),category=clean(body.category,40),type=clean(body.employment_type,24),state=clean(body.state,80),city=clean(body.city,100);
   if(body.public_contact_consent!==true&&body.public_contact_consent!=="true")return send(res,400,{error:"Confirm that you have permission to publish these employer contact details."});
   const email=clean(body.application_email,254)||null,url=clean(body.application_url,2048)||null,whatsapp=clean(body.whatsapp,30).replace(/[\\s()-]/g,"")||null;
