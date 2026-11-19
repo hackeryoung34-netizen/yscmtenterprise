@@ -455,7 +455,7 @@ undefined
  }
  voice.addEventListener("click",()=>startCall("voice").catch(error=>say(error.message)));
  video.addEventListener("click",()=>startCall("video").catch(error=>say(error.message)));
- return {setConversation,renderMedia:(message,bubble)=>renderMedia(message,bubble,{request}),sendFile,cleanup:cleanupCall};
+ return {setConversation,renderMedia:(message,bubble)=>renderMedia(message,bubble,{request,say}),sendFile,cleanup:cleanupCall};
 }
 
 async function renderMedia(message,bubble,options){
@@ -464,8 +464,12 @@ async function renderMedia(message,bubble,options){
  const label=message.message_type==="voice_note"?"Voice note":message.message_type==="image"?"Photo":message.message_type==="video"?"Video":"Audio file";
  const heading=$("div",{className:"yscmt-media-heading"},(message.message_type==="voice_note"?"🎙 ":message.message_type==="image"?"▧ ":message.message_type==="video"?"▶ ":"♫ ")+label);
  card.append(heading);
+ const loading=$("div",{className:"yscmt-media-filename"},"Loading voice message…");
+ card.append(loading);
+ bubble.append(card);
  try{
   const data=await options.request("media_url","GET",{id:message.id});
+  loading.remove();
   if(message.message_type==="image"){
    const img=$("img",{src:data.url,alt:message.media_name||"Shared photo",loading:"lazy",className:"yscmt-chat-media"});img.addEventListener("click",()=>window.open(data.url,"_blank","noopener"));card.append(img);
   }else if(message.message_type==="video"){
@@ -486,7 +490,7 @@ async function renderMedia(message,bubble,options){
    audio.addEventListener("loadedmetadata",()=>{duration.textContent=fmtTime(audio.duration)});
    audio.addEventListener("timeupdate",()=>{elapsed.textContent=fmtTime(audio.currentTime);track.value=String(audio.duration?Math.round(audio.currentTime/audio.duration*1000):0);const progress=Number(track.value)/10;bars.querySelectorAll("i").forEach((bar,index)=>bar.classList.toggle("played",index/40*100<=progress))});
    audio.addEventListener("ended",()=>{play.textContent="▶";play.setAttribute("aria-label","Play voice message");track.value="0";elapsed.textContent="0:00";bars.querySelectorAll("i").forEach(bar=>bar.classList.remove("played"))});
-   play.addEventListener("click",async()=>{if(audio.paused){try{await audio.play();play.textContent="Ⅱ";play.setAttribute("aria-label","Pause voice message")}catch(error){say("Unable to play this voice message.")}}else{audio.pause();play.textContent="▶";play.setAttribute("aria-label","Play voice message")}});
+   play.addEventListener("click",async()=>{if(audio.paused){try{await audio.play();play.textContent="Ⅱ";play.setAttribute("aria-label","Pause voice message")}catch(error){if(options.say)options.say("Unable to play this voice message.")}}else{audio.pause();play.textContent="▶";play.setAttribute("aria-label","Play voice message")}});
    audio.addEventListener("pause",()=>{if(!audio.ended){play.textContent="▶";play.setAttribute("aria-label","Play voice message")}});
    track.addEventListener("input",()=>{if(Number.isFinite(audio.duration))audio.currentTime=audio.duration*Number(track.value)/1000});
   }else{
@@ -496,10 +500,9 @@ async function renderMedia(message,bubble,options){
   card.append(meta);
   const actions=$("div",{className:"yscmt-media-actions"});
   const download=$("a",{href:"#",rel:"noopener",className:"yscmt-media-download"},"Download");
-  download.addEventListener("click",async event=>{event.preventDefault();const tab=window.open("about:blank","_blank");try{const file=await options.request("media_download","GET",{id:message.id});if(tab)tab.location=file.url;else window.location.href=file.url}catch(error){if(tab)tab.close();say(error.message)}});
+  download.addEventListener("click",async event=>{event.preventDefault();const tab=window.open("about:blank","_blank");try{const file=await options.request("media_download","GET",{id:message.id});if(tab)tab.location=file.url;else window.location.href=file.url}catch(error){if(tab)tab.close();if(options.say)options.say(error.message)}});
   actions.append(download);card.append(actions);
- }catch(error){card.append($("div",{className:"yscmt-media-filename"},"Could not load this attachment."))}
- bubble.append(card);
+ }catch(error){loading.textContent="Could not load this attachment. Tap Refresh and try again."}
 }
 window.YSCMTChatExtras={create};
 })();
