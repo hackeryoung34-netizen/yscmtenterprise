@@ -11,7 +11,7 @@ The Business Directory development schema lives in the dedicated Neon project `Y
 - `public.business_directory_listings`: business profiles, Nigeria state/city, contact channels, moderation state, and optional featured-placement expiry.
 - `public.business_directory_audit_logs`: server-written moderation audit trail.
 
-The schema has been applied and verified on the Neon development branch only. It has not been applied to the Neon default `production` branch or the existing Supabase Template Store project.
+The schema has been applied and verified on the Neon development branch only. It has not been applied to the Neon default `production` branch or the existing Supabase Template Store project. The matching Supabase migration file is intentionally a no-op, preventing accidental duplicate revenue tables in Supabase.
 
 ## Implemented routes and page
 
