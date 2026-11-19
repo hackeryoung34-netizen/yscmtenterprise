@@ -40,7 +40,8 @@ try {
     ["/api/admin/jobs", "/api/revenue?route=admin-jobs"],
     ["/api/admin/revenue-health", "/api/revenue?route=admin-health"],
     ["/api/featured-payment", "/api/revenue?route=featured-init"],
-    ["/api/featured-payment/verify", "/api/revenue?route=featured-verify"]
+    ["/api/featured-payment/verify", "/api/revenue?route=featured-verify"],
+    ["/api/featured-payment/webhook", "/api/revenue?route=featured-webhook"]
   ]);
   for (const [source, destination] of requiredRoutes) {
     const rule = rewrites.find((item) => item.source === source);
@@ -54,6 +55,25 @@ try {
   process.stderr.write("Invalid vercel.json: " + error.message + "\n");
 }
 
+const revenueApiPath = path.join(root, "api", "revenue.js");
+if (fs.existsSync(revenueApiPath)) {
+  const revenueApi = fs.readFileSync(revenueApiPath, "utf8");
+  const paymentGuards = [
+    ['Production requires a live Paystack key', 'key.startsWith("sk_live_")'],
+    ['Preview requires a test Paystack key', 'key.startsWith("sk_test_")'],
+    ['Payment domain is environment-specific', 'payment.domain!==expectedPaystackDomain()'],
+    ['Webhook signatures are checked', 'verifyWebhookSignature(req,raw)'],
+    ['Webhook raw body parsing is enabled', 'bodyParser:false'],
+    ['Webhook delivery idempotency is enabled', 'on conflict(payload_hash)'],
+    ['Webhook route is dispatched', 'route==="featured-webhook"']
+  ];
+  for (const [label, marker] of paymentGuards) {
+    if (!revenueApi.includes(marker)) {
+      failed = true;
+      process.stderr.write("Missing payment safety check: " + label + "\n");
+    }
+  }
+}
 const apiFunctionFiles = files.filter((file) => {
   const relative = path.relative(root, file).split(path.sep);
   return relative[0] === "api" && !relative.some((part) => part.startsWith("_"));
