@@ -136,17 +136,23 @@ function create(options){
  clearQueue.addEventListener("click",()=>{state.queue=[];renderQueue();say("")});
  function uploadWithProgress(url,file,onProgress){
   return new Promise((resolve,reject)=>{
-   const xhr=new XMLHttpRequest();xhr.open("PUT",url);xhr.setRequestHeader("Content-Type",file.type.split(";")[0]);
+   if(!url) return reject(new Error("The upload link was not created. Please try again."));
+   const xhr=new XMLHttpRequest();xhr.open("PUT",url);xhr.timeout=120000;
+   xhr.setRequestHeader("Content-Type",(file.type||"application/octet-stream").split(";")[0]);
    xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(e.loaded/e.total)};
-   xhr.onload=()=>xhr.status>=200&&xhr.status<300?resolve():reject(new Error("Upload failed ("+xhr.status+")."));
-   xhr.onerror=()=>reject(new Error("Network error while uploading the file."));
+   xhr.onload=()=>xhr.status>=200&&xhr.status<300?resolve():reject(new Error("Voice upload failed ("+xhr.status+")."));
+   xhr.onerror=()=>reject(new Error("Network error while uploading the voice message."));
+   xhr.ontimeout=()=>reject(new Error("Voice upload timed out. Check your connection and try again."));
+   xhr.onabort=()=>reject(new Error("Voice upload was cancelled."));
    xhr.send(file);
   });
  }
  async function sendFile(file,kind,onProgress){
   await ensureConversation();
-  const mime=file.type.toLowerCase().split(";")[0];
+  const mime=(file.type||"").toLowerCase().split(";")[0];
+  if(!mime||!file.size)throw new Error("The voice recording is empty or has no supported audio format.");
   const init=await request("media_upload","POST",{file_name:file.name||("voice-note."+(mime==="audio/mp4"?"m4a":"webm")),file_mime:mime,file_size:file.size,kind:kind||""});
+  if(!init||!init.path||!init.upload_url)throw new Error("The server did not provide a secure upload link.");
   await uploadWithProgress(init.upload_url,file,onProgress||(()=>{}));
   await request("media_message","POST",{media_path:init.path,media_name:file.name||"Voice note",media_mime:mime,media_size:file.size,kind:kind||""});
  }
@@ -170,19 +176,50 @@ function create(options){
  async function startRecording(){
   await ensureConversation();
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder)throw new Error("Voice recording is not supported in this browser.");
-  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-  const mime=MediaRecorder.isTypeSupported("audio/mp4")?"audio/mp4":MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus":"audio/webm";
-  const recorder=new MediaRecorder(stream,{mimeType:mime});
-  state.recorder=recorder;state.recordChunks=[];state.recordStarted=Date.now();state.recordFile=null;
+  const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  let recorder=null,selectedMime="";
+  const candidates=["audio/mp4","audio/webm;codecs=opus","audio/webm"];
+  for(const candidate of candidates){
+   try{
+    if(MediaRecorder.isTypeSupported(candidate)){
+     recorder=new MediaRecorder(stream,{mimeType:candidate});
+     selectedMime=candidate;
+     break;
+    }
+   }catch(error){}
+  }
+  if(!recorder){
+   try{recorder=new MediaRecorder(stream);selectedMime=recorder.mimeType||"audio/webm";}
+   catch(error){stream.getTracks().forEach(track=>track.stop());throw new Error("This browser could not start audio recording. Please update your browser and try again.");}
+  }
+  const recorderMime=recorder.mimeType||selectedMime||"audio/webm";
+  state.recorder=recorder;state.recordChunks=[];state.recordStarted=Date.now();state.recordFile=null;state.recordSending=false;
+  if(status){status.dataset.yscmtVoicePinned="";status.dataset.yscmtVoiceSending="";}
   recorder.ondataavailable=event=>{if(event.data&&event.data.size)state.recordChunks.push(event.data)};
+  recorder.onerror=event=>{
+   stream.getTracks().forEach(track=>track.stop());clearInterval(state.recordTimer);state.recordTimer=null;
+   state.recorder=null;state.recordFile=null;sendRecording.disabled=true;
+   say("Recording failed. Please check microphone permission and try again.");
+  };
   recorder.onstop=()=>{
    stream.getTracks().forEach(track=>track.stop());clearInterval(state.recordTimer);state.recordTimer=null;
    record.textContent="🎙";record.title="Hold to record a voice message";record.classList.remove("is-recording","is-pressed");recorderClock.textContent="Recording ready";
-   const blob=new Blob(state.recordChunks,{type:recorder.mimeType||mime});
-   if(blob.size){const ext=blob.type.includes("mp4")?"m4a":"webm";state.recordFile=new File([blob],"voice-note."+ext,{type:blob.type});recorderAudio.src=URL.createObjectURL(state.recordFile);recorderAudio.hidden=false;sendRecording.disabled=false;recorderTitle.textContent="Listen before sending";}
-   else{recorderPanel.hidden=true;say("No audio was recorded.");}
+   const rawBlob=new Blob(state.recordChunks,{type:recorder.mimeType||recorderMime});
+   const actualType=(rawBlob.type||recorder.mimeType||recorderMime||"audio/webm").toLowerCase();
+   const mime=actualType.split(";")[0];
+   const blob=new Blob(state.recordChunks,{type:mime});
+   if(blob.size&&mime.startsWith("audio/")){
+    const ext=mime==="audio/mp4"||mime==="audio/m4a"||mime==="audio/x-m4a"?"m4a":mime==="audio/ogg"?"ogg":mime==="audio/mpeg"?"mp3":"webm";
+    state.recordFile=new File([blob],"voice-note."+ext,{type:mime});
+    recorderAudio.src=URL.createObjectURL(state.recordFile);recorderAudio.hidden=false;sendRecording.disabled=false;recorderTitle.textContent="Listen to the recording before sending";
+    say("Recording ready. Listen, then tap Send voice note.");
+   }else{
+    recorderPanel.hidden=true;sendRecording.disabled=true;say("No usable audio was recorded. Please try again.");
+   }
   };
-  recorder.start(250);recorderPanel.hidden=false;recorderAudio.hidden=true;sendRecording.disabled=true;record.textContent="■";record.classList.add("is-recording");record.title="Release to finish recording";recorderTitle.textContent="Recording… release to finish";if(state.holdReleased)stopRecording();
+  try{recorder.start();}catch(error){stream.getTracks().forEach(track=>track.stop());state.recorder=null;throw new Error("The browser could not begin recording. Please try again.");}
+  recorderPanel.hidden=false;recorderAudio.hidden=true;sendRecording.disabled=true;record.textContent="■";record.classList.add("is-recording");record.title="Release to finish recording";recorderTitle.textContent="Recording… release to finish";
+  if(state.holdReleased)stopRecording();
   const tick=()=>{const seconds=Math.floor((Date.now()-state.recordStarted)/1000);recorderClock.textContent=String(Math.floor(seconds/60)).padStart(2,"0")+":"+String(seconds%60).padStart(2,"0");if(seconds>=300)stopRecording()};
   tick();state.recordTimer=setInterval(tick,250);
  }
@@ -190,7 +227,7 @@ function create(options){
  let recordPointerActive=false;
  async function beginHoldRecording(){
   if(recordPointerActive||state.recorder&&state.recorder.state==="recording")return;
-  recordPointerActive=true;state.holdReleased=false;record.classList.add("is-pressed");
+  recordPointerActive=true;state.holdReleased=false;if(status){status.dataset.yscmtVoicePinned="";status.dataset.yscmtVoiceSending="";}record.classList.add("is-pressed");
   try{await startRecording();if(state.holdReleased)stopRecording();}
   catch(error){recordPointerActive=false;record.classList.remove("is-pressed");say(error.message)}
  }
@@ -219,6 +256,7 @@ function create(options){
    return;
   }
   state.recordSending=true;
+  if(status){status.dataset.yscmtVoiceSending="true";status.dataset.yscmtVoicePinned="";}
   sendRecording.disabled=true;
   sendRecording.textContent="Sending…";
   say("Preparing voice note…");
@@ -231,11 +269,14 @@ function create(options){
    recorderAudio.removeAttribute("src");
    recorderAudio.hidden=true;
    say("Voice note sent.");
+   if(status){status.dataset.yscmtVoicePinned="true";}
    if(options.refresh)await options.refresh();
   }catch(error){
    say("Voice message was not sent: "+(error&&error.message?error.message:"Unknown error. Please try again."));
+   if(status){status.dataset.yscmtVoicePinned="true";}
   }finally{
    state.recordSending=false;
+   if(status){status.dataset.yscmtVoiceSending="";}
    sendRecording.textContent="Send voice note";
    sendRecording.disabled=!state.recordFile;
   }
