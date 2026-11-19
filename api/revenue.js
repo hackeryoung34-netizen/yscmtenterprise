@@ -1,4 +1,4 @@
-const { timingSafeEqual, createHmac, randomUUID } = require("node:crypto");
+const { timingSafeEqual, createHmac, createHash, randomUUID } = require("node:crypto");
 const { getRevenueSql } = require("./_lib/revenue-db");
 const { getRevenueStorage, HeadBucketCommand, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("./_lib/revenue-storage");
 
@@ -144,8 +144,54 @@ async function adminJobs(req,res,sql){
 const FEATURED_AMOUNT_KOBO = 500000;
 function revenuePaystackSecret(){
   const key=process.env.REVENUE_PAYSTACK_SECRET_KEY||"";
-  if(!key.startsWith("sk_test_"))throw new Error("YSCMT featured payments are available only in Paystack Test Mode.");
+  const production=process.env.VERCEL_ENV==="production";
+  if(production&&!key.startsWith("sk_live_"))throw new Error("YSCMT live payment credentials are not configured.");
+  if(!production&&!key.startsWith("sk_test_"))throw new Error("YSCMT Preview requires a Paystack test secret key.");
   return key;
+}
+function expectedPaystackDomain(){return process.env.VERCEL_ENV==="production"?"live":"test";}
+function safeHexEqual(actual,expected){
+  if(typeof actual!=="string"||typeof expected!=="string"||!/^[a-f0-9]{128}$/i.test(actual)||!/^[a-f0-9]{128}$/i.test(expected))return false;
+  const a=Buffer.from(actual,"hex"),b=Buffer.from(expected,"hex");
+  return a.length===b.length&&timingSafeEqual(a,b);
+}
+function verifyWebhookSignature(req,rawBody){
+  const signingSecret=process.env.REVENUE_PAYSTACK_WEBHOOK_SECRET||"";
+  const liveSecret=process.env.REVENUE_PAYSTACK_SECRET_KEY||"";
+  const modern=req.headers["paystack-signature"];
+  if(modern&&signingSecret.startsWith("whsec_")){
+    const fields=String(modern).split(",").map(x=>x.trim());
+    const timestamp=fields.find(x=>x.startsWith("t="))?.slice(2);
+    const signatures=fields.filter(x=>x.startsWith("v1=")).map(x=>x.slice(3).split(":").pop());
+    const seconds=Number(timestamp);
+    if(!Number.isSafeInteger(seconds)||Math.abs(Date.now()/1000-seconds)>300)return false;
+    const expected=createHmac("sha512",signingSecret).update(timestamp+".").update(rawBody).digest("hex");
+    return signatures.some(sig=>safeHexEqual(sig,expected));
+  }
+  const legacy=req.headers["x-paystack-signature"];
+  if(legacy&&liveSecret.startsWith("sk_live_")){
+    const expected=createHmac("sha512",liveSecret).update(rawBody).digest("hex");
+    return safeHexEqual(String(legacy),expected);
+  }
+  return false;
+}
+async function readRawRequestBody(req){
+  if(req._yscmtRawBody)return req._yscmtRawBody;
+  const chunks=[];let size=0;
+  for await(const chunk of req){
+    size+=chunk.length;
+    if(size>1024*1024)throw new Error("Request body too large.");
+    chunks.push(Buffer.from(chunk));
+  }
+  const raw=Buffer.concat(chunks);
+  req._yscmtRawBody=raw;
+  if(raw.length&&!req.body){
+    const type=String(req.headers["content-type"]||"").toLowerCase();
+    if(type.includes("application/json")){
+      try{req.body=JSON.parse(raw.toString("utf8"));}catch{throw new Error("Invalid JSON body.");}
+    }
+  }
+  return raw;
 }
 async function featuredPaymentInit(req,res,sql){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
@@ -199,7 +245,7 @@ async function featuredPaymentVerify(req,res,sql){
     if(["failed","abandoned"].includes(payment.status))await sql`update public.featured_business_payment_orders set status='failed',updated_at=now() where reference=${reference} and status='pending'`;
     return send(res,409,{paid:false,payment_status:clean(payment.status,30),message:"Paystack has not confirmed a successful payment."});
   }
-  if(!Number.isSafeInteger(Number(payment.id))||payment.domain!=="test"||payment.currency!=="NGN"||payment.amount!==FEATURED_AMOUNT_KOBO||order.amount_kobo!==FEATURED_AMOUNT_KOBO||order.currency!=="NGN"||!payment.customer||String(payment.customer.email||"").trim().toLowerCase()!==order.customer_email||!payment.metadata||payment.metadata.order_id!==order.id)return send(res,409,{paid:false,error:"Payment details do not match this YSCMT test order. No featured access was granted."});
+  if(!Number.isSafeInteger(Number(payment.id))||payment.domain!==expectedPaystackDomain()||payment.currency!=="NGN"||payment.amount!==FEATURED_AMOUNT_KOBO||order.amount_kobo!==FEATURED_AMOUNT_KOBO||order.currency!=="NGN"||!payment.customer||String(payment.customer.email||"").trim().toLowerCase()!==order.customer_email||!payment.metadata||payment.metadata.order_id!==order.id)return send(res,409,{paid:false,error:"Payment details do not match this YSCMT order. No featured access was granted."});
   const updated=await sql`with target as materialized (
     select o.id,o.listing_id,o.status,l.status as listing_status
     from public.featured_business_payment_orders o
@@ -226,6 +272,39 @@ async function featuredPaymentVerify(req,res,sql){
   if(!state)return send(res,503,{error:"Payment was verified but could not be applied. Contact YSCMT support with your reference."});
   if(state.status==="needs_review")return send(res,202,{paid:true,featured:false,message:"Payment was received, but this listing needs administrator review. Please contact YSCMT support."});
   return send(res,200,{paid:true,featured:state.is_featured,featured_until:state.featured_until,business_name:state.business_name,message:"Payment confirmed. Your listing is now featured for 30 days."});
+}
+
+async function featuredPaymentWebhook(req,res,sql){
+  if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
+  const raw=req._yscmtRawBody||Buffer.alloc(0);
+  if(!raw.length||!verifyWebhookSignature(req,raw))return send(res,401,{error:"Invalid Paystack webhook signature."});
+  let event;
+  try{event=JSON.parse(raw.toString("utf8"));}catch{return send(res,400,{error:"Invalid webhook payload."});}
+  const eventType=clean(event&&event.event,80)||"unknown";
+  const reference=clean(event&&event.data&&event.data.reference,100)||null;
+  const txid=Number.isSafeInteger(Number(event&&event.data&&event.data.id))?Number(event.data.id):null;
+  const payloadHash=createHash("sha256").update(raw).digest("hex");
+  const inserted=await sql`insert into public.featured_business_payment_webhook_events(payload_hash,event_type,reference,transaction_id,processing_status)
+    values(${payloadHash},${eventType},${reference},${txid},'received')
+    on conflict(payload_hash) do nothing returning id`;
+  if(!inserted.length)return send(res,200,{received:true,duplicate:true});
+  const eventId=inserted[0].id;
+  if(eventType!=="charge.success"||!reference){
+    await sql`update public.featured_business_payment_webhook_events set processing_status='ignored',processed_at=now() where id=${eventId}`;
+    return send(res,200,{received:true,ignored:true});
+  }
+  const fakeRes={
+    statusCode:200,body:null,
+    status(code){this.statusCode=code;return this;},
+    setHeader(){return this;},
+    send(value){try{this.body=JSON.parse(value);}catch{this.body={};}return this;}
+  };
+  await featuredPaymentVerify({method:"GET",query:{reference}},fakeRes,sql);
+  const successful=fakeRes.statusCode===200||fakeRes.statusCode===202;
+  await sql`update public.featured_business_payment_webhook_events
+    set processing_status=${successful?"processed":"failed"},processed_at=now() where id=${eventId}`;
+  if(!successful)return send(res,500,{received:true,retry:true});
+  return send(res,200,{received:true,processed:true});
 }
 
 async function adminHealth(req,res){
@@ -264,7 +343,9 @@ async function health(req,res){
   result.ok=result.postgres==="ok"&&result.object_storage==="ok";
   return send(res,result.ok?200:503,result);
 }
+module.exports.config={api:{bodyParser:false}};
 module.exports=async function handler(req,res){
+  try{if(req.method==="POST"||req.method==="PATCH")await readRawRequestBody(req);}catch{return send(res,400,{error:"Invalid or oversized request body."});}
   const route=clean(req.query&&req.query.route,30);
   try{
     if(route==="directory")return await directory(req,res,getRevenueSql());
@@ -273,6 +354,7 @@ module.exports=async function handler(req,res){
     if(route==="admin-health")return await adminHealth(req,res);
     if(route==="featured-init")return await featuredPaymentInit(req,res,getRevenueSql());
     if(route==="featured-verify")return await featuredPaymentVerify(req,res,getRevenueSql());
+    if(route==="featured-webhook")return await featuredPaymentWebhook(req,res,getRevenueSql());
     if(route==="jobs")return await jobs(req,res,getRevenueSql());
     if(route==="admin-jobs")return await adminJobs(req,res,getRevenueSql());
     return send(res,404,{error:"Revenue route not found."});
