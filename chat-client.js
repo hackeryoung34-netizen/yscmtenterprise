@@ -212,9 +212,33 @@ function create(options){
  });
  discardRecording.addEventListener("click",()=>{if(state.recorder&&state.recorder.state==="recording")stopRecording();state.recordFile=null;recorderAudio.pause();recorderAudio.removeAttribute("src");recorderAudio.hidden=true;recorderPanel.hidden=true;sendRecording.disabled=true;record.textContent="🎙";record.title="Hold to record a voice message";record.classList.remove("is-recording","is-pressed")});
  sendRecording.addEventListener("click",async()=>{
-  if(!state.recordFile)return;sendRecording.disabled=true;
-  try{await sendFile(state.recordFile,"voice_note",fraction=>{say("Uploading voice note… "+Math.round(fraction*100)+"%")});state.recordFile=null;recorderPanel.hidden=true;recorderAudio.pause();recorderAudio.removeAttribute("src");recorderAudio.hidden=true;say("Voice note sent.");if(options.refresh)await options.refresh()}
-  catch(error){say(error.message);sendRecording.disabled=false}
+  if(sendRecording.disabled||state.recordSending)return;
+  if(!state.recordFile||!state.recordFile.size){
+   say("No voice recording is ready to send. Please record again.");
+   sendRecording.disabled=true;
+   return;
+  }
+  state.recordSending=true;
+  sendRecording.disabled=true;
+  sendRecording.textContent="Sending…";
+  say("Preparing voice note…");
+  try{
+   await ensureConversation();
+   await sendFile(state.recordFile,"voice_note",fraction=>{say("Uploading voice note… "+Math.round(fraction*100)+"%")});
+   state.recordFile=null;
+   recorderPanel.hidden=true;
+   recorderAudio.pause();
+   recorderAudio.removeAttribute("src");
+   recorderAudio.hidden=true;
+   say("Voice note sent.");
+   if(options.refresh)await options.refresh();
+  }catch(error){
+   say("Voice message was not sent: "+(error&&error.message?error.message:"Unknown error. Please try again."));
+  }finally{
+   state.recordSending=false;
+   sendRecording.textContent="Send voice note";
+   sendRecording.disabled=!state.recordFile;
+  }
  });
 
  function callApiEvent(eventType,payload={}){return request("call_event","POST",{call_id:state.call&&state.call.id,event_type:eventType,payload})}
