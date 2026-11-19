@@ -49,7 +49,8 @@ A separate Job Ads feature has been added on the same isolated Neon development 
 - `GET /api/jobs`: approved, non-expired adverts only; bounded search and filters for state, category, and employment type.
 - `POST /api/jobs`: validates vacancy details and requires at least one application contact method. New adverts are always `pending`; public users cannot approve or feature an advert.
 - `GET/PATCH /api/admin/jobs`: uses the same Supabase administrator role check as Business Directory and records moderation actions.
-- `/jobs/`: standalone responsive vacancy search and employer submission page. Applicant CV uploads and storage of applicant personal data are intentionally not included in this first version.
+- `/jobs/`: standalone responsive vacancy search and employer submission page.
+- `/revenue-admin/`: private moderation dashboard for Business Directory and Job Ads. It reuses the existing YSCMT account session, checks the Supabase `store_admin` role, and calls protected moderation APIs; it does not expose service-role credentials. Applicant CV uploads and storage of applicant personal data are intentionally not included in this first version.
 
 Both Job Ads routes are rewrites to the existing consolidated `api/revenue.js` function so the project remains within the Vercel Hobby function-count limit. The homepage and Production environment remain unchanged.
 
