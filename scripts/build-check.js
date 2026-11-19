@@ -76,10 +76,10 @@ for (const name of htmlRoots) {
     if (!entry.isFile() || !entry.name.endsWith(".html")) continue;
     const file = path.join(dir, entry.name);
     const source = fs.readFileSync(file, "utf8");
-    const scripts = [...source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)];
+    const scripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter((match) => !/\btype\s*=\s*["']application\/ld\+json["']/i.test(match[1]));
     for (let i = 0; i < scripts.length; i++) {
       try {
-        new vm.Script(scripts[i][1], { filename: file + "#script-" + (i + 1) });
+        new vm.Script(scripts[i][2], { filename: file + "#script-" + (i + 1) });
       } catch (error) {
         failed = true;
         process.stderr.write(String(error) + "\n");
