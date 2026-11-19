@@ -71,11 +71,41 @@ module.exports=async function handler(req,res){
     if(!conversation)return send(res,404,{error:"Conversation not found."});
     await authorize(req,root,anon,service,conversation,req.query);
     const ice_servers=[{urls:"stun:stun.cloudflare.com:3478"},{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}];
-    const turnUrls=String(process.env.YSCMT_TURN_URLS||"").split(",").map(value=>value.trim()).filter(value=>/^turns?:/i.test(value));
-    const turnUsername=String(process.env.YSCMT_TURN_USERNAME||"").trim();
-    const turnCredential=String(process.env.YSCMT_TURN_CREDENTIAL||"").trim();
-    if(turnUrls.length&&turnUsername&&turnCredential)ice_servers.push({urls:turnUrls,username:turnUsername,credential:turnCredential});
-    return send(res,200,{ice_servers,turn_configured:turnUrls.length>0&&!!turnUsername&&!!turnCredential});
+    const turnKeyId=String(process.env.YSCMT_TURN_KEY_ID||"").trim();
+    const turnApiToken=String(process.env.YSCMT_TURN_API_TOKEN||"").trim();
+    let turn_configured=false;
+    if(turnKeyId&&turnApiToken){
+      if(!/^[a-f0-9]{32}$/i.test(turnKeyId))return send(res,503,{error:"TURN service configuration is invalid."});
+      try{
+        const turnResponse=await fetch("https://rtc.live.cloudflare.com/v1/turn/keys/"+encodeURIComponent(turnKeyId)+"/credentials/generate-ice-servers",{
+          method:"POST",
+          headers:{"Authorization":"Bearer "+turnApiToken,"Content-Type":"application/json"},
+          body:JSON.stringify({ttl:86400}),
+          signal:AbortSignal.timeout(8000)
+        });
+        if(!turnResponse.ok){
+          console.error("Cloudflare TURN credential request failed:",turnResponse.status);
+        }else{
+          const turnData=await turnResponse.json();
+          const turnIce=turnData&&turnData.iceServers;
+          if(Array.isArray(turnIce)&&turnIce.length){
+            for(const server of turnIce){
+              if(!server||!server.urls)continue;
+              const urls=(Array.isArray(server.urls)?server.urls:[server.urls]).filter(url=>typeof url==="string"&&/^turns?:/i.test(url));
+              if(urls.length&&typeof server.username==="string"&&typeof server.credential==="string"){
+                ice_servers.push({urls,username:server.username,credential:server.credential});
+              }
+            }
+            turn_configured=ice_servers.some(server=>server.username&&server.credential);
+          }else{
+            console.error("Cloudflare TURN credential response did not contain ICE servers.");
+          }
+        }
+      }catch(error){
+        console.error("Cloudflare TURN credential request could not be completed:",error&&error.name||"unknown error");
+      }
+    }
+    return send(res,200,{ice_servers,turn_configured});
    }
    if(action==="call_poll"){
     const callId=cleanText(req.query&&req.query.id,36);if(!/^[0-9a-f-]{36}$/i.test(callId))return send(res,400,{error:"Invalid call."});
