@@ -13,7 +13,7 @@ const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+
 const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
  const role=options.role,host=options.host,status=options.status,callHost=options.callHost;
- const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,pollInFlight:false,callTimer:null,callStartedAt:0,callToneContext:null,callToneGain:null,callToneTimer:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,holdReleased:false,queue:[],callBusy:false,incoming:null};
+ const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,pollInFlight:false,callTimer:null,callStartedAt:0,callToneContext:null,callToneGain:null,callToneTimer:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,holdReleased:false,queue:[],callBusy:false,incoming:null,callAttempt:0};
  if(!host)return {setConversation(){},renderMedia:async()=>{}};
 
  const bar=$("div",{className:"yscmt-chat-tools"});
@@ -308,7 +308,7 @@ function create(options){
  }
  function startCallClock(){if(state.callTimer)return;state.callStartedAt=Date.now();const tick=()=>{const seconds=Math.max(0,Math.floor((Date.now()-state.callStartedAt)/1000));const mm=String(Math.floor(seconds/60)).padStart(2,"0"),ss=String(seconds%60).padStart(2,"0");callTimer.textContent=mm+":"+ss};tick();state.callTimer=setInterval(tick,1000)}
  function cleanupCall(message){
-  stopPoller();stopCallClock();stopCallTone();
+  state.callAttempt++;stopPoller();stopCallClock();stopCallTone();
   if(state.pc){state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();state.pc=null}
   if(state.local)state.local.getTracks().forEach(track=>track.stop());
   state.local=null;state.remote=null;remoteVideo.srcObject=null;localVideo.srcObject=null;remoteAudio.srcObject=null;
@@ -342,28 +342,35 @@ function create(options){
  async function flushRemoteIce(){if(!state.pc||!state.pc.remoteDescription)return;const candidates=state.remoteIceQueue.splice(0);for(const candidate of candidates){try{await state.pc.addIceCandidate(new RTCIceCandidate(candidate))}catch(error){}}}
  async function startCall(callType){
   if(state.callBusy||state.call)throw new Error("A call is already active.");
+  const attempt=++state.callAttempt;
   stopCallClock();
   state.callBusy=true;say("Starting "+(callType==="video"?"video":"voice")+" call…");
   callName.textContent=options.getCallName?options.getCallName():(role==="visitor"?"YSCMT Enterprise":"YSCMT Customer");callAvatar.textContent=(callName.textContent.trim()[0]||"Y").toUpperCase();callBox.classList.toggle("is-video-call",callType==="video");callBox.classList.add("is-ringing");callLabel.textContent="Preparing call…";callTimer.textContent="";showCall(true);
   accept.hidden=true;reject.hidden=true;mute.hidden=true;speaker.hidden=true;camera.hidden=true;end.hidden=false;end.textContent="Cancel";
   try{
    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-   await ensureConversation();
-   const stream=await prepareLocal(callType),pc=makePeer(callType);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
-   const offer=await pc.createOffer();await pc.setLocalDescription(offer);
+   await ensureConversation();if(attempt!==state.callAttempt)return;
+   const stream=await prepareLocal(callType);
+   if(attempt!==state.callAttempt){stream.getTracks().forEach(track=>track.stop());return;}
+   const pc=makePeer(callType);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
+   const offer=await pc.createOffer();if(attempt!==state.callAttempt)return;await pc.setLocalDescription(offer);
+   if(attempt!==state.callAttempt)return;
    callLabel.textContent="Calling…";
    const result=await request("call_start","POST",{call_type:callType,offer:pc.localDescription.toJSON()});
+   if(attempt!==state.callAttempt){await request("call_event","POST",{call_id:result.call.id,event_type:"ended",payload:{}}).catch(()=>{});return;}
    state.call=result.call;state.callCursor=0;callLabel.textContent="Calling…";await startCallTone();
+   if(attempt!==state.callAttempt)return;
    accept.hidden=true;reject.hidden=true;mute.hidden=false;camera.hidden=callType!=="video";end.hidden=false;
-   mute.textContent="Mute";mute.classList.remove("is-muted");speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";camera.classList.remove("is-camera-off");end.textContent="End call";speaker.hidden=false;await flushIce();beginPoll();
+   mute.textContent="Mute";mute.classList.remove("is-muted");speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";camera.classList.remove("is-camera-off");end.textContent="End call";speaker.hidden=false;await flushIce();if(attempt===state.callAttempt)beginPoll();
   }catch(error){
+   if(attempt!==state.callAttempt)return;
    stopPoller();if(state.pc){state.pc.close();state.pc=null}
    if(state.local)state.local.getTracks().forEach(track=>track.stop());
    state.local=null;state.remote=null;localVideo.srcObject=null;remoteVideo.srcObject=null;remoteAudio.srcObject=null;
    state.call=null;state.callBusy=false;callLabel.textContent=error&&error.message?error.message:"Unable to start call";
    accept.hidden=true;reject.hidden=true;mute.hidden=true;camera.hidden=true;end.hidden=false;end.textContent="Close";showCall(true);
    throw error;
-  }finally{state.callBusy=false}
+  }finally{if(attempt===state.callAttempt)state.callBusy=false}
  }
  async function acceptCall(){
   if(!state.incoming)return;
@@ -373,7 +380,7 @@ function create(options){
   }catch(error){await callApiEvent("rejected",{}).catch(()=>{});cleanupCall(error.message)}
  }
  async function rejectCall(){if(!state.call)return;try{await callApiEvent("rejected",{})}catch{}cleanupCall("Call declined.")}
- async function endCall(){if(!state.call){cleanupCall("");return}try{await callApiEvent("ended",{})}catch{}cleanupCall("Call ended.")}
+undefined
  accept.addEventListener("click",acceptCall);reject.addEventListener("click",rejectCall);end.addEventListener("click",endCall);
  speaker.addEventListener("click",async()=>{
   const output=callBox.classList.contains("is-video-call")?remoteVideo:remoteAudio;
