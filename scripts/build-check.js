@@ -30,7 +30,7 @@ try {
   const sources = rewrites.map((rule) => rule.source);
   if (new Set(sources).size !== sources.length) {
     failed = true;
-    process.stderr.write("Duplicate Vercel rewrite source detected.\\n");
+    process.stderr.write("Duplicate Vercel rewrite source detected.\n");
   }
   const requiredRoutes = new Map([
     ["/api/business-directory", "/api/revenue?route=directory"],
@@ -44,12 +44,12 @@ try {
     const rule = rewrites.find((item) => item.source === source);
     if (!rule || rule.destination !== destination) {
       failed = true;
-      process.stderr.write("Missing or incorrect Vercel rewrite: " + source + "\\n");
+      process.stderr.write("Missing or incorrect Vercel rewrite: " + source + "\n");
     }
   }
 } catch (error) {
   failed = true;
-  process.stderr.write("Invalid vercel.json: " + error.message + "\\n");
+  process.stderr.write("Invalid vercel.json: " + error.message + "\n");
 }
 
 const apiFunctionFiles = files.filter((file) => {
@@ -58,7 +58,7 @@ const apiFunctionFiles = files.filter((file) => {
 });
 if (apiFunctionFiles.length > 12) {
   failed = true;
-  process.stderr.write("Vercel Hobby function limit exceeded: " + apiFunctionFiles.length + " API functions (maximum 12).\\n");
+  process.stderr.write("Vercel Hobby function limit exceeded: " + apiFunctionFiles.length + " API functions (maximum 12).\n");
 }
 
 for (const file of files) {
