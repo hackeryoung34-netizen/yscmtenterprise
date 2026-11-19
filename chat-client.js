@@ -334,11 +334,13 @@ function create(options){
   if(state.pc){state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();state.pc=null}
   if(state.local)state.local.getTracks().forEach(track=>track.stop());
   state.local=null;state.remote=null;remoteVideo.srcObject=null;localVideo.srcObject=null;remoteAudio.srcObject=null;
-  state.call=null;callBox.classList.remove("is-ringing");state.callCursor=0;state.pendingIce=[];state.remoteIceQueue=[];state.seen.clear();state.incoming=null;state.callBusy=false;
+  state.call=null;state.callBusy=false;callBox.classList.remove("is-ringing");state.callCursor=0;state.pendingIce=[];state.remoteIceQueue=[];state.seen.clear();state.incoming=null;state.callBusy=false;
   accept.hidden=true;reject.hidden=true;mute.hidden=true;speaker.hidden=true;camera.hidden=true;end.hidden=true;remoteVideo.hidden=true;localVideo.hidden=true;remoteAudio.hidden=true;showCall(false);if(message)say(message);
  }
- function makePeer(callType){
-  const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}]});
+ async function makePeer(callType){
+  let iceServers=[{urls:"stun:stun.cloudflare.com:3478"},{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}];
+  try{const config=await request("call_config","GET");if(Array.isArray(config.ice_servers)&&config.ice_servers.length)iceServers=config.ice_servers}catch(error){say("Using basic call routing. Some networks may need TURN relay support.")}
+  const pc=new RTCPeerConnection({iceServers,iceCandidatePoolSize:4});
   state.pc=pc;state.remote=new MediaStream();
   pc.ontrack=event=>{
    const incoming=event.streams&&event.streams[0];
@@ -374,7 +376,7 @@ function create(options){
    await ensureConversation();if(attempt!==state.callAttempt)return;
    const stream=await prepareLocal(callType);
    if(attempt!==state.callAttempt){stream.getTracks().forEach(track=>track.stop());return;}
-   const pc=makePeer(callType);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
+   const pc=await makePeer(callType);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
    const offer=await pc.createOffer();if(attempt!==state.callAttempt)return;await pc.setLocalDescription(offer);
    if(attempt!==state.callAttempt)return;
    callLabel.textContent="Calling…";
@@ -396,9 +398,10 @@ function create(options){
  }
  async function acceptCall(){
   if(!state.incoming)return;
+  const callType=state.incoming.call_type;
   try{
-   const stream=await prepareLocal(state.incoming.call_type),pc=makePeer(state.incoming.call_type);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
-   await callApiEvent("accepted",{});state.incoming=null;callLabel.textContent="Connecting…";callTimer.textContent="";accept.hidden=true;reject.hidden=true;mute.hidden=false;speaker.hidden=false;camera.hidden=state.incoming.call_type!=="video";end.hidden=false;mute.textContent="Mute";mute.classList.remove("is-muted");speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";camera.classList.remove("is-camera-off");beginPoll();
+   const stream=await prepareLocal(callType),pc=await makePeer(callType);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
+   await callApiEvent("accepted",{});state.incoming=null;callLabel.textContent="Connecting…";callTimer.textContent="";accept.hidden=true;reject.hidden=true;mute.hidden=false;speaker.hidden=false;camera.hidden=callType!=="video";end.hidden=false;mute.textContent="Mute";mute.classList.remove("is-muted");speaker.textContent="Speaker";speaker.setAttribute("aria-pressed","false");camera.textContent="Camera off";camera.classList.remove("is-camera-off");beginPoll();
   }catch(error){await callApiEvent("rejected",{}).catch(()=>{});cleanupCall(error.message)}
  }
  async function rejectCall(){if(!state.call)return;try{await callApiEvent("rejected",{})}catch{}cleanupCall("Call declined.")}
