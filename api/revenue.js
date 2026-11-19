@@ -286,7 +286,9 @@ async function featuredPaymentWebhook(req,res,sql){
   const payloadHash=createHash("sha256").update(raw).digest("hex");
   const inserted=await sql`insert into public.featured_business_payment_webhook_events(payload_hash,event_type,reference,transaction_id,processing_status)
     values(${payloadHash},${eventType},${reference},${txid},'received')
-    on conflict(payload_hash) do nothing returning id`;
+    on conflict(payload_hash) do update set processing_status='received',received_at=now()
+    where public.featured_business_payment_webhook_events.processing_status='failed'
+    returning id`;
   if(!inserted.length)return send(res,200,{received:true,duplicate:true});
   const eventId=inserted[0].id;
   if(eventType!=="charge.success"||!reference){
