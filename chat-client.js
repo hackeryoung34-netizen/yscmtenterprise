@@ -13,7 +13,7 @@ const fmtSize=n=>n<1024*1024?(n/1024).toFixed(0)+" KB":(n/1024/1024).toFixed(1)+
 const uid=()=>Math.random().toString(36).slice(2,10);
 function create(options){
  const role=options.role,host=options.host,status=options.status,callHost=options.callHost;
- const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,pollInFlight:false,callTimer:null,callStartedAt:0,callToneContext:null,callToneGain:null,callToneTimer:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,holdReleased:false,queue:[],callBusy:false,incoming:null,callAttempt:0};
+ const state={conversationId:null,call:null,pc:null,local:null,remote:null,callCursor:0,pendingIce:[],remoteIceQueue:[],seen:new Set(),poller:null,pollInFlight:false,callTimer:null,callStartedAt:0,callToneContext:null,callToneGain:null,callToneTimer:null,recorder:null,recordChunks:[],recordStarted:0,recordTimer:null,recordFile:null,recordFinalizing:false,holdReleased:false,queue:[],callBusy:false,incoming:null,callAttempt:0};
  if(!host)return {setConversation(){},renderMedia:async()=>{}};
 
  const bar=$("div",{className:"yscmt-chat-tools"});
@@ -174,6 +174,7 @@ function create(options){
  queueObserver.observe(sendQueue,{attributes:true,attributeFilter:["disabled"]});
 
  async function startRecording(){
+  if(state.recordFinalizing)throw new Error("Please wait for the previous recording to finish.");
   await ensureConversation();
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder)throw new Error("Voice recording is not supported in this browser.");
   const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
@@ -193,21 +194,21 @@ function create(options){
    catch(error){stream.getTracks().forEach(track=>track.stop());throw new Error("This browser could not start audio recording. Please update your browser and try again.");}
   }
   const recorderMime=recorder.mimeType||selectedMime||"audio/webm";
-  state.recorder=recorder;state.recordChunks=[];state.recordStarted=Date.now();state.recordFile=null;state.recordSending=false;
+  const chunks=[];state.recorder=recorder;state.recordChunks=chunks;state.recordFinalizing=false;state.recordStarted=Date.now();state.recordFile=null;state.recordSending=false;
   if(status){status.dataset.yscmtVoicePinned="";status.dataset.yscmtVoiceSending="";}
-  recorder.ondataavailable=event=>{if(event.data&&event.data.size)state.recordChunks.push(event.data)};
+  recorder.ondataavailable=event=>{if(event.data&&event.data.size)chunks.push(event.data)};
   recorder.onerror=event=>{
    stream.getTracks().forEach(track=>track.stop());clearInterval(state.recordTimer);state.recordTimer=null;
-   state.recorder=null;state.recordFile=null;sendRecording.disabled=true;
+   if(state.recorder===recorder)state.recorder=null;state.recordFinalizing=false;state.recordFile=null;sendRecording.disabled=true;
    say("Recording failed. Please check microphone permission and try again.");
   };
   recorder.onstop=()=>{
-   stream.getTracks().forEach(track=>track.stop());clearInterval(state.recordTimer);state.recordTimer=null;
+   stream.getTracks().forEach(track=>track.stop());if(state.recorder===recorder)state.recorder=null;state.recordFinalizing=false;clearInterval(state.recordTimer);state.recordTimer=null;
    record.textContent="🎙";record.title="Hold to record a voice message";record.classList.remove("is-recording","is-pressed");recorderClock.textContent="Recording ready";
-   const rawBlob=new Blob(state.recordChunks,{type:recorder.mimeType||recorderMime});
+   const rawBlob=new Blob(chunks,{type:recorder.mimeType||recorderMime});
    const actualType=(rawBlob.type||recorder.mimeType||recorderMime||"audio/webm").toLowerCase();
    const mime=actualType.split(";")[0];
-   const blob=new Blob(state.recordChunks,{type:mime});
+   const blob=new Blob(chunks,{type:mime});
    if(blob.size&&mime.startsWith("audio/")){
     const ext=mime==="audio/mp4"||mime==="audio/m4a"||mime==="audio/x-m4a"?"m4a":mime==="audio/ogg"?"ogg":mime==="audio/mpeg"?"mp3":"webm";
     state.recordFile=new File([blob],"voice-note."+ext,{type:mime});
@@ -217,16 +218,16 @@ function create(options){
     recorderPanel.hidden=true;sendRecording.disabled=true;say("No usable audio was recorded. Please try again.");
    }
   };
-  try{recorder.start();}catch(error){stream.getTracks().forEach(track=>track.stop());state.recorder=null;throw new Error("The browser could not begin recording. Please try again.");}
+  try{recorder.start();}catch(error){stream.getTracks().forEach(track=>track.stop());state.recorder=null;state.recordFinalizing=false;throw new Error("The browser could not begin recording. Please try again.");}
   recorderPanel.hidden=false;recorderAudio.hidden=true;sendRecording.disabled=true;record.textContent="■";record.classList.add("is-recording");record.title="Release to finish recording";recorderTitle.textContent="Recording… release to finish";
   if(state.holdReleased)stopRecording();
   const tick=()=>{const seconds=Math.floor((Date.now()-state.recordStarted)/1000);recorderClock.textContent=String(Math.floor(seconds/60)).padStart(2,"0")+":"+String(seconds%60).padStart(2,"0");if(seconds>=300)stopRecording()};
   tick();state.recordTimer=setInterval(tick,250);
  }
- function stopRecording(){if(state.recorder&&state.recorder.state==="recording")state.recorder.stop();state.recorder=null}
+ function stopRecording(){if(state.recorder&&state.recorder.state==="recording"){state.recordFinalizing=true;try{state.recorder.stop()}catch(error){state.recordFinalizing=false;state.recorder=null;throw error}}}
  let recordPointerActive=false;
  async function beginHoldRecording(){
-  if(recordPointerActive||state.recorder&&state.recorder.state==="recording")return;
+  if(recordPointerActive||state.recordFinalizing||state.recorder&&state.recorder.state==="recording")return;
   recordPointerActive=true;state.holdReleased=false;if(status){status.dataset.yscmtVoicePinned="";status.dataset.yscmtVoiceSending="";}record.classList.add("is-pressed");
   try{await startRecording();if(state.holdReleased)stopRecording();}
   catch(error){recordPointerActive=false;record.classList.remove("is-pressed");say(error.message)}
