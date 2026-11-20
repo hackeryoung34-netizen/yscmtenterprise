@@ -29,7 +29,7 @@ button:disabled{opacity:.55;cursor:wait}.muted{color:var(--muted);font-size:.9re
 <header><a href="/">YSCMT ENTERPRISE</a></header>
 <main class="wrap">
 <section class="hero"><h1>Nigerian Business Directory</h1><p>Find local businesses, discover services, and submit your business for review. Listings are checked before they appear publicly.</p></section>
-<section class="panel" style="margin:0 0 18px"><h2>Featured Business — ₦5,000 / 30 days</h2><p class="muted">Give your approved business listing extra visibility at the top of the directory. Featured placement costs ₦5,000 for 30 days. Checkout is for testing only at this stage; no real payment will be collected. Do not enter real card details.</p></section>
+<section class="panel" style="margin:0 0 18px"><h2>Featured Business — ₦5,000 / 30 days</h2><p class="muted">Give your approved business listing extra visibility at the top of the directory. Featured placement costs ₦5,000 for 30 days. Online checkout is temporarily unavailable while YSCMT completes payment setup. No payment will be collected at this time.</p></section>
 <div class="layout">
 <section>
 <div class="panel"><h2>Find a business</h2>
@@ -66,21 +66,9 @@ try{const r=await fetch("/api/business-directory?"+p.toString());const data=awai
 if(!item.featured&&item.email){
  const promo=node("div","","panel");
  promo.style.marginTop="12px";
- promo.append(node("strong","Promote this business — ₦5,000 / 30 days"));
- const emailLabel=node("label","Confirm listed contact email");
- const emailInput=document.createElement("input");emailInput.type="email";emailInput.required=true;emailInput.value=item.email;emailInput.autocomplete="email";emailLabel.append(emailInput);
- const payButton=node("button","Continue to secure checkout");payButton.type="button";
- const payStatus=node("p","","status");payStatus.setAttribute("role","status");
- payButton.addEventListener("click",async()=>{
-   if(!emailInput.reportValidity())return;
-   payButton.disabled=true;payStatus.textContent="Preparing secure Paystack checkout…";
-   try{
-     const response=await fetch("/api/featured-payment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({listing_id:item.id,email:emailInput.value.trim()})});
-     const result=await response.json();if(!response.ok)throw new Error(result.error||"Checkout could not start.");
-     location.assign(result.authorization_url);
-   }catch(error){payStatus.textContent=error.message;payButton.disabled=false;}
- });
- promo.append(emailLabel,payButton,payStatus);card.append(promo);
+ promo.append(node("strong","Featured promotion — ₦5,000 / 30 days"));
+ promo.append(node("p","Online checkout is temporarily unavailable while YSCMT completes payment setup. Please check back later.","muted"));
+ card.append(promo);
 }
 $("results").append(card);});$("loadStatus").textContent=data.listings.length+" listing(s) shown.";}catch(e){$("loadStatus").textContent=e.message;}}
 let searchTimer;["search","filterState","filterCity","filterCategory"].forEach(id=>$(id).addEventListener(id==="search"||id==="filterCity"?"input":"change",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(load,250);}));
