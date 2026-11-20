@@ -93,7 +93,7 @@ async function admin(req,res,sql){
 
 const jobCategories = new Set(["technology","sales","administration","customer-service","finance","education","healthcare","skilled-trades","logistics","hospitality","other"]);
 const employmentTypes = new Set(["full-time","part-time","contract","internship","temporary","remote"]);
-function validDate(value){if(!value)return true;if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value))return false;const d=new Date(value+"T00:00:00Z");return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===value;}
+function validDate(value){if(!value)return true;if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const d=new Date(value+"T00:00:00Z");return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===value;}
 function validSalary(value){return value===""||value===null||value===undefined||(Number.isFinite(Number(value))&&Number(value)>=0&&Number(value)<=100000000000);}
 async function jobs(req,res,sql){
   if(req.method==="GET"){
@@ -111,13 +111,13 @@ async function jobs(req,res,sql){
   if(await limited(sql,ip,"job_ads"))return send(res,429,{error:"Too many submissions. Please try again later."});
   const title=clean(body.job_title,160),employer=clean(body.employer_name,160),description=clean(body.description,5000),category=clean(body.category,40),type=clean(body.employment_type,24),state=clean(body.state,80),city=clean(body.city,100);
   if(body.public_contact_consent!==true&&body.public_contact_consent!=="true")return send(res,400,{error:"Confirm that you have permission to publish these employer contact details."});
-  const email=clean(body.application_email,254)||null,url=clean(body.application_url,2048)||null,whatsapp=clean(body.whatsapp,30).replace(/[\\s()-]/g,"")||null;
+  const email=clean(body.application_email,254)||null,url=clean(body.application_url,2048)||null,whatsapp=clean(body.whatsapp,30).replace(/[\s()-]/g,"")||null;
   const min=body.salary_min===""||body.salary_min===undefined||body.salary_min===null?null:Number(body.salary_min),max=body.salary_max===""||body.salary_max===undefined||body.salary_max===null?null:Number(body.salary_max),period=clean(body.salary_period,16)||"monthly",closing=clean(body.closing_date,10)||null;
   if(title.length<3||employer.length<2||description.length<30)return send(res,400,{error:"Job title, employer name and a description of at least 30 characters are required."});
   if(!jobCategories.has(category)||!employmentTypes.has(type))return send(res,400,{error:"Select a valid job category and employment type."});
   if(!states.has(state)||city.length<2)return send(res,400,{error:"Select a valid Nigerian state and enter a city."});
   if(!validEmail(email)||!validUrl(url)||(!email&&!url&&!whatsapp))return send(res,400,{error:"Provide at least one valid application email, website link or WhatsApp number."});
-  if(whatsapp&&!/^\\+?[0-9]{7,15}$/.test(whatsapp))return send(res,400,{error:"Enter a valid WhatsApp number."});
+  if(whatsapp&&!/^\+?[0-9]{7,15}$/.test(whatsapp))return send(res,400,{error:"Enter a valid WhatsApp number."});
   if(!validSalary(body.salary_min)||!validSalary(body.salary_max)||(min!==null&&max!==null&&max<min))return send(res,400,{error:"Check the salary range."});
   if(!["hourly","daily","weekly","monthly","yearly"].includes(period)||!validDate(closing))return send(res,400,{error:"Check the salary period or closing date."});
   const remote=body.is_remote===true||type==="remote";
