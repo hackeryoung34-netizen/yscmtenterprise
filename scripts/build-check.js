@@ -81,6 +81,15 @@ if (fs.existsSync(revenueApiPath)) {
     process.stderr.write("Test Paystack mode must not exist in the Featured Business payment flow.\n");
   }
 }
+const revenueSource = fs.existsSync(revenueApiPath) ? fs.readFileSync(revenueApiPath, "utf8") : "";
+if (!revenueSource.includes('if(route==="admin-session")return await adminSession(req,res,getRevenueSql());') ||
+    !revenueSource.includes('if(route==="admin-roles")return await centralAdminRoles(req,res,getRevenueSql());') ||
+    !revenueSource.includes("async function adminSession(req,res,sql)") ||
+    !revenueSource.includes("async function centralAdminRoles(req,res,sql)")) {
+  failed = true;
+  process.stderr.write("Missing server-enforced central admin RBAC routes.\\n");
+}
+
 const apiFunctionFiles = files.filter((file) => {
   const relative = path.relative(root, file).split(path.sep);
   return relative[0] === "api" && !relative.some((part) => part.startsWith("_"));
