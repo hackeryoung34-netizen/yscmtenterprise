@@ -1,0 +1,7 @@
+-- Intentionally empty compatibility migration.
+-- Business Directory and Job Ads are owned by the dedicated Neon revenue
+-- database, not the Supabase Template Store project.
+-- Do not add or apply revenue tables to Supabase; the active schema lives in
+-- neon/migrations/001_business_directory.sql and the Neon revenue-development
+-- branch. This no-op prevents accidental creation of a duplicate Supabase
+-- Business Directory schema if the repository's Supabase migrations are run.
