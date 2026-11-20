@@ -560,11 +560,16 @@ async function loadStudentExtras() {
 
 async function syncSession(session) {
   activeSession=session;
-  const adminPath = window.location.pathname === "/portal/admin" || window.location.pathname === "/portal/admin/";
-  if(!session){renderAuth("signin");return;}
-  if(window.location.pathname === "/portal/payment/callback" || window.location.pathname === "/portal/payment/callback/"){
+  const path = window.location.pathname;
+  const adminPath = path === "/portal/admin" || path === "/portal/admin/";
+  const paymentCallbackPath = path === "/portal/payment/callback" || path === "/portal/payment/callback/";
+
+  // Render the callback even when the browser has lost its session. The callback
+  // page can then explain that the student must sign in again before verification.
+  if(paymentCallbackPath){
     await renderPaymentCallback();return;
   }
+  if(!session){renderAuth("signin");return;}
   const identity=await loadIdentity();
   if(adminPath){
     if(!identity){app.innerHTML='<div class="empty">Administrator identity verification is unavailable. Access remains closed until the secure role service is enabled.</div>';return;}
