@@ -319,6 +319,20 @@ async function featuredPaymentWebhook(req,res,sql){
   return send(res,200,{received:true,processed:true});
 }
 
+async function adminSession(req,res){
+  if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
+  const auth=await adminUser(req);
+  if(auth.error)return send(res,auth.status,{error:auth.error});
+  const user=auth.user;
+  return send(res,200,{
+    authenticated:true,
+    user:{id:user.id,email:user.email||null},
+    role:"legacy_store_admin",
+    permissions:["business_directory","job_ads","template_store","orders_installations","live_chat"],
+    role_management_enabled:false,
+    message:"This account is verified with the existing store_admin permission. Central staff roles are not enabled yet."
+  });
+}
 async function adminHealth(req,res){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
   const auth=await adminUser(req);if(auth.error)return send(res,auth.status,{error:auth.error});
@@ -363,6 +377,7 @@ module.exports=async function handler(req,res){
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
     if(route==="health")return await health(req,res);
     if(route==="admin-health")return await adminHealth(req,res);
+    if(route==="admin-session")return await adminSession(req,res);
     if(route==="featured-init")return await featuredPaymentInit(req,res,getRevenueSql());
     if(route==="featured-verify")return await featuredPaymentVerify(req,res,getRevenueSql());
     if(route==="featured-webhook")return await featuredPaymentWebhook(req,res,getRevenueSql());
