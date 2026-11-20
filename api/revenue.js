@@ -76,7 +76,9 @@ async function directory(req,res,sql){
   return send(res,201,{listing:rows[0],message:"Your listing has been submitted for review."});
 }
 async function admin(req,res,sql){
-  const auth=await adminUser(req);if(auth.error)return send(res,auth.status,{error:auth.error});
+  const auth=await centralAdminAuth(req,sql);if(auth.error)return send(res,auth.status,{error:auth.error});
+  const permission=req.method==="GET"?"directory.read":"directory.manage";
+  if(!hasCentralPermission(auth,permission))return send(res,403,{error:"You do not have permission to manage Business Directory."});
   if(req.method==="GET"){
     const listings=await sql`select id,business_name,slug,category,description,state,city,phone,whatsapp,email,website_url,public_contact_consent,public_contact_consent_at,status,is_featured,featured_until,created_at,admin_notes from public.business_directory_listings order by created_at desc limit 200`;
     return send(res,200,{listings});
@@ -125,7 +127,9 @@ async function jobs(req,res,sql){
   return send(res,201,{job:inserted[0],message:"Your job advert has been submitted for review."});
 }
 async function adminJobs(req,res,sql){
-  const auth=await adminUser(req);if(auth.error)return send(res,auth.status,{error:auth.error});
+  const auth=await centralAdminAuth(req,sql);if(auth.error)return send(res,auth.status,{error:auth.error});
+  const permission=req.method==="GET"?"jobs.read":"jobs.manage";
+  if(!hasCentralPermission(auth,permission))return send(res,403,{error:"You do not have permission to manage Job Ads."});
   if(req.method==="GET"){
     const listings=await sql`select id,job_title,employer_name,description,category,employment_type,state,city,is_remote,salary_min,salary_max,salary_period,application_email,application_url,whatsapp,public_contact_consent,public_contact_consent_at,status,closing_date,created_at,admin_notes from public.job_ads order by created_at desc limit 200`;
     return send(res,200,{jobs:listings});
@@ -340,6 +344,10 @@ function centralRolePermissions(role){
     support_staff:{"chat.read":true,"chat.reply":true,"orders.lookup":true}
   };
   return permissions[role]||null;
+}
+function hasCentralPermission(auth,permission){
+  const permissions=auth&&auth.permissions&&typeof auth.permissions==="object"?auth.permissions:{};
+  return permissions["*"]===true||permissions[permission]===true;
 }
 async function centralAdminRoles(req,res,sql){
   const auth=await centralAdminAuth(req,sql);
