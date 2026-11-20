@@ -66,7 +66,8 @@ if (fs.existsSync(revenueApiPath)) {
     ['Webhook raw body parsing is enabled', 'bodyParser:false'],
     ['Raw body parser config is assigned after handler export', 'module.exports.config={api:{bodyParser:false}};'],
     ['Webhook delivery idempotency is enabled', 'on conflict(payload_hash)'],
-    ['Webhook route is dispatched', 'route==="featured-webhook"']
+    ['Webhook route is dispatched', 'route==="featured-webhook"'],
+    ['Production featured checkout remains disabled until explicitly enabled', 'process.env.REVENUE_PAYMENTS_ENABLED!=="true"']
   ];
   for (const [label, marker] of paymentGuards) {
     if (!revenueApi.includes(marker)) {
