@@ -3,6 +3,7 @@ function send(res, status, body) {
 }
 
 const installationStatuses = new Set(["requested", "reviewing", "in_progress", "completed", "cancelled"]);
+const { requireCentralAdmin } = require("../_lib/central-admin");
 
 module.exports = async function handler(req, res) {
   if (!["GET", "PATCH"].includes(req.method)) {
@@ -17,20 +18,13 @@ module.exports = async function handler(req, res) {
     return send(res, 503, { error: "Order administration is not configured. Check the server-side Supabase service key." });
   }
 
-  const authorization = req.headers.authorization || "";
-  const accessToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-  if (!accessToken) return send(res, 401, { error: "Administrator sign-in is required." });
+  const permission = req.method === "GET" ? ["orders.read", "orders.lookup"] : "orders.manage";
+  const auth = await requireCentralAdmin(req, permission);
+  if (auth.error) return send(res, auth.status, { error: auth.error });
+  const user = auth.user;
+  const accessToken = (req.headers.authorization || "").slice(7);
 
   try {
-    const authResponse = await fetch(root + "/auth/v1/user", {
-      headers: { apikey: anonKey, Authorization: "Bearer " + accessToken }
-    });
-    if (!authResponse.ok) return send(res, 401, { error: "Your session is invalid or expired." });
-    const user = await authResponse.json();
-    if (!user.app_metadata || user.app_metadata.role !== "store_admin") {
-      return send(res, 403, { error: "Store administrator permission is required." });
-    }
-
     const adminHeaders = {
       apikey: serviceKey,
       Authorization: "Bearer " + serviceKey,
@@ -39,12 +33,17 @@ module.exports = async function handler(req, res) {
 
     if (req.method === "GET") {
       const ordersUrl = new URL(root + "/rest/v1/store_orders");
-      ordersUrl.searchParams.set("select", "id,user_id,product_id,purchase_type,amount_ngn,currency,status,payment_provider,provider_reference,created_at,paid_at,store_products(name,slug)");
+      const canReadFinancials = auth.permissions["*"] === true || auth.permissions["orders.read"] === true;
+      ordersUrl.searchParams.set("select", canReadFinancials
+        ? "id,user_id,product_id,purchase_type,amount_ngn,currency,status,payment_provider,provider_reference,created_at,paid_at,store_products(name,slug)"
+        : "id,product_id,purchase_type,status,created_at,paid_at,store_products(name,slug)");
       ordersUrl.searchParams.set("order", "created_at.desc");
       ordersUrl.searchParams.set("limit", "200");
 
       const installationsUrl = new URL(root + "/rest/v1/store_installations");
-      installationsUrl.searchParams.set("select", "id,order_id,user_id,requirements,status,admin_notes,created_at,updated_at,store_orders(amount_ngn,currency,status,purchase_type,store_products(name,slug))");
+      installationsUrl.searchParams.set("select", canReadFinancials
+        ? "id,order_id,user_id,requirements,status,admin_notes,created_at,updated_at,store_orders(amount_ngn,currency,status,purchase_type,store_products(name,slug))"
+        : "id,order_id,requirements,status,created_at,updated_at,store_orders(status,purchase_type,store_products(name,slug))");
       installationsUrl.searchParams.set("order", "created_at.desc");
       installationsUrl.searchParams.set("limit", "200");
 
