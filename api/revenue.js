@@ -392,17 +392,9 @@ async function centralAdminRoles(req,res,sql){
 
 async function adminSession(req,res,sql){
   if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
-  const auth=await adminUser(req);
+  const auth=await centralAdminAuth(req,sql);
   if(auth.error)return send(res,auth.status,{error:auth.error});
-  const user=auth.user;
-  return send(res,200,{
-    authenticated:true,
-    user:{id:user.id,email:user.email||null},
-    role:"legacy_store_admin",
-    permissions:["business_directory","job_ads","template_store","orders_installations","live_chat"],
-    role_management_enabled:false,
-    message:"This account is verified with the existing store_admin permission. Central staff roles are not enabled yet."
-  });
+  return send(res,200,{authenticated:true,user:{id:auth.user.id,email:auth.user.email||null},role:auth.role,permissions:auth.permissions,role_management_enabled:auth.role==="super_admin"});
 }
 async function adminHealth(req,res){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
