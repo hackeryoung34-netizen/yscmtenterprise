@@ -5,6 +5,7 @@ function send(res, status, body) {
 const editable = ["slug", "name", "category", "summary", "description", "screenshot_urls", "demo_url", "technologies", "license_type", "version", "download_price_ngn", "installation_price_ngn", "artifact_path", "status"];
 const categories = new Set(["Business Websites", "E-commerce", "Portfolio", "School & LMS", "Blog & News", "Admin Dashboard"]);
 const statuses = new Set(["draft", "published", "archived"]);
+const { requireCentralAdmin } = require("../_lib/central-admin");
 
 function validHttpUrl(value) {
   if (typeof value !== "string" || value.length > 2048) return false;
@@ -94,19 +95,13 @@ module.exports = async function handler(req, res) {
   const anonKey = process.env.SUPABASE_ANON_KEY;
   if (!root || !anonKey) return send(res, 503, { error: "Store administration is not configured yet." });
 
-  const authorization = req.headers.authorization || "";
-  const accessToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-  if (!accessToken) return send(res, 401, { error: "Administrator sign-in is required." });
-
+  const permission = req.method === "GET" ? "templates.read" : "templates.manage";
+  const auth = await requireCentralAdmin(req, permission);
+  if (auth.error) return send(res, auth.status, { error: auth.error });
+  const user = auth.user;
+  const accessToken = (req.headers.authorization || "").slice(7);
   const headers = { apikey: anonKey, Authorization: "Bearer " + accessToken, "Content-Type": "application/json" };
   try {
-    const authResponse = await fetch(root + "/auth/v1/user", { headers });
-    if (!authResponse.ok) return send(res, 401, { error: "Your session is invalid or expired." });
-    const user = await authResponse.json();
-    if (!user.app_metadata || user.app_metadata.role !== "store_admin") {
-      return send(res, 403, { error: "Store administrator permission is required." });
-    }
-
     if (req.method === "GET") {
       const url = new URL(root + "/rest/v1/store_products");
       url.searchParams.set("select", "*");
