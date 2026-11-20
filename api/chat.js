@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { requireCentralAdmin } = require("./_lib/central-admin");
 const BUCKET = "yscmt-chat-media";
 const MAX_MEDIA = 25 * 1024 * 1024;
 const MIME_TYPES = new Set([
@@ -15,8 +16,8 @@ async function db(root,key,path,options={}){const response=await fetch(root+"/re
 async function storage(root,key,path,options={}){const response=await fetch(root+"/storage/v1/"+path,{...options,headers:{apikey:key,Authorization:"Bearer "+key,...(options.headers||{})}});const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}if(!response.ok)throw new Error((data&& (data.message||data.error))||"Media storage request failed ("+response.status+").");return data;}
 async function getConversation(root,key,id){const rows=await db(root,key,"store_chat_conversations?select=id,visitor_token_hash,visitor_name,visitor_email,status,created_at,last_message_at&id=eq."+encodeURIComponent(id)+"&limit=1");return rows&&rows[0]||null;}
 async function getMessages(root,key,id){return await db(root,key,"store_chat_messages?select=id,sender_type,message,message_type,media_path,media_name,media_mime,media_size,created_at&conversation_id=eq."+encodeURIComponent(id)+"&order=created_at.asc&limit=300");}
-async function requireAdmin(req,root,anonKey){const header=req.headers.authorization||"",token=header.startsWith("Bearer ")?header.slice(7):"";if(!token)throw Object.assign(new Error("Administrator sign-in is required."),{status:401});const r=await fetch(root+"/auth/v1/user",{headers:{apikey:anonKey,Authorization:"Bearer "+token}});if(!r.ok)throw Object.assign(new Error("Your session is invalid or expired."),{status:401});const user=await r.json();if(!user.app_metadata||user.app_metadata.role!=="store_admin")throw Object.assign(new Error("Store administrator permission is required."),{status:403});return user;}
-async function authorize(req,root,anon,key,conversation,bodyOrQuery){const token=cleanText(bodyOrQuery&&(bodyOrQuery.visitor_token||bodyOrQuery.token),128);if(token&&/^[a-f0-9]{64}$/i.test(token)&&sameHash(conversation.visitor_token_hash,hash(token)))return "visitor";await requireAdmin(req,root,anon);return "admin";}
+async function requireAdmin(req,permission="chat.read"){const auth=await requireCentralAdmin(req,permission);if(auth.error)throw Object.assign(new Error(auth.error),{status:auth.status});return auth.user;}
+async function authorize(req,root,anon,key,conversation,bodyOrQuery,permission="chat.read"){const token=cleanText(bodyOrQuery&&(bodyOrQuery.visitor_token||bodyOrQuery.token),128);if(token&&/^[a-f0-9]{64}$/i.test(token)&&sameHash(conversation.visitor_token_hash,hash(token)))return "visitor";await requireAdmin(req,permission);return "admin";}
 async function signMedia(root,service,path,downloadName){const data=await storage(root,service,"object/sign/"+BUCKET+"/"+safePath(path),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600,...(downloadName?{download:downloadName}:{})})});const url=data&&data.signedURL;if(!url)throw new Error("Could not create a private media link.");return url.startsWith("http")?url:root+"/storage/v1"+url;}
 async function addCallEvent(root,service,callId,sender,eventType,payload={}){return await db(root,service,"store_chat_call_events",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({call_id:callId,sender_type:sender,event_type:eventType,payload})});}
 async function getCall(root,service,id){const rows=await db(root,service,"store_chat_calls?select=id,conversation_id,caller_type,call_type,status,created_at,updated_at,ended_at&id=eq."+encodeURIComponent(id)+"&limit=1");return rows&&rows[0]||null;}
@@ -31,7 +32,7 @@ module.exports=async function handler(req,res){
   if(req.method==="GET"){
    const action=cleanText(req.query&&req.query.action,40);
    if(action==="admin_list"){
-    await requireAdmin(req,root,anon);
+    await requireAdmin(req,"chat.read");
     const conversations=await db(root,service,"store_chat_conversations?select=id,visitor_name,visitor_email,status,created_at,last_message_at&order=last_message_at.desc&limit=100");
     const incoming_calls=await db(root,service,"store_chat_calls?select=id,conversation_id,caller_type,call_type,status,created_at&status=in.(ringing,active)&order=created_at.desc&limit=30");
     return send(res,200,{conversations,incoming_calls});
@@ -138,7 +139,7 @@ module.exports=async function handler(req,res){
   const conversationId=cleanText(body.conversation_id,36);
   if(!/^[0-9a-f-]{36}$/i.test(conversationId))return send(res,400,{error:"Invalid conversation ID."});
   const conversation=await getConversation(root,service,conversationId);if(!conversation)return send(res,404,{error:"Conversation not found."});
-  const side=await authorize(req,root,anon,service,conversation,body);
+  const adminPermission=["admin_reply","media_upload","media_message"].includes(action)?"chat.reply":"chat.read";\n  const side=await authorize(req,root,anon,service,conversation,body,adminPermission);
   if(conversation.status==="closed"&&side==="visitor")return send(res,409,{error:"This conversation has been closed."});
   if(action==="visitor_reply"||action==="admin_reply"){
     if(!message)return send(res,400,{error:"Please enter a message."});
