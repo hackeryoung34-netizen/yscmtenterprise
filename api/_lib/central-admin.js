@@ -26,7 +26,7 @@ async function requireCentralAdmin(req, permission) {
       return { error: "Central administrator access is not enabled for this account.", status: 403 };
     }
     const permissions = row.permissions && typeof row.permissions === "object" ? row.permissions : {};
-    if (!hasPermission(permissions, permission)) {
+    if (!(Array.isArray(permission) ? permission.some(item => hasPermission(permissions, item)) : hasPermission(permissions, permission))) {
       return { error: "You do not have permission to perform this action.", status: 403 };
     }
     return { user, role: row.role, permissions, sql };
