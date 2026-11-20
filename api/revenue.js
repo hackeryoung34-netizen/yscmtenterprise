@@ -143,13 +143,12 @@ async function adminJobs(req,res,sql){
 
 const FEATURED_AMOUNT_KOBO = 500000;
 function revenuePaystackSecret(){
+  if(process.env.VERCEL_ENV!=="production")throw new Error("Live payments are available only on the production deployment.");
   const key=process.env.REVENUE_PAYSTACK_SECRET_KEY||"";
-  const production=process.env.VERCEL_ENV==="production";
-  if(production&&!key.startsWith("sk_live_"))throw new Error("YSCMT live payment credentials are not configured.");
-  if(!production&&!key.startsWith("sk_test_"))throw new Error("YSCMT Preview requires a Paystack test secret key.");
+  if(!key.startsWith("sk_live_"))throw new Error("YSCMT live payment credentials are not configured.");
   return key;
 }
-function expectedPaystackDomain(){return process.env.VERCEL_ENV==="production"?"live":"test";}
+function expectedPaystackDomain(){return "live";}
 function safeHexEqual(actual,expected){
   if(typeof actual!=="string"||typeof expected!=="string"||!/^[a-f0-9]{128}$/i.test(actual)||!/^[a-f0-9]{128}$/i.test(expected))return false;
   const a=Buffer.from(actual,"hex"),b=Buffer.from(expected,"hex");
@@ -194,6 +193,7 @@ async function readRawRequestBody(req){
   return raw;
 }
 async function featuredPaymentInit(req,res,sql){
+  if(process.env.VERCEL_ENV!=="production")return send(res,403,{error:"Live payments are available only on the production website."});
   if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
   if(process.env.VERCEL_ENV==="production"&&process.env.REVENUE_PAYMENTS_ENABLED!=="true")return send(res,503,{error:"Featured Business checkout is temporarily unavailable while YSCMT completes payment setup."});
   const secret=revenuePaystackSecret();
@@ -229,6 +229,7 @@ async function featuredPaymentInit(req,res,sql){
   }
 }
 async function featuredPaymentVerify(req,res,sql){
+  if(process.env.VERCEL_ENV!=="production")return send(res,403,{error:"Live payment verification is available only on the production website."});
   if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
   const secret=revenuePaystackSecret();
   const reference=clean(req.query&&req.query.reference,100);
@@ -276,6 +277,7 @@ async function featuredPaymentVerify(req,res,sql){
 }
 
 async function featuredPaymentWebhook(req,res,sql){
+  if(process.env.VERCEL_ENV!=="production")return send(res,403,{error:"Live payment webhooks are accepted only on production."});
   if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
   const raw=req._yscmtRawBody||Buffer.alloc(0);
   if(!raw.length||!verifyWebhookSignature(req,raw))return send(res,401,{error:"Invalid Paystack webhook signature."});
