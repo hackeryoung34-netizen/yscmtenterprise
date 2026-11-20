@@ -5,7 +5,7 @@ const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 const roots = ["api", "scripts"];
-const htmlRoots = ["index.html", "business-directory", "jobs", "revenue-admin"];
+const htmlRoots = ["index.html", "admin", "business-directory", "jobs", "revenue-admin"];
 const files = [];
 
 function walk(dir) {
