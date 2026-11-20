@@ -41,7 +41,7 @@ module.exports=async function handler(req,res){
     const id=cleanText(req.query&&req.query.id,36);if(!/^[0-9a-f-]{36}$/i.test(id))return send(res,400,{error:"Invalid conversation ID."});
     const conversation=await getConversation(root,service,id);if(!conversation)return send(res,404,{error:"Conversation not found."});
     if(action==="admin_thread"){
-      await requireAdmin(req,root,anon);
+      await requireAdmin(req,"chat.read");
       const {visitor_token_hash,...safeConversation}=conversation;
       return send(res,200,{conversation:safeConversation,messages:await getMessages(root,service,id),active_call:await getActiveCall(root,service,id)});
     }
