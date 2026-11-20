@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Find jobs and advertise vacancies across Nigeria with YSCMT Enterprise.">
+<title>Jobs in Nigeria | YSCMT Enterprise</title>
+<style>
+:root{color-scheme:light;--ink:#152238;--muted:#64748b;--line:#e2e8f0;--brand:#123b68;--soft:#f5f8fc}
+*{box-sizing:border-box}body{margin:0;background:var(--soft);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:#102f52;color:white;padding:22px max(20px,calc((100% - 1080px)/2))}header a{color:white;text-decoration:none;font-weight:700}
+.wrap{max-width:1080px;margin:32px auto;padding:0 18px}.hero{padding:24px 0 12px}.hero h1{font-size:clamp(2rem,5vw,3rem);line-height:1.1;margin:0 0 12px}.hero p{color:var(--muted);max-width:680px}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:22px;align-items:start}.panel,.job{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 8px 24px #15223808}
+h2{font-size:1.2rem;margin:0 0 14px}label{display:block;font-weight:650;font-size:.9rem;margin:12px 0 5px}
+input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:11px 12px;font:inherit;background:white;color:var(--ink)}textarea{min-height:115px;resize:vertical}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}button{border:0;border-radius:9px;padding:12px 16px;background:var(--brand);color:white;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:wait}
+.muted{color:var(--muted);font-size:.9rem}.status{min-height:24px;margin:10px 0;color:var(--brand)}.results{display:grid;gap:12px;margin-top:14px}
+.job h3{margin:0 0 5px}.tag{display:inline-block;background:#edf4fb;color:#19466f;border-radius:30px;padding:3px 9px;font-size:.78rem;margin:2px}.job p{margin:8px 0}.job a{color:#174d7e;overflow-wrap:anywhere}
+.toolbar{display:grid;grid-template-columns:1fr 155px;gap:10px;margin:12px 0 10px}.filters{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.grid,.toolbar,.filters{grid-template-columns:1fr}}
+ .consent{display:flex;align-items:flex-start;gap:9px;font-size:13px;font-weight:500;color:#334155}.consent input{width:auto;flex:0 0 auto;margin-top:4px}
+</style></head>
+<body><header><a href="/">YSCMT ENTERPRISE</a></header>
+<main class="wrap">
+<section class="hero"><h1>Find your next opportunity</h1><p>Discover job opportunities across Nigeria, or submit a vacancy for review. Every advert is checked by YSCMT before publication.</p></section>
+<section class="panel" style="margin:0 0 18px"><h2>Job adverts are free</h2><p class="muted">Employers can submit job vacancies at no charge during the launch period. Every advert remains subject to YSCMT review and approval.</p></section>
+<div class="layout"><section>
+<div class="panel"><h2>Search jobs</h2>
+<div class="toolbar"><input id="search" type="search" placeholder="Job title, company or keyword"><select id="filterCategory"><option value="">All categories</option></select></div>
+<div class="filters"><select id="filterState"><option value="">All states</option></select><select id="filterType"><option value="">All job types</option></select></div>
+<p id="loadStatus" class="status" role="status"></p></div><div id="results" class="results" aria-live="polite"></div>
+</section>
+<aside class="panel"><h2>Advertise a vacancy</h2><p class="muted">Employers can submit vacancies for free review. Your advert stays pending until approved. Do not include sensitive personal information.</p>
+<form id="jobForm">
+<label>Job title<input name="job_title" required maxlength="160"></label><label>Company / employer name<input name="employer_name" required maxlength="160"></label>
+<label>Job description<textarea name="description" required minlength="30" maxlength="5000"></textarea></label>
+<div class="grid"><div><label>Category<select name="category" id="category" required></select></label></div><div><label>Employment type<select name="employment_type" id="employment" required></select></label></div></div>
+<div class="grid"><div><label>State<select name="state" id="state" required></select></label></div><div><label>City<input name="city" required maxlength="100"></label></div></div>
+<label><input name="is_remote" type="checkbox" value="true" style="width:auto"> Remote position</label>
+<div class="grid"><div><label>Minimum salary (₦)<input name="salary_min" type="number" min="0" step="1"></label></div><div><label>Maximum salary (₦)<input name="salary_max" type="number" min="0" step="1"></label></div></div>
+<label>Salary period<select name="salary_period"><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="weekly">Weekly</option><option value="daily">Daily</option><option value="hourly">Hourly</option></select></label>
+<label>Application email (optional)<input name="application_email" type="email" maxlength="254"></label>
+<label>Application website/link (optional)<input name="application_url" type="url" maxlength="2048" placeholder="https://..."></label>
+<label>WhatsApp number (optional)<input name="whatsapp" type="tel" maxlength="30" placeholder="+234..."></label>
+<label>Application closing date (optional)<input name="closing_date" type="date"></label>
+<label class="consent"><input type="checkbox" name="public_contact_consent" value="true" required> I confirm I am authorized to publish these employer contact details. I understand they will be visible publicly if the advert is approved.</label>
+<div class="hp" aria-hidden="true"><label>Leave empty<input name="website_confirm" tabindex="-1" autocomplete="off"></label></div>
+<button id="submitButton" type="submit">Submit job advert</button><p id="formStatus" class="status" role="status"></p>
+</form></aside></div><p class="muted" style="margin-top:20px">Safety notice: YSCMT reviews job adverts, but you should still verify every employer independently. Never pay money to apply for a job or share your passwords, OTPs, ATM PIN, BVN or NIN with a recruiter.</p>
+</main>
+<script>
+const states=["Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta","Ebonyi","Edo","Ekiti","Enugu","FCT","Gombe","Imo","Jigawa","Kaduna","Kano","Katsina","Kebbi","Kogi","Kwara","Lagos","Nasarawa","Niger","Ogun","Ondo","Osun","Oyo","Plateau","Rivers","Sokoto","Taraba","Yobe","Zamfara"];
+const categories=[["technology","Technology"],["sales","Sales"],["administration","Administration"],["customer-service","Customer service"],["finance","Finance"],["education","Education"],["healthcare","Healthcare"],["skilled-trades","Skilled trades"],["logistics","Logistics"],["hospitality","Hospitality"],["other","Other"]];
+const types=[["full-time","Full-time"],["part-time","Part-time"],["contract","Contract"],["internship","Internship"],["temporary","Temporary"],["remote","Remote"]];
+const $=id=>document.getElementById(id);
+function fill(id,items,label){const el=$(id);el.replaceChildren();const first=document.createElement("option");first.value="";first.textContent=label;el.append(first);items.forEach(item=>{const o=document.createElement("option");o.value=Array.isArray(item)?item[0]:item;o.textContent=Array.isArray(item)?item[1]:item;el.append(o);});}
+fill("state",states,"Choose state");fill("filterState",states,"All states");fill("category",categories,"Choose category");fill("filterCategory",categories,"All categories");fill("employment",types,"Choose job type");fill("filterType",types,"All job types");
+function node(tag,text,cls){const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e;}
+function safeLink(label,href){if(!href)return null;try{const u=new URL(href);if(!["https:","http:","mailto:","tel:"].includes(u.protocol))return null;const a=node("a",label);a.href=u.href;a.rel="noopener noreferrer";if(u.protocol==="http:"||u.protocol==="https:")a.target="_blank";return a;}catch{return null;}}
+function salary(j){if(j.salary_min==null&&j.salary_max==null)return "Salary not stated";const fmt=n=>"₦"+Number(n).toLocaleString("en-NG");return (j.salary_min==null?"":fmt(j.salary_min))+(j.salary_min!=null&&j.salary_max!=null?" – ":"")+(j.salary_max==null?"":fmt(j.salary_max))+" / "+j.salary_period;}
+async function load(){ $("loadStatus").textContent="Loading approved jobs…";const p=new URLSearchParams();if($("search").value.trim())p.set("q",$("search").value.trim());if($("filterState").value)p.set("state",$("filterState").value);if($("filterCategory").value)p.set("category",$("filterCategory").value);if($("filterType").value)p.set("type",$("filterType").value);
+try{const r=await fetch("/api/jobs?"+p);const data=await r.json();if(!r.ok)throw new Error(data.error||"Unable to load jobs.");$("results").replaceChildren();if(!data.jobs.length)$("results").append(node("div","No approved jobs found yet. Please check again soon.","panel"));data.jobs.forEach(j=>{const c=node("article","","job");c.append(node("h3",j.job_title),node("strong",j.employer_name),node("p",j.description),node("span",j.category.replaceAll("-"," "),"tag"),node("span",j.employment_type.replaceAll("-"," "),"tag"),node("p",(j.city+", "+j.state)+(j.is_remote?" · Remote":"")),node("p",salary(j)));if(j.closing_date)c.append(node("p","Apply before: "+j.closing_date));if(j.application_email){const p=node("p","");p.append(safeLink("Apply by email", "mailto:"+j.application_email));c.append(p);}if(j.application_url){const p=node("p","");p.append(safeLink("Apply online",j.application_url));c.append(p);}if(j.whatsapp){const number=j.whatsapp.replace(/[^0-9]/g,"");const p=node("p","");p.append(safeLink("Contact on WhatsApp","https://wa.me/"+number));c.append(p);}$("results").append(c);});$("loadStatus").textContent=data.jobs.length+" job(s) shown.";}catch(e){$("loadStatus").textContent=e.message;}}
+let timer;["search","filterState","filterCategory","filterType"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",()=>{clearTimeout(timer);timer=setTimeout(load,250);}));
+$("jobForm").addEventListener("submit",async e=>{e.preventDefault();const button=$("submitButton"),status=$("formStatus");button.disabled=true;status.textContent="Submitting…";const payload=Object.fromEntries(new FormData(e.currentTarget).entries());payload.is_remote=Boolean(payload.is_remote);try{const r=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await r.json();if(!r.ok)throw new Error(data.error||"Submission failed.");e.currentTarget.reset();status.textContent="Thank you. Your job advert is pending administrator review.";}catch(err){status.textContent=err.message;}finally{button.disabled=false;}});
+load();
+</script></body></html>
