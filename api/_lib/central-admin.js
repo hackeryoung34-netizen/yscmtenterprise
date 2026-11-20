@@ -5,7 +5,7 @@ function hasPermission(permissions, permission) {
 }
 
 async function requireCentralAdmin(req, permission) {
-  const root = (process.env.SUPABASE_URL || "").replace(/\\/$/, "");
+  const root = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
   const anonKey = process.env.SUPABASE_ANON_KEY || "";
   const authorization = req.headers.authorization || "";
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
