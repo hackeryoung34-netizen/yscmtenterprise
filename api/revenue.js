@@ -335,7 +335,7 @@ async function adminHealth(req,res){
     const received=await response.Body.transformToString();
     if(received!==marker)throw new Error("Object Storage read-back mismatch");
     result.object_storage="ok";
-  }catch{result.object_storage="error";}
+  }catch(error){console.error("[YSCMT revenue storage health check]",{name:error?.name,message:error?.message,statusCode:error?.$metadata?.httpStatusCode,code:error?.Code});result.object_storage="error";}
   finally{
     if(uploaded){
       try{await client.send(new DeleteObjectCommand({Bucket:bucket,Key:key}));result.cleanup="ok";}
