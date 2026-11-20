@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">YSCMT cybersecurity habits</title>
+<desc id="desc">A modern cybersecurity illustration with a shield, lock, connected devices and the YSCMT Enterprise brand.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#061a30"/><stop offset="1" stop-color="#10577a"/></linearGradient>
+ <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#21c4e8"/><stop offset="1" stop-color="#087da2"/></linearGradient>
+ <pattern id="dots" width="34" height="34" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#bdeeff" opacity=".2"/></pattern>
+</defs>
+<rect width="1200" height="630" fill="url(#bg)"/><rect width="1200" height="630" fill="url(#dots)"/>
+<circle cx="970" cy="305" r="230" fill="#0b789b" opacity=".18"/><circle cx="970" cy="305" r="170" fill="none" stroke="#7fe3ff" stroke-width="2" opacity=".24"/>
+<g transform="translate(770 105)">
+ <path d="M200 0 365 62v137c0 120-77 203-165 246C112 402 35 319 35 199V62Z" fill="url(#shield)" stroke="#a8f0ff" stroke-width="9"/>
+ <path d="M200 48 322 94v103c0 91-54 157-122 195-68-38-122-104-122-195V94Z" fill="#08213b" opacity=".88"/>
+ <rect x="145" y="176" width="110" height="88" rx="16" fill="#f0b84b"/>
+ <path d="M165 176v-27a35 35 0 0 1 70 0v27" fill="none" stroke="#f0b84b" stroke-width="15" stroke-linecap="round"/>
+ <circle cx="200" cy="216" r="10" fill="#08213b"/><path d="M200 225v17" stroke="#08213b" stroke-width="8" stroke-linecap="round"/>
+ <path d="m160 302 27 27 57-63" fill="none" stroke="#7fe3ff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g fill="none" stroke="#7fe3ff" stroke-width="4" opacity=".8">
+ <path d="M710 215h-92v-54h-64"/><path d="M760 430h-100v62h-78"/><path d="M1080 140h55v-45h35"/>
+</g>
+<g fill="#f0b84b"><circle cx="554" cy="161" r="8"/><circle cx="582" cy="492" r="8"/><circle cx="1170" cy="95" r="8"/></g>
+<text x="76" y="105" fill="#7fe3ff" font-family="Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="5">YSCMT ENTERPRISE</text>
+<text x="76" y="235" fill="#ffffff" font-family="Arial,sans-serif" font-size="62" font-weight="800">7 PRACTICAL</text>
+<text x="76" y="310" fill="#ffffff" font-family="Arial,sans-serif" font-size="62" font-weight="800">CYBERSECURITY</text>
+<text x="76" y="385" fill="#ffffff" font-family="Arial,sans-serif" font-size="62" font-weight="800">HABITS</text>
+<rect x="78" y="430" width="390" height="4" rx="2" fill="#f0b84b"/>
+<text x="78" y="480" fill="#d6eaf4" font-family="Arial,sans-serif" font-size="25">Protect your accounts, devices</text>
+<text x="78" y="517" fill="#d6eaf4" font-family="Arial,sans-serif" font-size="25">and personal information.</text>
+<text x="78" y="578" fill="#f0b84b" font-family="Arial,sans-serif" font-size="19" font-weight="700" letter-spacing="3">LEARN. BUILD. INNOVATE.</text>
+</svg>
