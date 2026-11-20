@@ -139,7 +139,8 @@ module.exports=async function handler(req,res){
   const conversationId=cleanText(body.conversation_id,36);
   if(!/^[0-9a-f-]{36}$/i.test(conversationId))return send(res,400,{error:"Invalid conversation ID."});
   const conversation=await getConversation(root,service,conversationId);if(!conversation)return send(res,404,{error:"Conversation not found."});
-  const adminPermission=["admin_reply","media_upload","media_message"].includes(action)?"chat.reply":"chat.read";\n  const side=await authorize(req,root,anon,service,conversation,body,adminPermission);
+  const adminPermission=["admin_reply","media_upload","media_message"].includes(action)?"chat.reply":"chat.read";
+  const side=await authorize(req,root,anon,service,conversation,body,adminPermission);
   if(conversation.status==="closed"&&side==="visitor")return send(res,409,{error:"This conversation has been closed."});
   if(action==="visitor_reply"||action==="admin_reply"){
     if(!message)return send(res,400,{error:"Please enter a message."});
