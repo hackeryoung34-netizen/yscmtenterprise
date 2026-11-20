@@ -82,9 +82,12 @@ if (fs.existsSync(revenueApiPath)) {
   }
 }
 const revenueSource = fs.existsSync(revenueApiPath) ? fs.readFileSync(revenueApiPath, "utf8") : "";
-if (!revenueSource.includes('if(route==="admin-session")return await adminSession(req,res);') || !revenueSource.includes("async function adminSession(req,res)")) {
+if (!revenueSource.includes('if(route==="admin-session")return await adminSession(req,res,getRevenueSql());') ||
+    !revenueSource.includes('if(route==="admin-roles")return await centralAdminRoles(req,res,getRevenueSql());') ||
+    !revenueSource.includes("async function adminSession(req,res,sql)") ||
+    !revenueSource.includes("async function centralAdminRoles(req,res,sql)")) {
   failed = true;
-  process.stderr.write("Missing server-verified central admin session route.\\n");
+  process.stderr.write("Missing server-enforced central admin RBAC routes.\\n");
 }
 
 const apiFunctionFiles = files.filter((file) => {
