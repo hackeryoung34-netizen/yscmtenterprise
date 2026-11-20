@@ -195,6 +195,7 @@ async function readRawRequestBody(req){
 }
 async function featuredPaymentInit(req,res,sql){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
+  if(process.env.VERCEL_ENV==="production"&&process.env.REVENUE_PAYMENTS_ENABLED!=="true")return send(res,503,{error:"Featured Business checkout is temporarily unavailable while YSCMT completes payment setup."});
   const secret=revenuePaystackSecret();
   const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
   const listingId=clean(body.listing_id,36),email=clean(body.email,254).toLowerCase();
