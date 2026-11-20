@@ -60,8 +60,9 @@ if (fs.existsSync(revenueApiPath)) {
   const revenueApi = fs.readFileSync(revenueApiPath, "utf8");
   const paymentGuards = [
     ['Production requires a live Paystack key', 'key.startsWith("sk_live_")'],
-    ['Preview requires a test Paystack key', 'key.startsWith("sk_test_")'],
-    ['Payment domain is environment-specific', 'payment.domain!==expectedPaystackDomain()'],
+    ['Live checkout is blocked outside Production', 'if(process.env.VERCEL_ENV!=="production")return send(res,403'],
+    ['Payment verification requires the live Paystack domain', 'function expectedPaystackDomain(){return "live";}'],
+    ['Payment domain is verified', 'payment.domain!==expectedPaystackDomain()'],
     ['Webhook signatures are checked', 'verifyWebhookSignature(req,raw)'],
     ['Webhook raw body parsing is enabled', 'bodyParser:false'],
     ['Raw body parser config is assigned after handler export', 'module.exports.config={api:{bodyParser:false}};'],
@@ -74,6 +75,10 @@ if (fs.existsSync(revenueApiPath)) {
       failed = true;
       process.stderr.write("Missing payment safety check: " + label + "\n");
     }
+  }
+  if (revenueApi.includes("sk_test_")) {
+    failed = true;
+    process.stderr.write("Test Paystack mode must not exist in the Featured Business payment flow.\n");
   }
 }
 const apiFunctionFiles = files.filter((file) => {
