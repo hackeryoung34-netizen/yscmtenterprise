@@ -3,7 +3,10 @@ name: Revenue branch checks
 on:
   push:
     branches:
-      - feature/revenue-monetization-2026
+      - main
+      - "feature/**"
+      - "fix/**"
+      - "chore/**"
   pull_request:
     branches:
       - main
