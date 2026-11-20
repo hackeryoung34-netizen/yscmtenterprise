@@ -319,7 +319,78 @@ async function featuredPaymentWebhook(req,res,sql){
   return send(res,200,{received:true,processed:true});
 }
 
-async function adminSession(req,res){
+
+async function centralAdminAuth(req,sql){
+  const root=(process.env.SUPABASE_URL||"").replace(/\/$/,""),key=process.env.SUPABASE_ANON_KEY||"";
+  const auth=req.headers.authorization||"",token=auth.startsWith("Bearer ")?auth.slice(7):"";
+  if(!root||!key||!token)return {error:"Administrator sign-in is required.",status:401};
+  const response=await fetch(root+"/auth/v1/user",{headers:{apikey:key,Authorization:"Bearer "+token}});
+  if(!response.ok)return {error:"Your session is invalid or expired.",status:401};
+  const user=await response.json();
+  const rows=await sql`select role,is_active,permissions from public.central_admin_roles where user_id=${user.id}::uuid limit 1`;
+  const role=rows[0];
+  if(!role||!role.is_active)return {error:"Central administrator access is not enabled for this account.",status:403};
+  return {user,role:role.role,permissions:role.permissions||{}};
+}
+function centralRolePermissions(role){
+  const permissions={
+    super_admin:{"*":true},
+    finance:{"revenue.read":true,"revenue.manage":true,"orders.read":true,"reports.read":true},
+    content_manager:{"directory.read":true,"directory.manage":true,"jobs.read":true,"jobs.manage":true,"templates.read":true,"templates.manage":true},
+    support_staff:{"chat.read":true,"chat.reply":true,"orders.lookup":true}
+  };
+  return permissions[role]||null;
+}
+async function centralAdminRoles(req,res,sql){
+  const auth=await centralAdminAuth(req,sql);
+  if(auth.error)return send(res,auth.status,{error:auth.error});
+  if(auth.role!=="super_admin")return send(res,403,{error:"Only the Super Admin can manage staff roles."});
+  if(req.method==="GET"){
+    const rows=await sql`select user_id::text as user_id,role,is_active,permissions,created_at,updated_at from public.central_admin_roles order by created_at asc`;
+    return send(res,200,{staff:rows});
+  }
+  if(req.method==="POST"){
+    const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
+    const userId=clean(body.user_id,36),role=clean(body.role,30);
+    if(!/^[0-9a-f-]{36}$/i.test(userId)||!centralRolePermissions(role))return send(res,400,{error:"Enter a valid Supabase user ID and staff role."});
+    if(userId===auth.user.id)return send(res,400,{error:"You cannot add yourself as another staff account."});
+    const serviceKey=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
+    const root=(process.env.SUPABASE_URL||"").replace(/\/$/,"");
+    if(!serviceKey)return send(res,503,{error:"Staff creation is not configured. Add SUPABASE_SERVICE_ROLE_KEY to Vercel Production environment variables."});
+    const check=await fetch(root+"/auth/v1/admin/users/"+encodeURIComponent(userId),{headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey}});
+    if(!check.ok)return send(res,404,{error:"No Supabase Auth user was found for that user ID."});
+    const target=await check.json();
+    const inserted=await sql`insert into public.central_admin_roles(user_id,role,is_active,permissions,created_by)
+      values(${userId}::uuid,${role},true,${JSON.stringify(centralRolePermissions(role))}::jsonb,${auth.user.id}::uuid)
+      on conflict(user_id) do nothing returning user_id::text as user_id,role,is_active,permissions,created_at,updated_at`;
+    if(!inserted[0])return send(res,409,{error:"This user already has a central admin role."});
+    await sql`insert into public.central_admin_audit_logs(actor_user_id,target_user_id,action,details)
+      values(${auth.user.id}::uuid,${userId}::uuid,'role_created',${JSON.stringify({role,email:target.email||null})}::jsonb)`;
+    return send(res,201,{staff:inserted[0]});
+  }
+  if(req.method==="PATCH"){
+    const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
+    const userId=clean(body.user_id,36),role=body.role===undefined?null:clean(body.role,30),active=body.is_active;
+    if(!/^[0-9a-f-]{36}$/i.test(userId)||userId===auth.user.id)return send(res,400,{error:"A valid staff user ID other than your own is required."});
+    if(role!==null&&!centralRolePermissions(role))return send(res,400,{error:"Invalid staff role."});
+    if(role===null&&typeof active!=="boolean")return send(res,400,{error:"Choose a valid role or active status change."});
+    const existing=await sql`select role,is_active from public.central_admin_roles where user_id=${userId}::uuid limit 1`;
+    if(!existing[0])return send(res,404,{error:"Staff account not found."});
+    if(existing[0].role==="super_admin"&&(role&&role!=="super_admin"||active===false)){
+      const count=await sql`select count(*)::int as total from public.central_admin_roles where role='super_admin' and is_active=true`;
+      if(Number(count[0]?.total||0)<=1)return send(res,409,{error:"The last active Super Admin cannot be demoted or disabled."});
+    }
+    const nextRole=role||existing[0].role,nextActive=typeof active==="boolean"?active:existing[0].is_active;
+    const updated=await sql`update public.central_admin_roles set role=${nextRole},is_active=${nextActive},permissions=${JSON.stringify(centralRolePermissions(nextRole))}::jsonb,updated_at=now() where user_id=${userId}::uuid returning user_id::text as user_id,role,is_active,permissions,created_at,updated_at`;
+    await sql`insert into public.central_admin_audit_logs(actor_user_id,target_user_id,action,details)
+      values(${auth.user.id}::uuid,${userId}::uuid,${nextActive?"role_updated":"role_disabled"},${JSON.stringify({previous_role:existing[0].role,role:nextRole,is_active:nextActive})}::jsonb)`;
+    return send(res,200,{staff:updated[0]});
+  }
+  res.setHeader("Allow","GET, POST, PATCH");
+  return send(res,405,{error:"Method not allowed"});
+}
+
+async function adminSession(req,res,sql){
   if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
   const auth=await adminUser(req);
   if(auth.error)return send(res,auth.status,{error:auth.error});
@@ -377,7 +448,8 @@ module.exports=async function handler(req,res){
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
     if(route==="health")return await health(req,res);
     if(route==="admin-health")return await adminHealth(req,res);
-    if(route==="admin-session")return await adminSession(req,res);
+    if(route==="admin-session")return await adminSession(req,res,getRevenueSql());
+    if(route==="admin-roles")return await centralAdminRoles(req,res,getRevenueSql());
     if(route==="featured-init")return await featuredPaymentInit(req,res,getRevenueSql());
     if(route==="featured-verify")return await featuredPaymentVerify(req,res,getRevenueSql());
     if(route==="featured-webhook")return await featuredPaymentWebhook(req,res,getRevenueSql());
