@@ -93,14 +93,14 @@ module.exports = async function handler(req, res) {
 
   const root = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
   const anonKey = process.env.SUPABASE_ANON_KEY;
-  if (!root || !anonKey) return send(res, 503, { error: "Store administration is not configured yet." });
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!root || !anonKey || !serviceKey) return send(res, 503, { error: "Store administration is not configured yet." });
 
   const permission = req.method === "GET" ? "templates.read" : "templates.manage";
   const auth = await requireCentralAdmin(req, permission);
   if (auth.error) return send(res, auth.status, { error: auth.error });
   const user = auth.user;
-  const accessToken = (req.headers.authorization || "").slice(7);
-  const headers = { apikey: anonKey, Authorization: "Bearer " + accessToken, "Content-Type": "application/json" };
+  const headers = { apikey: serviceKey, Authorization: "Bearer " + serviceKey, "Content-Type": "application/json" };
   try {
     if (req.method === "GET") {
       const url = new URL(root + "/rest/v1/store_products");
