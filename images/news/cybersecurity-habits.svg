@@ -1,31 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
-<title id="title">YSCMT cybersecurity habits</title>
-<desc id="desc">A modern cybersecurity illustration with a shield, lock, connected devices and the YSCMT Enterprise brand.</desc>
+<title id="title">Cybersecurity protection illustration by YSCMT Enterprise</title>
+<desc id="desc">A clean, modern illustration of a secure laptop, smartphone, shield and padlock, representing safe digital habits.</desc>
 <defs>
  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#061a30"/><stop offset="1" stop-color="#10577a"/></linearGradient>
- <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#21c4e8"/><stop offset="1" stop-color="#087da2"/></linearGradient>
- <pattern id="dots" width="34" height="34" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#bdeeff" opacity=".2"/></pattern>
+ <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#27c6e8"/><stop offset="1" stop-color="#087da2"/></linearGradient>
+ <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#123f60"/><stop offset="1" stop-color="#0a2945"/></linearGradient>
+ <pattern id="dots" width="36" height="36" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#bdeeff" opacity=".17"/></pattern>
 </defs>
 <rect width="1200" height="630" fill="url(#bg)"/><rect width="1200" height="630" fill="url(#dots)"/>
-<circle cx="970" cy="305" r="230" fill="#0b789b" opacity=".18"/><circle cx="970" cy="305" r="170" fill="none" stroke="#7fe3ff" stroke-width="2" opacity=".24"/>
-<g transform="translate(770 105)">
- <path d="M200 0 365 62v137c0 120-77 203-165 246C112 402 35 319 35 199V62Z" fill="url(#shield)" stroke="#a8f0ff" stroke-width="9"/>
- <path d="M200 48 322 94v103c0 91-54 157-122 195-68-38-122-104-122-195V94Z" fill="#08213b" opacity=".88"/>
- <rect x="145" y="176" width="110" height="88" rx="16" fill="#f0b84b"/>
- <path d="M165 176v-27a35 35 0 0 1 70 0v27" fill="none" stroke="#f0b84b" stroke-width="15" stroke-linecap="round"/>
- <circle cx="200" cy="216" r="10" fill="#08213b"/><path d="M200 225v17" stroke="#08213b" stroke-width="8" stroke-linecap="round"/>
- <path d="m160 302 27 27 57-63" fill="none" stroke="#7fe3ff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="750" cy="310" r="260" fill="#0b789b" opacity=".17"/><circle cx="750" cy="310" r="205" fill="none" stroke="#7fe3ff" stroke-width="2" opacity=".22"/>
+<g opacity=".55" fill="none" stroke="#7fe3ff" stroke-width="3"><path d="M170 170h130v80h95"/><path d="M190 440h140v-60h95"/><path d="M970 120h100v75h60"/><path d="M980 490h95v-65h65"/></g>
+<g fill="#f0b84b"><circle cx="395" cy="250" r="8"/><circle cx="425" cy="380" r="8"/><circle cx="1130" cy="195" r="8"/><circle cx="1140" cy="425" r="8"/></g>
+<!-- laptop -->
+<g transform="translate(170 245)">
+ <rect x="0" y="0" width="390" height="245" rx="20" fill="#d9edf5" opacity=".95"/>
+ <rect x="15" y="15" width="360" height="215" rx="11" fill="url(#screen)"/>
+ <circle cx="195" cy="9" r="3" fill="#8baab9"/>
+ <path d="M-35 248h460l-34 32H0Z" fill="#b6d0dc"/>
+ <path d="M145 248h130l-12 12h-106Z" fill="#7295a7"/>
+ <rect x="43" y="52" width="92" height="9" rx="4" fill="#7fe3ff" opacity=".8"/>
+ <rect x="43" y="77" width="220" height="7" rx="3" fill="#bdeeff" opacity=".35"/>
+ <rect x="43" y="98" width="180" height="7" rx="3" fill="#bdeeff" opacity=".25"/>
+ <rect x="43" y="138" width="120" height="55" rx="9" fill="#0b789b" opacity=".6"/>
+ <path d="m78 165 17 16 35-39" fill="none" stroke="#f0b84b" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+ <rect x="183" y="138" width="150" height="9" rx="4" fill="#bdeeff" opacity=".5"/>
+ <rect x="183" y="158" width="120" height="8" rx="4" fill="#bdeeff" opacity=".28"/>
+ <rect x="183" y="178" width="138" height="8" rx="4" fill="#bdeeff" opacity=".28"/>
 </g>
-<g fill="none" stroke="#7fe3ff" stroke-width="4" opacity=".8">
- <path d="M710 215h-92v-54h-64"/><path d="M760 430h-100v62h-78"/><path d="M1080 140h55v-45h35"/>
+<!-- shield and lock -->
+<g transform="translate(650 82)">
+ <path d="M210 0 390 68v145c0 139-83 239-180 290C113 452 30 352 30 213V68Z" fill="url(#shield)" stroke="#a8f0ff" stroke-width="10"/>
+ <path d="M210 48 345 99v112c0 103-61 181-135 224-74-43-135-121-135-224V99Z" fill="#08213b" opacity=".9"/>
+ <rect x="137" y="188" width="146" height="115" rx="20" fill="#f0b84b"/>
+ <path d="M164 188v-38a46 46 0 0 1 92 0v38" fill="none" stroke="#f0b84b" stroke-width="18" stroke-linecap="round"/>
+ <circle cx="210" cy="241" r="13" fill="#08213b"/><path d="M210 254v23" stroke="#08213b" stroke-width="10" stroke-linecap="round"/>
+ <path d="m164 345 32 32 66-72" fill="none" stroke="#7fe3ff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
-<g fill="#f0b84b"><circle cx="554" cy="161" r="8"/><circle cx="582" cy="492" r="8"/><circle cx="1170" cy="95" r="8"/></g>
-<text x="76" y="105" fill="#7fe3ff" font-family="Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="5">YSCMT ENTERPRISE</text>
-<text x="76" y="235" fill="#ffffff" font-family="Arial,sans-serif" font-size="62" font-weight="800">7 PRACTICAL</text>
-<text x="76" y="310" fill="#ffffff" font-family="Arial,sans-serif" font-size="62" font-weight="800">CYBERSECURITY</text>
-<text x="76" y="385" fill="#ffffff" font-family="Arial,sans-serif" font-size="62" font-weight="800">HABITS</text>
-<rect x="78" y="430" width="390" height="4" rx="2" fill="#f0b84b"/>
-<text x="78" y="480" fill="#d6eaf4" font-family="Arial,sans-serif" font-size="25">Protect your accounts, devices</text>
-<text x="78" y="517" fill="#d6eaf4" font-family="Arial,sans-serif" font-size="25">and personal information.</text>
-<text x="78" y="578" fill="#f0b84b" font-family="Arial,sans-serif" font-size="19" font-weight="700" letter-spacing="3">LEARN. BUILD. INNOVATE.</text>
+<!-- phone -->
+<g transform="translate(940 350) rotate(9)">
+ <rect width="112" height="190" rx="19" fill="#d9edf5"/>
+ <rect x="8" y="12" width="96" height="166" rx="13" fill="#0a2945"/>
+ <rect x="31" y="22" width="50" height="5" rx="2" fill="#7295a7"/>
+ <circle cx="56" cy="155" r="7" fill="#7fe3ff"/>
+ <path d="M56 64 79 73v24c0 19-10 32-23 40-13-8-23-21-23-40V73Z" fill="#087da2" stroke="#7fe3ff" stroke-width="3"/>
+ <path d="m46 96 8 8 14-17" fill="none" stroke="#f0b84b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<text x="72" y="78" fill="#dff7ff" font-family="Arial,sans-serif" font-size="24" font-weight="700" letter-spacing="4">YSCMT ENTERPRISE</text>
+<rect x="72" y="96" width="210" height="4" rx="2" fill="#f0b84b"/>
 </svg>
