@@ -140,6 +140,41 @@ module.exports = async function handler(req, res) {
     const validationError = validatePayload(payload);
     if (validationError) return send(res, 400, { error: validationError });
 
+    // A product must have a real private ZIP archive before it can be published.
+    if (payload.status === "published") {
+      let archivePath = payload.artifact_path;
+      if (req.method === "PATCH" && archivePath === undefined) {
+        const id = typeof body.id === "string" ? body.id : "";
+        if (!/^[0-9a-f-]{36}$/i.test(id)) return send(res, 400, { error: "A valid product ID is required for updates." });
+        const currentUrl = new URL(root + "/rest/v1/store_products");
+        currentUrl.searchParams.set("select", "artifact_path");
+        currentUrl.searchParams.set("id", "eq." + id);
+        const currentResponse = await fetch(currentUrl, { headers });
+        if (!currentResponse.ok) return send(res, 502, { error: "Unable to verify the product archive." });
+        const currentRows = await currentResponse.json();
+        if (!currentRows[0]) return send(res, 404, { error: "No product was found for this update." });
+        archivePath = currentRows[0].artifact_path;
+      }
+
+      if (typeof archivePath !== "string" || !archivePath.trim()) {
+        return send(res, 400, { error: "Upload a ZIP archive before publishing this product." });
+      }
+
+      const infoUrl = root + "/storage/v1/object/info/template-archives/" +
+        archivePath.split("/").map(encodeURIComponent).join("/");
+      const archiveResponse = await fetch(infoUrl, {
+        method: "GET",
+        headers: { apikey: serviceKey, Authorization: "Bearer " + serviceKey }
+      });
+      if (archiveResponse.status === 404) {
+        return send(res, 400, { error: "The selected ZIP archive was not found in private storage. Upload it before publishing." });
+      }
+      if (!archiveResponse.ok) {
+        console.error("[template archive verification]", archiveResponse.status);
+        return send(res, 502, { error: "Could not verify the ZIP archive in private storage. Please try again." });
+      }
+    }
+
     let url;
     if (req.method === "POST") {
       for (const field of ["slug", "name", "category"]) {
