@@ -21,6 +21,14 @@
   "outputDirectory": ".",
   "rewrites": [
     {
+      "source": "/portal",
+      "destination": "https://yscmt-react.vercel.app/"
+    },
+    {
+      "source": "/portal/:path*",
+      "destination": "https://yscmt-react.vercel.app/:path*"
+    },
+    {
       "source": "/api/business-directory",
       "destination": "/api/revenue?route=directory"
     },
