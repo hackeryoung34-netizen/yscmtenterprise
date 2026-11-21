@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
     const user = await userResponse.json();
     if (!user.email) return send(res, 400, { error: "A verified email address is required for payment." });
     const productUrl = new URL(root + "/rest/v1/store_products");
-    productUrl.searchParams.set("select","id,name,download_price_ngn,installation_price_ngn");
+    productUrl.searchParams.set("select","id,name,download_price_ngn,installation_price_ngn,artifact_path");
     productUrl.searchParams.set("id","eq."+productId); productUrl.searchParams.set("status","eq.published"); productUrl.searchParams.set("limit","1");
     const productResponse = await fetch(productUrl,{headers});
     if (!productResponse.ok) return send(res,502,{error:"Unable to verify this product."});
@@ -26,6 +26,24 @@ module.exports = async function handler(req, res) {
     if (!product) return send(res,404,{error:"This template is not available for purchase."});
     const amount=purchaseType==="source_code"?product.download_price_ngn:product.installation_price_ngn;
     if (!Number.isSafeInteger(amount)||amount<=0) return send(res,409,{error:"This purchase option is not available for payment yet."});
+    const archivePath = product.artifact_path;
+    if (typeof archivePath !== "string" || !archivePath.trim() ||
+        archivePath.startsWith("/") || archivePath.split("/").includes("..") ||
+        !archivePath.toLowerCase().endsWith(".zip")) {
+      return send(res, 409, { error: "This template archive is not available for purchase yet." });
+    }
+    const encodedArchivePath = archivePath.split("/").map(encodeURIComponent).join("/");
+    const archiveCheck = await fetch(root + "/storage/v1/object/info/template-archives/" + encodedArchivePath, {
+      method: "GET",
+      headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: "Bearer " + process.env.SUPABASE_SERVICE_ROLE_KEY }
+    });
+    if (archiveCheck.status === 404) {
+      return send(res, 409, { error: "This template archive is temporarily unavailable. No payment has been created." });
+    }
+    if (!archiveCheck.ok) {
+      console.error("[checkout archive verification]", archiveCheck.status);
+      return send(res, 503, { error: "We could not verify the template archive. Please try again shortly." });
+    }
     const orderResponse=await fetch(root+"/rest/v1/store_orders",{
       method:"POST",headers:{...headers,Prefer:"return=representation"},
       body:JSON.stringify({user_id:user.id,product_id:product.id,purchase_type:purchaseType,amount_ngn:amount,currency:"NGN",status:"pending"})
