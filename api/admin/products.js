@@ -3,6 +3,11 @@ function send(res, status, body) {
 }
 const editable = ["slug","name","category","summary","description","screenshot_urls","demo_url","technologies","license_type","version","download_price_ngn","installation_price_ngn","artifact_path","status"];
 const categories = new Set(["Business Websites","E-commerce","Portfolio","School & LMS","Blog & News","Admin Dashboard"]);
+function validArchivePath(path) {
+  return typeof path === "string" && path.length > 0 && path.length <= 500 &&
+    !path.startsWith("/") && !path.includes("\\") && !path.split("/").includes("..") &&
+    path.endsWith(".zip") && path.split("/").length >= 2;
+}
 module.exports = async function handler(req, res) {
   if (!["GET","POST","PATCH"].includes(req.method)) { res.setHeader("Allow", "GET, POST, PATCH"); return send(res, 405, { error: "Method not allowed" }); }
   const root = (process.env.SUPABASE_URL || "").replace(/\/$/, ""), anonKey = process.env.SUPABASE_ANON_KEY;
@@ -31,14 +36,32 @@ module.exports = async function handler(req, res) {
     if (payload.slug !== undefined && (typeof payload.slug !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(payload.slug))) return send(res, 400, { error: "Slug must use lowercase letters, numbers and hyphens." });
     for (const field of ["download_price_ngn","installation_price_ngn"]) if (payload[field] !== undefined && payload[field] !== null && (!Number.isSafeInteger(payload[field]) || payload[field] < 0)) return send(res, 400, { error: field + " must be a non-negative whole number or null." });
     for (const field of ["screenshot_urls","technologies"]) if (payload[field] !== undefined && (!Array.isArray(payload[field]) || payload[field].some(item => typeof item !== "string"))) return send(res, 400, { error: field + " must be an array of strings." });
-    let url, method;
+    let url, method, current = null;
     if (req.method === "POST") {
       for (const field of ["slug","name","category"]) if (!payload[field]) return send(res, 400, { error: field + " is required for a new product." });
       url = root + "/rest/v1/store_products"; method = "POST";
     } else {
       const id = typeof body.id === "string" ? body.id : "";
       if (!/^[0-9a-f-]{36}$/i.test(id)) return send(res, 400, { error: "A valid product ID is required for updates." });
+      const currentUrl = new URL(root + "/rest/v1/store_products");
+      currentUrl.searchParams.set("select", "id,slug,artifact_path,status");
+      currentUrl.searchParams.set("id", "eq." + id); currentUrl.searchParams.set("limit", "1");
+      const currentResponse = await fetch(currentUrl, { headers });
+      if (!currentResponse.ok) return send(res, 502, { error: "Unable to verify the existing product before updating it." });
+      current = (await currentResponse.json())[0];
+      if (!current) return send(res, 404, { error: "Product not found." });
       url = new URL(root + "/rest/v1/store_products"); url.searchParams.set("id", "eq." + id); method = "PATCH";
+    }
+    if (payload.status === "published") {
+      const archivePath = payload.artifact_path !== undefined ? payload.artifact_path : current && current.artifact_path;
+      const slug = payload.slug || (current && current.slug);
+      if (!validArchivePath(archivePath)) return send(res, 409, { error: "A valid ZIP archive must be uploaded before this product can be published." });
+      const infoUrl = root + "/storage/v1/object/info/template-archives/" + archivePath.split("/").map(encodeURIComponent).join("/");
+      const infoResponse = await fetch(infoUrl, { headers });
+      if (!infoResponse.ok) return send(res, 409, { error: "The ZIP archive could not be verified in the private template archive bucket. Keep this product in Draft until the upload is complete." });
+      const info = await infoResponse.json().catch(() => ({}));
+      if (info.name && !String(info.name).toLowerCase().endsWith(".zip")) return send(res, 409, { error: "The verified archive is not a ZIP file." });
+      if (payload.slug && slug !== payload.slug) return send(res, 409, { error: "Product slug validation failed." });
     }
     const response = await fetch(url, { method, headers: { ...headers, Prefer: "return=representation" }, body: JSON.stringify(payload) });
     if (!response.ok) return send(res, 502, { error: "Product could not be saved. Check required fields and administrator permissions." });
