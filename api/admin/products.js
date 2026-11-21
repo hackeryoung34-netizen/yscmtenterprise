@@ -112,6 +112,25 @@ module.exports = async function handler(req, res) {
     }
 
     const body = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
+    if (req.method === "POST" && body.action === "archive-upload") {
+      const slug = typeof body.slug === "string" ? body.slug.trim() : "";
+      const version = typeof body.version === "string" ? body.version.trim() : "";
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/.test(version)) {
+        return send(res, 400, { error: "A valid product slug and version are required." });
+      }
+      const path = slug + "/" + version.replace(/[^a-zA-Z0-9._-]/g, "-") + ".zip";
+      const signed = await fetch(root + "/storage/v1/object/upload/sign/template-archives/" + path.split("/").map(encodeURIComponent).join("/"), {
+        method: "POST",
+        headers: { apikey: serviceKey, Authorization: "Bearer " + serviceKey, "Content-Type": "application/json", "x-upsert": "true" },
+        body: "{}"
+      });
+      const signedData = await signed.json().catch(() => ({}));
+      if (!signed.ok || typeof signedData.url !== "string") {
+        console.error("[template archive signed upload]", signed.status, signedData && (signedData.message || signedData.error) || "Storage request failed");
+        return send(res, 502, { error: "Could not prepare a secure archive upload." });
+      }
+      return send(res, 200, { path, signedUrl: new URL(signedData.url, root).toString() });
+    }
     const payload = {};
     for (const key of editable) {
       if (Object.prototype.hasOwnProperty.call(body, key)) payload[key] = body[key];
