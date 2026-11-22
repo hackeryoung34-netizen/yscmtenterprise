@@ -10,7 +10,16 @@ const products = [
 ];
 const money = value => new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(value);
 let activeCategory = "All";
-let cart = JSON.parse(localStorage.getItem("forma-cart") || "[]");
+function loadCart(){
+  try {
+    const saved = JSON.parse(localStorage.getItem("forma-cart") || "[]");
+    if (!Array.isArray(saved)) return [];
+    return saved.filter(item => item && Number.isInteger(item.id) && products.some(product => product.id === item.id) && Number.isInteger(item.qty) && item.qty > 0);
+  } catch {
+    return [];
+  }
+}
+let cart = loadCart();
 const grid = document.querySelector("#productGrid");
 const searchInput = document.querySelector("#searchInput");
 const sortSelect = document.querySelector("#sortSelect");
@@ -32,7 +41,7 @@ function renderProducts(){
       <div class="product-meta"><div><div class="product-name">${p.name}</div><div class="product-category">${p.category}</div></div><div class="product-price">${money(p.price)}</div></div>
     </article>`).join("") : '<p class="muted">No pieces found. Try another search or category.</p>';
 }
-function persist(){localStorage.setItem("forma-cart",JSON.stringify(cart));renderCart();}
+function persist(){try{localStorage.setItem("forma-cart",JSON.stringify(cart));}catch(error){showToast("Cart could not be saved on this device.");}renderCart();}
 function addToCart(id){const item=cart.find(x=>x.id===id);if(item)item.qty++;else cart.push({id,qty:1});persist();showToast("Added to your bag");}
 function changeQty(id,delta){const item=cart.find(x=>x.id===id);if(!item)return;item.qty+=delta;if(item.qty<=0)cart=cart.filter(x=>x.id!==id);persist();}
 function removeItem(id){cart=cart.filter(x=>x.id!==id);persist();}
