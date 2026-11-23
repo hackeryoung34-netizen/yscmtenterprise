@@ -44,13 +44,16 @@ jobs:
           ls -lh dist
 
       - name: Upload verified ZIPs and publish catalogue entries
-        if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         shell: bash
         run: |
           set -euo pipefail
+          if [[ -z "$SUPABASE_URL" || -z "$SUPABASE_SERVICE_ROLE_KEY" ]]; then
+            echo "Supabase upload skipped: configure repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+            exit 0
+          fi
           slugs=(
             yscmt-ecommerce-store
             yscmt-creative-portfolio
@@ -105,9 +108,6 @@ jobs:
             }
           done
           echo "All five archives were uploaded, byte-verified, and published."
-      - name: Report upload credentials status
-        if: ${{ secrets.SUPABASE_URL == '' || secrets.SUPABASE_SERVICE_ROLE_KEY == '' }}
-        run: echo "Supabase upload skipped: repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are not both configured."
       - name: Upload archives as workflow artifact
         uses: actions/upload-artifact@v4
         with:
