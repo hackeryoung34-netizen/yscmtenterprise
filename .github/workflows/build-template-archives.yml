@@ -1,0 +1,54 @@
+name: Build template ZIP archives
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-template-archives.yml"
+      - "templates/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Build five versioned ZIP archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          declare -A folders=(
+            [yscmt-ecommerce-store]="templates/ecommerce-store-v1"
+            [yscmt-creative-portfolio]="templates/creative-portfolio-v1"
+            [yscmt-school-lms]="templates/school-lms-v1"
+            [yscmt-blog-news]="templates/blog-news-v1"
+            [yscmt-admin-dashboard]="templates/admin-dashboard-v1"
+          )
+          for slug in "${!folders[@]}"; do
+            folder="${folders[$slug]}"
+            test -s "$folder/index.html"
+            test -s "$folder/styles.css"
+            test -s "$folder/app.js"
+            test -s "$folder/README.md"
+            (cd "$folder" && zip -qr "$GITHUB_WORKSPACE/dist/$slug-v1.0.0.zip" index.html styles.css app.js README.md)
+            unzip -t "dist/$slug-v1.0.0.zip"
+            test "$(unzip -Z1 "dist/$slug-v1.0.0.zip" | wc -l)" -eq 4
+          done
+          (cd dist && sha256sum *.zip > SHA256SUMS.txt)
+          ls -lh dist
+
+      - name: Upload archives as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yscmt-template-archives-v1.0.0
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
