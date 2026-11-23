@@ -51,6 +51,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Accept either the project root URL or a mistakenly copied REST URL.
+          SUPABASE_URL="${SUPABASE_URL%/}"
+          SUPABASE_URL="${SUPABASE_URL%/rest/v1}"
+          SUPABASE_URL="${SUPABASE_URL%/storage/v1}"
           if [[ -z "$SUPABASE_URL" || -z "$SUPABASE_SERVICE_ROLE_KEY" ]]; then
             echo "Supabase upload skipped: configure repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
             exit 0
