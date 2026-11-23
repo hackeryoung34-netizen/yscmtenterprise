@@ -43,6 +43,71 @@ jobs:
           (cd dist && sha256sum *.zip > SHA256SUMS.txt)
           ls -lh dist
 
+      - name: Upload verified ZIPs and publish catalogue entries
+        if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          slugs=(
+            yscmt-ecommerce-store
+            yscmt-creative-portfolio
+            yscmt-school-lms
+            yscmt-blog-news
+            yscmt-admin-dashboard
+          )
+          uploaded=()
+          rollback() {
+            echo "Rolling catalogue rows back to draft after an incomplete publish."
+            for slug in "${slugs[@]}"; do
+              curl --silent --show-error --fail-with-body -X PATCH \
+                "$SUPABASE_URL/rest/v1/store_products?slug=eq.$slug&status=eq.published" \
+                -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+                -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+                -H "Content-Type: application/json" \
+                -H "Prefer: return=minimal" \
+                --data '{"status":"draft","artifact_path":null}' || true
+            done
+          }
+          for slug in "${slugs[@]}"; do
+            file="dist/$slug-v1.0.0.zip"
+            test -s "$file"
+            curl --silent --show-error --fail-with-body \
+              -X POST "$SUPABASE_URL/storage/v1/object/template-archives/$slug/v1.0.0.zip" \
+              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+              -H "Content-Type: application/zip" \
+              -H "x-upsert: false" \
+              --data-binary "@$file"
+            curl --silent --show-error --fail-with-body \
+              "$SUPABASE_URL/storage/v1/object/template-archives/$slug/v1.0.0.zip" \
+              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+              -o /tmp/"$slug".zip
+            cmp "$file" /tmp/"$slug".zip
+          done
+          for slug in "${slugs[@]}"; do
+            response="$(curl --silent --show-error --fail-with-body -X PATCH \
+              "$SUPABASE_URL/rest/v1/store_products?slug=eq.$slug&status=eq.draft" \
+              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+              -H "Content-Type: application/json" \
+              -H "Prefer: return=representation" \
+              --data "{\"artifact_path\":\"$slug/v1.0.0.zip\",\"status\":\"published\"}")" || {
+                rollback
+                exit 1
+              }
+            echo "$response" | jq -e --arg slug "$slug" 'length == 1 and .[0].slug == $slug and .[0].status == "published"' >/dev/null || {
+              rollback
+              exit 1
+            }
+          done
+          echo "All five archives were uploaded, byte-verified, and published."
+      - name: Report upload credentials status
+        if: ${{ secrets.SUPABASE_URL == '' || secrets.SUPABASE_SERVICE_ROLE_KEY == '' }}
+        run: echo "Supabase upload skipped: repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are not both configured."
       - name: Upload archives as workflow artifact
         uses: actions/upload-artifact@v4
         with:
