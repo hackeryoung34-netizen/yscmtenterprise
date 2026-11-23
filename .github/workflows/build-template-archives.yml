@@ -1,4 +1,5 @@
 name: Build template ZIP archives
+run-name: Publish YSCMT template archives
 
 on:
   push:
