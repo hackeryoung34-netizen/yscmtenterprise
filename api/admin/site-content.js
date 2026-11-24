@@ -31,12 +31,12 @@ module.exports=async function handler(req,res){
   try{
     const url=new URL(root+"/rest/v1/site_content_pages");
     url.searchParams.set("page_key","eq.home");
-    url.searchParams.set("select","page_key,content,status,updated_at,updated_by");
+    url.searchParams.set("select","page_key,content,draft_content,status,updated_at,updated_by");
     if(req.method==="GET"){
       const response=await fetch(url,{headers});
       if(!response.ok)return send(res,502,{error:"Unable to load website content."});
       const rows=await response.json();
-      return send(res,200,{page:rows[0]||null});
+      const row=rows[0];\n      return send(res,200,{page:row?{page_key:row.page_key,content:row.draft_content||row.content,status:row.draft_content?"draft":row.status,updated_at:row.updated_at,updated_by:row.updated_by}:null});
     }
     const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
     if(!["draft","published"].includes(body.status))return send(res,400,{error:"Choose Draft or Published."});
@@ -48,10 +48,13 @@ module.exports=async function handler(req,res){
     const action=body.status==="published"?"published":oldRows.length?"updated":"created";
     const saveUrl=new URL(root+"/rest/v1/site_content_pages");
     saveUrl.searchParams.set("on_conflict","page_key");
-    const saved=await fetch(saveUrl,{method:"POST",headers:{...headers,Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify({page_key:"home",content:cleaned.content,status:body.status,updated_by:auth.user.id,updated_at:new Date().toISOString()})});
+    const record=body.status==="published"
+      ?{page_key:"home",content:cleaned.content,draft_content:null,status:"published",updated_by:auth.user.id,updated_at:new Date().toISOString()}
+      :{page_key:"home",draft_content:cleaned.content,updated_by:auth.user.id,updated_at:new Date().toISOString()};
+    const saved=await fetch(saveUrl,{method:"POST",headers:{...headers,Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(record)});
     if(!saved.ok)return send(res,502,{error:"Unable to save website content."});
-    const rows=await saved.json();
+    const rows=await saved.json(),row=rows[0];
     await fetch(root+"/rest/v1/site_content_audit_logs",{method:"POST",headers,body:JSON.stringify({page_key:"home",actor_user_id:auth.user.id,action,details:{status:body.status,fields:allowedKeys}})}).catch(()=>null);
-    return send(res,200,{page:rows[0],message:body.status==="published"?"Homepage content published.":"Homepage content saved as draft."});
+    return send(res,200,{page:row?{page_key:row.page_key,content:body.status==="published"?row.content:row.draft_content,status:body.status,updated_at:row.updated_at,updated_by:row.updated_by}:null,message:body.status==="published"?"Homepage content published.":"Draft saved. The live homepage remains unchanged."});
   }catch(error){console.error("[site content admin]",error&&error.message||"request failed");return send(res,502,{error:"Website content service is temporarily unavailable."});}
 };
