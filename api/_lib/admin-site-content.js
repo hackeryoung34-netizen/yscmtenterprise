@@ -35,6 +35,7 @@ function cleanContent(input){
     out[key]=trimmed;
   }
   if(!/^#(?:[A-Za-z][\w-]{0,60})$/.test(out.cta_href))return {error:"CTA link must point to a section on this website, such as #services."};
+  try{
   for(const key of ["services","hero_slides","gallery_images"]){
     if(input[key]===undefined)continue;
     const value=input[key],expected=defaults[key];
@@ -53,6 +54,7 @@ function cleanContent(input){
       return clean;
     });
   }
+  }catch(error){return {error:error.message||"Invalid homepage content."};}
   return {content:{...defaults,...out}};
 }
 module.exports=async function handler(req,res){
