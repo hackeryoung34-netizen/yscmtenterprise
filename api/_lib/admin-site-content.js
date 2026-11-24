@@ -22,7 +22,7 @@ const defaults={
 function cleanContent(input){
   if(!input||typeof input!=="object"||Array.isArray(input))return {error:"Content must be an object."};
   const out={};
-  for(const key of allowedKeys){
+  for(const key of ["kicker","tagline","description","side_title","side_copy","cta_text","cta_href","pills"]){
     const value=input[key];
     if(key==="pills"){
       if(!Array.isArray(value)||value.length>6||value.some(v=>typeof v!=="string"||!v.trim()||v.trim().length>40))return {error:"Add up to six short banner labels."};
@@ -49,8 +49,8 @@ function cleanContent(input){
         if(typeof v!=="string"||!v.trim()||v.trim().length>max)throw new Error("Each "+key+" item needs valid "+field+".");
         clean[field]=v.trim();
       }
-      if(key==="hero_slides"&&(!/^#[A-Za-z][\\w-]{0,60}$/.test(clean.cta_href)||!/^#[A-Za-z][\\w-]{0,60}$/.test(clean.secondary_href)&&!/^mailto:[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(clean.secondary_href)))throw new Error("Hero slide links must be same-page anchors or a valid email link.");
-      if(key==="gallery_images"&&!/^\\/images\\/[A-Za-z0-9._-]+\\.(?:jpg|jpeg|png|webp)$/i.test(clean.src))throw new Error("Gallery images must use a safe local /images/ file path.");
+      if(key==="hero_slides"&&(!/^#[A-Za-z][\w-]{0,60}$/.test(clean.cta_href)||!/^#[A-Za-z][\w-]{0,60}$/.test(clean.secondary_href)&&!/^mailto:[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean.secondary_href)))throw new Error("Hero slide links must be same-page anchors or a valid email link.");
+      if(key==="gallery_images"&&!/^\/images\/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp)$/i.test(clean.src))throw new Error("Gallery images must use a safe local /images/ file path.");
       return clean;
     });
   }
