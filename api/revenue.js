@@ -1,6 +1,10 @@
 const { timingSafeEqual, createHmac, createHash, randomUUID } = require("node:crypto");
 const { getRevenueSql } = require("./_lib/revenue-db");
 const { getRevenueStorage, HeadBucketCommand, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("./_lib/revenue-storage");
+const adminOperations = require("./_lib/admin-operations");
+const adminProducts = require("./_lib/admin-products");
+const adminSiteContent = require("./_lib/admin-site-content");
+const adminSystemSettings = require("./_lib/admin-system-settings");
 
 function send(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
@@ -490,6 +494,10 @@ module.exports=async function handler(req,res){
   try{if(req.method==="POST"||req.method==="PATCH")await readRawRequestBody(req);}catch{return send(res,400,{error:"Invalid or oversized request body."});}
   const route=clean(req.query&&req.query.route,30);
   try{
+    if(route==="admin-operations")return await adminOperations(req,res);
+    if(route==="admin-products")return await adminProducts(req,res);
+    if(route==="admin-site-content")return await adminSiteContent(req,res);
+    if(route==="admin-system-settings")return await adminSystemSettings(req,res);
     if(route==="directory")return await directory(req,res,getRevenueSql());
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
     if(route==="health")return await health(req,res);
