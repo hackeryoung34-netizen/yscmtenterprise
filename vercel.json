@@ -21,6 +21,22 @@
   "outputDirectory": ".",
   "rewrites": [
     {
+      "source": "/api/admin/operations",
+      "destination": "/api/revenue?route=admin-operations"
+    },
+    {
+      "source": "/api/admin/products",
+      "destination": "/api/revenue?route=admin-products"
+    },
+    {
+      "source": "/api/admin/site-content",
+      "destination": "/api/revenue?route=admin-site-content"
+    },
+    {
+      "source": "/api/admin/system-settings",
+      "destination": "/api/revenue?route=admin-system-settings"
+    },
+    {
       "source": "/portal",
       "destination": "https://yscmt-react.vercel.app/"
     },
