@@ -22,9 +22,10 @@ The public homepage requests `/api/site-content` and applies only published cont
 
 ## Neon database prerequisite
 
-Before deploying this feature, apply:
+Before the Central Admin can read role permissions and manage homepage content on a fresh development branch, apply these Neon migrations in order:
 
-`neon/migrations/007_site_content_management.sql`
+1. `neon/migrations/20261120_central_admin_roles.sql`
+2. `neon/migrations/007_site_content_management.sql`
 
 Target the **YSCMT-Revenue-Development** project and its **revenue-development** branch first. Do not apply this migration to Supabase, the Student Portal database, or the Neon production branch as part of this feature-branch work.
 
@@ -43,7 +44,7 @@ The CMS audit records are included in Central Admin Activity History.
 ## Safe release sequence
 
 1. Confirm the YSCMT Revenue Neon project and the `revenue-development` branch.
-2. Apply the Neon CMS migration to development only after owner approval.
+2. Apply the Central Admin roles migration, then the CMS migration to development only after owner approval.
 3. Ensure Vercel has the server-side `REVENUE_DATABASE_URL` for the intended Neon branch.
 4. Deploy the feature branch only after the owner approves the release.
 5. Sign in as a Super Admin or a Content Manager with the permission, save a draft, then publish when ready.
