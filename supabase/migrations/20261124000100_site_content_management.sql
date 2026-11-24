@@ -1,0 +1,5 @@
+-- Superseded before release: YSCMT Enterprise homepage CMS storage is Neon-backed.
+-- Do not apply this legacy draft migration to any Supabase project.
+-- The active migration is neon/migrations/007_site_content_management.sql.
+-- This no-op file is retained in the feature branch to avoid an accidental
+-- Supabase CMS schema rollout and to preserve the migration history in review.

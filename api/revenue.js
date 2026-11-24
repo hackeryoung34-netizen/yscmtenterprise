@@ -340,7 +340,7 @@ function centralRolePermissions(role){
   const permissions={
     super_admin:{"*":true},
     finance:{"revenue.read":true,"revenue.manage":true,"orders.read":true,"reports.read":true},
-    content_manager:{"directory.read":true,"directory.manage":true,"jobs.read":true,"jobs.manage":true,"templates.read":true,"templates.manage":true},
+    content_manager:{"directory.read":true,"directory.manage":true,"jobs.read":true,"jobs.manage":true,"templates.read":true,"templates.manage":true,"content.manage":true},
     support_staff:{"chat.read":true,"chat.reply":true,"orders.lookup":true}
   };
   return permissions[role]||null;
@@ -360,7 +360,7 @@ async function centralAdminRoles(req,res,sql){
   if(req.method==="POST"){
     const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
     const userId=clean(body.user_id,36),role=clean(body.role,30);
-    if(!/^[0-9a-f-]{36}$/i.test(userId)||!centralRolePermissions(role))return send(res,400,{error:"Enter a valid Supabase user ID and staff role."});
+    if(!/^[0-9a-f-]{36}$/i.test(userId)||!["finance","content_manager","support_staff"].includes(role))return send(res,400,{error:"Enter a valid Supabase user ID and an assignable staff role."});
     if(userId===auth.user.id)return send(res,400,{error:"You cannot add yourself as another staff account."});
     const serviceKey=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
     const root=(process.env.SUPABASE_URL||"").replace(/\/$/,"");
@@ -380,7 +380,7 @@ async function centralAdminRoles(req,res,sql){
     const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
     const userId=clean(body.user_id,36),role=body.role===undefined?null:clean(body.role,30),active=body.is_active;
     if(!/^[0-9a-f-]{36}$/i.test(userId)||userId===auth.user.id)return send(res,400,{error:"A valid staff user ID other than your own is required."});
-    if(role!==null&&!centralRolePermissions(role))return send(res,400,{error:"Invalid staff role."});
+    if(role!==null&&!["finance","content_manager","support_staff"].includes(role))return send(res,400,{error:"Only Finance, Content Manager or Support Staff can be assigned here. Super Admin access must be provisioned separately."});
     if(role===null&&typeof active!=="boolean")return send(res,400,{error:"Choose a valid role or active status change."});
     const existing=await sql`select role,is_active from public.central_admin_roles where user_id=${userId}::uuid limit 1`;
     if(!existing[0])return send(res,404,{error:"Staff account not found."});
@@ -398,6 +398,52 @@ async function centralAdminRoles(req,res,sql){
   return send(res,405,{error:"Method not allowed"});
 }
 
+async function centralAdminReports(req,res,sql){
+  if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
+  const auth=await centralAdminAuth(req,sql);
+  if(auth.error)return send(res,auth.status,{error:auth.error});
+  if(!hasCentralPermission(auth,"reports.read"))return send(res,403,{error:"You do not have permission to view revenue reports."});
+  const [businesses,jobs,payments]=await Promise.all([
+    sql`select count(*)::int as total,
+      count(*) filter(where status='pending')::int as pending,
+      count(*) filter(where status='approved')::int as approved,
+      count(*) filter(where status='rejected')::int as rejected,
+      count(*) filter(where status='suspended')::int as suspended,
+      count(*) filter(where is_featured and featured_until>now())::int as featured
+      from public.business_directory_listings`,
+    sql`select count(*)::int as total,
+      count(*) filter(where status='pending')::int as pending,
+      count(*) filter(where status='approved')::int as approved,
+      count(*) filter(where status='rejected')::int as rejected,
+      count(*) filter(where status='suspended')::int as suspended,
+      count(*) filter(where status='expired' or (closing_date is not null and closing_date<current_date))::int as expired
+      from public.job_ads`,
+    sql`select count(*)::int as paid_orders,
+      coalesce(sum(amount_kobo),0)::bigint as gross_kobo
+      from public.featured_business_payment_orders where status='paid'`
+  ]);
+  return send(res,200,{generated_at:new Date().toISOString(),business_directory:businesses[0]||{},job_ads:jobs[0]||{},featured_business_payments:payments[0]||{paid_orders:0,gross_kobo:0},currency:"NGN",scope:"Business Directory featured-listing payments only; excludes Template Store and other services."});
+}
+async function centralAdminActivity(req,res,sql){
+  if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
+  const auth=await centralAdminAuth(req,sql);
+  if(auth.error)return send(res,auth.status,{error:auth.error});
+  if(!hasCentralPermission(auth,"activity.read"))return send(res,403,{error:"You do not have permission to view administrator activity."});
+  const rows=await sql`select source,actor_user_id,action,details,created_at from (
+    select 'Central Admin'::text as source,actor_user_id::text as actor_user_id,action,details,created_at
+      from public.central_admin_audit_logs
+    union all
+    select 'Business Directory'::text as source,actor_user_id::text as actor_user_id,action,details,created_at
+      from public.business_directory_audit_logs
+    union all
+    select 'Job Ads'::text as source,actor_user_id::text as actor_user_id,action,details,created_at
+      from public.job_ad_audit_logs
+    union all
+    select 'Website Content'::text as source,actor_user_id::text as actor_user_id,action,details,created_at
+      from public.site_content_audit_logs
+  ) activity order by created_at desc limit 100`;
+  return send(res,200,{activity:rows});
+}
 async function adminSession(req,res,sql){
   if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
   const auth=await centralAdminAuth(req,sql);
@@ -448,6 +494,8 @@ module.exports=async function handler(req,res){
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
     if(route==="health")return await health(req,res);
     if(route==="admin-health")return await adminHealth(req,res);
+    if(route==="admin-reports")return await centralAdminReports(req,res,getRevenueSql());
+    if(route==="admin-activity")return await centralAdminActivity(req,res,getRevenueSql());
     if(route==="admin-session")return await adminSession(req,res,getRevenueSql());
     if(route==="admin-roles")return await centralAdminRoles(req,res,getRevenueSql());
     if(route==="featured-init")return await featuredPaymentInit(req,res,getRevenueSql());
