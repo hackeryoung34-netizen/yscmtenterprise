@@ -36,7 +36,8 @@ module.exports=async function handler(req,res){
       const response=await fetch(url,{headers});
       if(!response.ok)return send(res,502,{error:"Unable to load website content."});
       const rows=await response.json();
-      const row=rows[0];\n      return send(res,200,{page:row?{page_key:row.page_key,content:row.draft_content||row.content,status:row.draft_content?"draft":row.status,updated_at:row.updated_at,updated_by:row.updated_by}:null});
+      const row=rows[0];
+      return send(res,200,{page:row?{page_key:row.page_key,content:row.draft_content||row.content,status:row.draft_content?"draft":row.status,updated_at:row.updated_at,updated_by:row.updated_by}:null});
     }
     const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
     if(!["draft","published"].includes(body.status))return send(res,400,{error:"Choose Draft or Published."});
