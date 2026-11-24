@@ -951,14 +951,8 @@ html.yscmt-chat-fullscreen #yscmt-chat-launch {
    <p class="gallery-intro">A glimpse into the focus, learning and practical technology work behind YSCMT Enterprise.</p>
   </div>
   <div class="yscmt-gallery-grid">
-   <article class="yscmt-gallery-card">
-    <img src="/images/yscmt-focus.jpg" alt="YSCMT Enterprise founder working on a laptop and technology project" loading="eager" decoding="async">
-    <div class="yscmt-gallery-caption"><strong>Focused on Technology</strong><span>Building practical digital skills and solutions</span></div>
-   </article>
-   <article class="yscmt-gallery-card">
-    <img src="/images/yscmt-workstation.jpg" alt="YSCMT Enterprise founder in a workspace with a laptop" loading="lazy" decoding="async">
-    <div class="yscmt-gallery-caption"><strong>Learning & Innovation</strong><span>Growing through curiosity, creativity and persistence</span></div>
-   </article>
+   <article class="yscmt-gallery-card" data-cms-gallery="0"><img data-cms-gallery-image alt="" loading="lazy" decoding="async"><div class="yscmt-gallery-caption"><strong data-cms-gallery-title></strong><span data-cms-gallery-caption></span></div></article>
+   <article class="yscmt-gallery-card" data-cms-gallery="1"><img data-cms-gallery-image alt="" loading="lazy" decoding="async"><div class="yscmt-gallery-caption"><strong data-cms-gallery-title></strong><span data-cms-gallery-caption></span></div></article>
   </div>
  </div>
 </section>
@@ -982,40 +976,13 @@ html.yscmt-chat-fullscreen #yscmt-chat-launch {
 
 <section class="hero">
  <div class="slides">
-  <article class="slide active">
-   <div class="container slide-content">
-    <div class="eyebrow">WELCOME TO YSCMT ENTERPRISE</div>
-    <h2>Building a <span>Smarter Digital Future.</span></h2>
-    <p>We create technology solutions, develop digital skills and help businesses turn bold ideas into meaningful results.</p>
-    <div class="buttons">
-     <a class="btn" href="#services">Explore Services</a>
-     <a class="btn outline" href="#contact">Work With Us</a>
-     <button class="btn" type="button" data-open-yscmt-chat style="border:0;cursor:pointer">Chat With Us</button>
-    </div>
+  <article class="slide active" data-cms-slide="0">
+   <div class="container slide-content"><div class="eyebrow" data-cms-slide-eyebrow></div><h2><span data-cms-slide-title></span> <span data-cms-slide-highlight></span></h2><p data-cms-slide-description></p>
+    <div class="buttons"><a class="btn" data-cms-slide-cta></a><a class="btn outline" data-cms-slide-secondary></a><button class="btn" type="button" data-open-yscmt-chat style="border:0;cursor:pointer">Chat With Us</button></div>
    </div>
   </article>
-  <article class="slide">
-   <div class="container slide-content">
-    <div class="eyebrow">TECHNOLOGY • INNOVATION • OPPORTUNITY</div>
-    <h2>Learn Skills. <span>Build Solutions.</span></h2>
-    <p>Practical IT training and digital solutions designed to help individuals, startups and organizations move forward.</p>
-    <div class="buttons">
-     <a class="btn" href="#training">Discover Training</a>
-     <a class="btn outline" href="#about">About YSCMT</a>
-    </div>
-   </div>
-  </article>
-  <article class="slide">
-   <div class="container slide-content">
-    <div class="eyebrow">YOUR DIGITAL GROWTH PARTNER</div>
-    <h2>Ideas Into <span>Digital Impact.</span></h2>
-    <p>From software development to cybersecurity awareness, we help transform ideas into useful digital experiences.</p>
-    <div class="buttons">
-     <a class="btn" href="#projects">Explore Projects</a>
-     <a class="btn outline" href="mailto:yscmtenterprise@gmail.com">Email Us</a>
-    </div>
-   </div>
-  </article>
+  <article class="slide" data-cms-slide="1"><div class="container slide-content"><div class="eyebrow" data-cms-slide-eyebrow></div><h2><span data-cms-slide-title></span> <span data-cms-slide-highlight></span></h2><p data-cms-slide-description></p><div class="buttons"><a class="btn" data-cms-slide-cta></a><a class="btn outline" data-cms-slide-secondary></a></div></div></article>
+  <article class="slide" data-cms-slide="2"><div class="container slide-content"><div class="eyebrow" data-cms-slide-eyebrow></div><h2><span data-cms-slide-title></span> <span data-cms-slide-highlight></span></h2><p data-cms-slide-description></p><div class="buttons"><a class="btn" data-cms-slide-cta></a><a class="btn outline" data-cms-slide-secondary></a></div></div></article>
   <div class="slider-controls">
    <button class="dot active" type="button" aria-label="Show slide 1 of 3" aria-pressed="true"></button>
    <button class="dot" type="button" aria-label="Show slide 2 of 3" aria-pressed="false"></button>
@@ -1133,10 +1100,10 @@ html.yscmt-chat-fullscreen #yscmt-chat-launch {
    <p>Technology services designed to help people and businesses grow.</p>
   </div>
   <div class="service-grid">
-   <article class="service"><h3>Software Development</h3><p>Websites, web applications, business platforms and custom software solutions.</p></article>
-   <article class="service"><h3>Cybersecurity</h3><p>Security awareness, digital protection guidance and responsible cybersecurity learning.</p></article>
-   <article class="service"><h3>IT Training</h3><p>Programming, computer skills and practical technology education.</p></article>
-   <article class="service"><h3>Digital Solutions</h3><p>Digital tools, technology support and process improvements for organizations.</p></article>
+   <article class="service" data-cms-service="0"><h3 data-cms-service-title></h3><p data-cms-service-description></p></article>
+   <article class="service" data-cms-service="1"><h3 data-cms-service-title></h3><p data-cms-service-description></p></article>
+   <article class="service" data-cms-service="2"><h3 data-cms-service-title></h3><p data-cms-service-description></p></article>
+   <article class="service" data-cms-service="3"><h3 data-cms-service-title></h3><p data-cms-service-description></p></article>
   </div>
  </div>
 </section>
@@ -1623,6 +1590,9 @@ if(s&&s.conversation_id)extras.setConversation(s.conversation_id,null);
 (function(){
   fetch("/api/site-content",{headers:{"Accept":"application/json"}}).then(function(r){return r.ok?r.json():null;}).then(function(data){
     var c=data&&data.content;if(!c)return;
+    if(Array.isArray(c.hero_slides))c.hero_slides.slice(0,3).forEach(function(item,index){var slide=document.querySelector('[data-cms-slide="'+index+'"]');if(!slide)return;var put=function(selector,value){var el=slide.querySelector(selector);if(el)el.textContent=value||"";};put("[data-cms-slide-eyebrow]",item.eyebrow);put("[data-cms-slide-title]",item.title);put("[data-cms-slide-highlight]",item.highlight);put("[data-cms-slide-description]",item.description);var primary=slide.querySelector("[data-cms-slide-cta]"),secondary=slide.querySelector("[data-cms-slide-secondary]");if(primary){primary.textContent=item.cta_text||"";if(/^#[A-Za-z][\\w-]{0,60}$/.test(item.cta_href||""))primary.setAttribute("href",item.cta_href);}if(secondary){secondary.textContent=item.secondary_text||"";if(/^#[A-Za-z][\\w-]{0,60}$/.test(item.secondary_href||"")||/^mailto:[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(item.secondary_href||""))secondary.setAttribute("href",item.secondary_href);}});
+    if(Array.isArray(c.services))c.services.slice(0,4).forEach(function(item,index){var card=document.querySelector('[data-cms-service="'+index+'"]');if(!card)return;var title=card.querySelector("[data-cms-service-title]"),description=card.querySelector("[data-cms-service-description]");if(title)title.textContent=item.title||"";if(description)description.textContent=item.description||"";});
+    if(Array.isArray(c.gallery_images))c.gallery_images.slice(0,2).forEach(function(item,index){if(!/^\\/images\\/[A-Za-z0-9._-]+\\.(?:jpg|jpeg|png|webp)$/i.test(item.src||""))return;var card=document.querySelector('[data-cms-gallery="'+index+'"]');if(!card)return;var img=card.querySelector("[data-cms-gallery-image]");if(img){img.src=item.src;img.alt=item.alt||"";}var title=card.querySelector("[data-cms-gallery-title]"),caption=card.querySelector("[data-cms-gallery-caption]");if(title)title.textContent=item.title||"";if(caption)caption.textContent=item.caption||"";});
     ["kicker","tagline","description","side_title","side_copy"].forEach(function(key){var el=document.querySelector('[data-cms="'+key+'"]');if(el&&typeof c[key]==="string")el.textContent=c[key];});
     var pills=document.querySelector("[data-cms-pills]");if(pills&&Array.isArray(c.pills)){pills.replaceChildren();c.pills.slice(0,6).forEach(function(label){var span=document.createElement("span");span.textContent=label;pills.append(span);});}
     var cta=document.querySelector("[data-cms-cta]");if(cta){if(typeof c.cta_text==="string")cta.textContent=c.cta_text;if(typeof c.cta_href==="string"&&/^#[A-Za-z][\w-]{0,60}$/.test(c.cta_href))cta.setAttribute("href",c.cta_href);}
