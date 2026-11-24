@@ -9,33 +9,35 @@ Existing Business Directory, Job Ads, Template Store, orders, installations, and
 ## Central Admin modules
 
 - Overview and existing management module navigation.
-- Staff & Permissions: Super Admin can add existing Supabase users as Finance, Content Manager, or Support Staff; change those limited roles; and enable/disable staff. Super Admin assignment is not available in the form.
+- Staff & Permissions: Super Admin can add existing sign-in-provider users as Finance, Content Manager, or Support Staff; change those limited roles; and enable/disable staff. Super Admin assignment is not available in the form.
 - Actual permission grants are displayed for each staff record. Role changes continue to apply the server-defined permission sets; there is no browser-side arbitrary permission editor.
 - Revenue Reports: read-only Business Directory, Job Ads, and Business Directory featured-listing payment summaries. Template Store revenue is intentionally excluded.
 - Activity History: recent Central Admin, Business Directory, Job Ads, and Website Content audit entries.
-- Website Content: homepage banner editor with private drafts and explicit publish action.
+- Website Content: homepage banner editor with private drafts and explicit publish action. CMS data and audit history are stored in Neon.
 - Student Portal: navigation to the existing Hatchable admin and public portal only.
 - System Settings: Super Admin-only, read-only presence checks for server configuration. It returns only configured/missing booleans; it never returns credential values.
 
-## Login return flow
+## Login and authorization
 
 The Central Admin sign-in link sends the user to the existing account page with a restricted return destination. After successful sign-in or email confirmation, the account page returns to `/admin/`. Only the exact local admin path and the existing validated payment callback format are accepted as return destinations.
 
-## Website CMS database prerequisite
+The current sign-in provider remains responsible for authenticating the user identity. Central Admin role and permission records are read from Neon through `REVENUE_DATABASE_URL`. This does not make Supabase the CMS database.
 
-Apply `supabase/migrations/20261124000100_site_content_management.sql` only to the Supabase project used by the YSCMT Enterprise website.
+## Neon CMS database prerequisite
 
-Do not apply it to the Student Portal project or Neon. It creates:
+Apply `neon/migrations/007_site_content_management.sql` to the **YSCMT-Revenue-Development / revenue-development** branch first, after owner approval.
+
+It creates:
 - `public.site_content_pages` for homepage published content and drafts.
 - `public.site_content_audit_logs` for save/publish history.
 
-Public browser roles can read published content only. Server writes use the service-role key through Vercel API handlers. Never expose that key to browser code.
+The public homepage API reads published content from Neon. Admin writes use the server-side Neon connection. No Supabase service-role key is required for CMS storage. Do not apply this migration to the Student Portal or Neon production branch as part of development work.
 
 ## Required server-side configuration
 
 The read-only System Settings view reports presence for:
-- Supabase: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
-- Revenue database: `REVENUE_DATABASE_URL`.
+- Existing authentication: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (identity validation only).
+- Revenue database: `REVENUE_DATABASE_URL` (Neon).
 - Payment processing: `REVENUE_PAYSTACK_SECRET_KEY`, `REVENUE_PAYSTACK_WEBHOOK_SECRET`, `REVENUE_PAYMENTS_ENABLED`.
 - Submission abuse protection: `REVENUE_RATE_LIMIT_SECRET`.
 - Object storage: `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`; `REVENUE_ASSETS_BUCKET` is an optional override because the code has a default bucket name.
@@ -51,4 +53,4 @@ The code changes are committed to the feature branch only. The following have de
 - No role assignment, staff activation/deactivation, or permission change on live accounts.
 - No Hatchable shutdown or Student Portal migration.
 
-Before the feature can become live, the owner must approve the production release and the correct website Supabase project must be confirmed for the CMS migration. The production environment must then be configured and the migration applied before deploying the feature. Keep Hatchable and all existing production modules intact during this process.
+Before the feature can become live, the owner must approve the production release. First apply the CMS migration to the Neon development branch and configure the development Vercel environment to use that Neon branch. Keep Neon production, Hatchable, and all existing production modules intact during this process.
