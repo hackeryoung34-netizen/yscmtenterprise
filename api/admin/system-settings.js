@@ -13,11 +13,20 @@ const groups = [
   { name: "Revenue Database", description: "Private database connection used by Central Admin reporting and staff roles.", items: [
     ["REVENUE_DATABASE_URL", "Revenue database connection URL"]
   ]},
+  { name: "Payment Processing", description: "Paystack credentials and feature flags used by Business Directory featured-listing payments.", items: [
+    ["REVENUE_PAYSTACK_SECRET_KEY", "Paystack secret key"],
+    ["REVENUE_PAYSTACK_WEBHOOK_SECRET", "Paystack webhook secret"],
+    ["REVENUE_PAYMENTS_ENABLED", "Revenue payments enabled flag"]
+  ]},
+  { name: "Abuse Protection", description: "Server-side rate-limit hashing for public listing submissions.", items: [
+    ["REVENUE_RATE_LIMIT_SECRET", "Submission rate-limit secret"]
+  ]},
   { name: "Object Storage", description: "S3-compatible storage used by revenue and directory assets.", items: [
     ["AWS_ENDPOINT_URL_S3", "S3 endpoint URL"],
     ["AWS_ACCESS_KEY_ID", "Storage access key ID"],
     ["AWS_SECRET_ACCESS_KEY", "Storage secret access key"],
-    ["AWS_REGION", "Storage region"]
+    ["AWS_REGION", "Storage region"],
+    ["REVENUE_ASSETS_BUCKET", "Custom assets bucket (optional; defaults to yscmt-revenue-assets)"]
   ]}
 ];
 
