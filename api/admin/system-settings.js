@@ -40,7 +40,7 @@ module.exports = async function handler(req, res) {
     groups: groups.map(group => ({
       name: group.name,
       description: group.description,
-      items: group.items.map(([key, label]) => ({ key, label, configured: Boolean((process.env[key] || "").trim()) }))
+      items: group.items.map(([key, label]) => ({ key, label, configured: key === "REVENUE_ASSETS_BUCKET" ? true : Boolean((process.env[key] || "").trim()), optional: key === "REVENUE_ASSETS_BUCKET" }))
     }))
   });
 };
