@@ -36,7 +36,9 @@ Public browser roles can read published content only. Server writes use the serv
 The read-only System Settings view reports presence for:
 - Supabase: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
 - Revenue database: `REVENUE_DATABASE_URL`.
-- Object storage: `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`.
+- Payment processing: `REVENUE_PAYSTACK_SECRET_KEY`, `REVENUE_PAYSTACK_WEBHOOK_SECRET`, `REVENUE_PAYMENTS_ENABLED`.
+- Submission abuse protection: `REVENUE_RATE_LIMIT_SECRET`.
+- Object storage: `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`; `REVENUE_ASSETS_BUCKET` is an optional override because the code has a default bucket name.
 
 The endpoint does not read or return secret values. The configured environment must be set in the Vercel server-side environment used by the eventual deployment.
 
