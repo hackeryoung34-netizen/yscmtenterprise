@@ -398,6 +398,49 @@ async function centralAdminRoles(req,res,sql){
   return send(res,405,{error:"Method not allowed"});
 }
 
+async function centralAdminReports(req,res,sql){
+  if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
+  const auth=await centralAdminAuth(req,sql);
+  if(auth.error)return send(res,auth.status,{error:auth.error});
+  if(!hasCentralPermission(auth,"reports.read"))return send(res,403,{error:"You do not have permission to view revenue reports."});
+  const [businesses,jobs,payments]=await Promise.all([
+    sql`select count(*)::int as total,
+      count(*) filter(where status='pending')::int as pending,
+      count(*) filter(where status='approved')::int as approved,
+      count(*) filter(where status='rejected')::int as rejected,
+      count(*) filter(where status='suspended')::int as suspended,
+      count(*) filter(where is_featured and featured_until>now())::int as featured
+      from public.business_directory_listings`,
+    sql`select count(*)::int as total,
+      count(*) filter(where status='pending')::int as pending,
+      count(*) filter(where status='approved')::int as approved,
+      count(*) filter(where status='rejected')::int as rejected,
+      count(*) filter(where status='suspended')::int as suspended,
+      count(*) filter(where status='expired' or (closing_date is not null and closing_date<current_date))::int as expired
+      from public.job_ads`,
+    sql`select count(*)::int as paid_orders,
+      coalesce(sum(amount_kobo),0)::bigint as gross_kobo
+      from public.featured_business_payment_orders where status='paid'`
+  ]);
+  return send(res,200,{generated_at:new Date().toISOString(),business_directory:businesses[0]||{},job_ads:jobs[0]||{},featured_business_payments:payments[0]||{paid_orders:0,gross_kobo:0},currency:"NGN",scope:"Business Directory featured-listing payments only; excludes Template Store and other services."});
+}
+async function centralAdminActivity(req,res,sql){
+  if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
+  const auth=await centralAdminAuth(req,sql);
+  if(auth.error)return send(res,auth.status,{error:auth.error});
+  if(!hasCentralPermission(auth,"activity.read"))return send(res,403,{error:"You do not have permission to view administrator activity."});
+  const rows=await sql`select source,actor_user_id,action,details,created_at from (
+    select 'Central Admin'::text as source,actor_user_id::text as actor_user_id,action,details,created_at
+      from public.central_admin_audit_logs
+    union all
+    select 'Business Directory'::text as source,actor_user_id::text as actor_user_id,action,details,created_at
+      from public.business_directory_audit_logs
+    union all
+    select 'Job Ads'::text as source,actor_user_id::text as actor_user_id,action,details,created_at
+      from public.job_ad_audit_logs
+  ) activity order by created_at desc limit 100`;
+  return send(res,200,{activity:rows});
+}
 async function adminSession(req,res,sql){
   if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
   const auth=await centralAdminAuth(req,sql);
@@ -448,6 +491,8 @@ module.exports=async function handler(req,res){
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
     if(route==="health")return await health(req,res);
     if(route==="admin-health")return await adminHealth(req,res);
+    if(route==="admin-reports")return await centralAdminReports(req,res,getRevenueSql());
+    if(route==="admin-activity")return await centralAdminActivity(req,res,getRevenueSql());
     if(route==="admin-session")return await adminSession(req,res,getRevenueSql());
     if(route==="admin-roles")return await centralAdminRoles(req,res,getRevenueSql());
     if(route==="featured-init")return await featuredPaymentInit(req,res,getRevenueSql());
