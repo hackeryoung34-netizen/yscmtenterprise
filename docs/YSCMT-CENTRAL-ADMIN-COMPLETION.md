@@ -25,7 +25,10 @@ The current sign-in provider remains responsible for authenticating the user ide
 
 ## Neon CMS database prerequisite
 
-Apply `neon/migrations/007_site_content_management.sql` to the **YSCMT-Revenue-Development / revenue-development** branch first, after owner approval.
+The inspected `revenue-development` branch does not yet contain `central_admin_roles`, so apply these migrations to **YSCMT-Revenue-Development / revenue-development** in order, after owner approval:
+
+1. `neon/migrations/20261120_central_admin_roles.sql`
+2. `neon/migrations/007_site_content_management.sql`
 
 It creates:
 - `public.site_content_pages` for homepage published content and drafts.
@@ -53,4 +56,4 @@ The code changes are committed to the feature branch only. The following have de
 - No role assignment, staff activation/deactivation, or permission change on live accounts.
 - No Hatchable shutdown or Student Portal migration.
 
-Before the feature can become live, the owner must approve the production release. First apply the CMS migration to the Neon development branch and configure the development Vercel environment to use that Neon branch. Keep Neon production, Hatchable, and all existing production modules intact during this process.
+Before the feature can become live, the owner must approve the production release. First apply the Central Admin roles migration and then the CMS migration to the Neon development branch, and configure the development Vercel environment to use that Neon branch. Keep Neon production, Hatchable, and all existing production modules intact during this process.
