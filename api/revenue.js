@@ -340,7 +340,7 @@ function centralRolePermissions(role){
   const permissions={
     super_admin:{"*":true},
     finance:{"revenue.read":true,"revenue.manage":true,"orders.read":true,"reports.read":true},
-    content_manager:{"directory.read":true,"directory.manage":true,"jobs.read":true,"jobs.manage":true,"templates.read":true,"templates.manage":true},
+    content_manager:{"directory.read":true,"directory.manage":true,"jobs.read":true,"jobs.manage":true,"templates.read":true,"templates.manage":true,"content.manage":true},
     support_staff:{"chat.read":true,"chat.reply":true,"orders.lookup":true}
   };
   return permissions[role]||null;
@@ -438,6 +438,9 @@ async function centralAdminActivity(req,res,sql){
     union all
     select 'Job Ads'::text as source,actor_user_id::text as actor_user_id,action,details,created_at
       from public.job_ad_audit_logs
+    union all
+    select 'Website Content'::text as source,actor_user_id::text as actor_user_id,action,details,created_at
+      from public.site_content_audit_logs
   ) activity order by created_at desc limit 100`;
   return send(res,200,{activity:rows});
 }
