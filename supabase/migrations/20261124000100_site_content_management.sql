@@ -2,7 +2,8 @@
 -- Apply only to the dedicated YSCMT Enterprise website Supabase project.
 create table if not exists public.site_content_pages (
   page_key text primary key check (page_key in ('home')),
-  content jsonb not null default '{}'::jsonb check (jsonb_typeof(content) = 'object'),\n  draft_content jsonb check (draft_content is null or jsonb_typeof(draft_content) = 'object'),
+  content jsonb not null default '{}'::jsonb check (jsonb_typeof(content) = 'object'),
+  draft_content jsonb check (draft_content is null or jsonb_typeof(draft_content) = 'object'),
   status text not null default 'draft' check (status in ('draft','published')),
   updated_by uuid references auth.users(id) on delete set null,
   updated_at timestamptz not null default now()
