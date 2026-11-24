@@ -18,7 +18,44 @@
 <meta name="twitter:card" content="summary">
 <title>News & Insights | YSCMT Enterprise</title>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"CollectionPage","name":"YSCMT Enterprise News & Insights","url":"https://www.yscmtenterprise.ng/news/","description":"Practical technology guides, cybersecurity advice and learning updates from YSCMT Enterprise.","isPartOf":{"@type":"WebSite","name":"YSCMT Enterprise","url":"https://www.yscmtenterprise.ng/"}}
+{
+  "@context":"https://schema.org",
+  "@graph":[
+    {
+      "@type":"CollectionPage",
+      "@id":"https://www.yscmtenterprise.ng/news/#webpage",
+      "name":"YSCMT Enterprise News & Insights",
+      "url":"https://www.yscmtenterprise.ng/news/",
+      "description":"Practical technology guides, cybersecurity advice and learning updates from YSCMT Enterprise.",
+      "isPartOf":{"@type":"WebSite","name":"YSCMT Enterprise","url":"https://www.yscmtenterprise.ng/"},
+      "breadcrumb":{"@id":"https://www.yscmtenterprise.ng/news/#breadcrumb"},
+      "mainEntity":{"@id":"https://www.yscmtenterprise.ng/news/#articles"}
+    },
+    {
+      "@type":"BreadcrumbList",
+      "@id":"https://www.yscmtenterprise.ng/news/#breadcrumb",
+      "itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Home","item":"https://www.yscmtenterprise.ng/"},
+        {"@type":"ListItem","position":2,"name":"News & Insights","item":"https://www.yscmtenterprise.ng/news/"}
+      ]
+    },
+    {
+      "@type":"ItemList",
+      "@id":"https://www.yscmtenterprise.ng/news/#articles",
+      "name":"Latest YSCMT Enterprise articles",
+      "itemListOrder":"https://schema.org/ItemListOrderDescending",
+      "numberOfItems":1,
+      "itemListElement":[
+        {
+          "@type":"ListItem",
+          "position":1,
+          "url":"https://www.yscmtenterprise.ng/news/essential-cybersecurity-habits/",
+          "name":"7 practical cybersecurity habits everyone should build"
+        }
+      ]
+    }
+  ]
+}
 </script>
 <style>
 :root{--navy:#08213b;--blue:#078db7;--gold:#f0b84b;--ink:#182b3d;--muted:#637487;--pale:#f2f6fa}
