@@ -26,3 +26,7 @@ drop policy if exists "Public can read published website content" on public.site
 create policy "Public can read published website content"
   on public.site_content_pages for select to anon, authenticated
   using (status = 'published');
+
+-- Server-side Vercel handlers use the service role; browser roles receive no write access.
+grant all on public.site_content_pages, public.site_content_audit_logs to service_role;
+grant usage, select on sequence public.site_content_audit_logs_id_seq to service_role;
