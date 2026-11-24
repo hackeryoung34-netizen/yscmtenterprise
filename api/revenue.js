@@ -360,7 +360,7 @@ async function centralAdminRoles(req,res,sql){
   if(req.method==="POST"){
     const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
     const userId=clean(body.user_id,36),role=clean(body.role,30);
-    if(!/^[0-9a-f-]{36}$/i.test(userId)||!centralRolePermissions(role))return send(res,400,{error:"Enter a valid Supabase user ID and staff role."});
+    if(!/^[0-9a-f-]{36}$/i.test(userId)||!["finance","content_manager","support_staff"].includes(role))return send(res,400,{error:"Enter a valid Supabase user ID and an assignable staff role."});
     if(userId===auth.user.id)return send(res,400,{error:"You cannot add yourself as another staff account."});
     const serviceKey=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
     const root=(process.env.SUPABASE_URL||"").replace(/\/$/,"");
@@ -380,7 +380,7 @@ async function centralAdminRoles(req,res,sql){
     const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
     const userId=clean(body.user_id,36),role=body.role===undefined?null:clean(body.role,30),active=body.is_active;
     if(!/^[0-9a-f-]{36}$/i.test(userId)||userId===auth.user.id)return send(res,400,{error:"A valid staff user ID other than your own is required."});
-    if(role!==null&&!centralRolePermissions(role))return send(res,400,{error:"Invalid staff role."});
+    if(role!==null&&!["finance","content_manager","support_staff"].includes(role))return send(res,400,{error:"Only Finance, Content Manager or Support Staff can be assigned here. Super Admin access must be provisioned separately."});
     if(role===null&&typeof active!=="boolean")return send(res,400,{error:"Choose a valid role or active status change."});
     const existing=await sql`select role,is_active from public.central_admin_roles where user_id=${userId}::uuid limit 1`;
     if(!existing[0])return send(res,404,{error:"Staff account not found."});
