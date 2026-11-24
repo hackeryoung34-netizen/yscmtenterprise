@@ -1,6 +1,6 @@
 const { requireCentralAdmin } = require("../_lib/central-admin");
 
-function send(res,status,body){return res.status(status).setHeader("Content-Type","application/json; charset=utf-8").send(JSON.stringify(body));}
+function send(res,status,body){return res.status(status).setHeader("Content-Type","application/json; charset=utf-8").setHeader("Cache-Control","no-store").send(JSON.stringify(body));}
 const allowedKeys=["kicker","tagline","description","side_title","side_copy","cta_text","cta_href","pills"];
 function cleanContent(input){
   if(!input||typeof input!=="object"||Array.isArray(input))return {error:"Content must be an object."};
@@ -24,18 +24,11 @@ module.exports=async function handler(req,res){
   if(!["GET","PUT"].includes(req.method)){res.setHeader("Allow","GET, PUT");return send(res,405,{error:"Method not allowed"});}
   const auth=await requireCentralAdmin(req,"content.manage");
   if(auth.error)return send(res,auth.status,{error:auth.error});
-  const root=(process.env.SUPABASE_URL||"").replace(/\/$/,"");
-  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!root||!key)return send(res,503,{error:"Website content storage is not configured. Add the server-side Supabase service key."});
-  const headers={apikey:key,Authorization:"Bearer "+key,"Content-Type":"application/json"};
+  const sql=auth.sql;
   try{
-    const url=new URL(root+"/rest/v1/site_content_pages");
-    url.searchParams.set("page_key","eq.home");
-    url.searchParams.set("select","page_key,content,draft_content,status,updated_at,updated_by");
     if(req.method==="GET"){
-      const response=await fetch(url,{headers});
-      if(!response.ok)return send(res,502,{error:"Unable to load website content."});
-      const rows=await response.json();
+      const rows=await sql`select page_key,content,draft_content,status,updated_at,updated_by::text as updated_by
+        from public.site_content_pages where page_key='home' limit 1`;
       const row=rows[0];
       return send(res,200,{page:row?{page_key:row.page_key,content:row.draft_content||row.content,status:row.draft_content?"draft":row.status,updated_at:row.updated_at,updated_by:row.updated_by}:null});
     }
@@ -43,19 +36,23 @@ module.exports=async function handler(req,res){
     if(!["draft","published"].includes(body.status))return send(res,400,{error:"Choose Draft or Published."});
     const cleaned=cleanContent(body.content);
     if(cleaned.error)return send(res,400,{error:cleaned.error});
-    const previous=await fetch(url,{headers});
-    if(!previous.ok)return send(res,502,{error:"Unable to read the current content version."});
-    const oldRows=await previous.json();
-    const action=body.status==="published"?"published":oldRows.length?"updated":"created";
-    const saveUrl=new URL(root+"/rest/v1/site_content_pages");
-    saveUrl.searchParams.set("on_conflict","page_key");
-    const record=body.status==="published"
-      ?{page_key:"home",content:cleaned.content,draft_content:null,status:"published",updated_by:auth.user.id,updated_at:new Date().toISOString()}
-      :{page_key:"home",draft_content:cleaned.content,updated_by:auth.user.id,updated_at:new Date().toISOString()};
-    const saved=await fetch(saveUrl,{method:"POST",headers:{...headers,Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(record)});
-    if(!saved.ok)return send(res,502,{error:"Unable to save website content."});
-    const rows=await saved.json(),row=rows[0];
-    await fetch(root+"/rest/v1/site_content_audit_logs",{method:"POST",headers,body:JSON.stringify({page_key:"home",actor_user_id:auth.user.id,action,details:{status:body.status,fields:allowedKeys}})}).catch(()=>null);
+    const previous=await sql`select page_key from public.site_content_pages where page_key='home' limit 1`;
+    const action=body.status==="published"?"published":previous.length?"updated":"created";
+    let rows;
+    if(body.status==="published"){
+      rows=await sql`insert into public.site_content_pages(page_key,content,draft_content,status,updated_by,updated_at)
+        values('home',${JSON.stringify(cleaned.content)}::jsonb,null,'published',${auth.user.id}::uuid,now())
+        on conflict(page_key) do update set content=excluded.content,draft_content=null,status='published',updated_by=excluded.updated_by,updated_at=now()
+        returning page_key,content,draft_content,status,updated_at,updated_by::text as updated_by`;
+    }else{
+      rows=await sql`insert into public.site_content_pages(page_key,draft_content,updated_by,updated_at)
+        values('home',${JSON.stringify(cleaned.content)}::jsonb,${auth.user.id}::uuid,now())
+        on conflict(page_key) do update set draft_content=excluded.draft_content,updated_by=excluded.updated_by,updated_at=now()
+        returning page_key,content,draft_content,status,updated_at,updated_by::text as updated_by`;
+    }
+    await sql`insert into public.site_content_audit_logs(page_key,actor_user_id,action,details)
+      values('home',${auth.user.id}::uuid,${action},${JSON.stringify({status:body.status,fields:allowedKeys})}::jsonb)`;
+    const row=rows[0];
     return send(res,200,{page:row?{page_key:row.page_key,content:body.status==="published"?row.content:row.draft_content,status:body.status,updated_at:row.updated_at,updated_by:row.updated_by}:null,message:body.status==="published"?"Homepage content published.":"Draft saved. The live homepage remains unchanged."});
-  }catch(error){console.error("[site content admin]",error&&error.message||"request failed");return send(res,502,{error:"Website content service is temporarily unavailable."});}
+  }catch(error){console.error("[site content admin]",error&&error.message||"request failed");return send(res,503,{error:"Neon website content service is temporarily unavailable."});}
 };
