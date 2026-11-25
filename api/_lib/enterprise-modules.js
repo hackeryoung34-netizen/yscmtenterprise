@@ -85,7 +85,7 @@ async function advertising(req,res,sql){
     const rows=await sql\`with shown as materialized (
         select id from public.advertiser_campaigns
         where status='active' and (starts_at is null or starts_at<=now()) and (ends_at is null or ends_at>now())
-          and (\${placement||null}::text is null or placement=\${placement||null})
+          and (${placement||null}::text is null or placement=${placement||null})
         order by created_at desc limit 12
       ), bumped as (
         update public.advertiser_campaigns c set impressions=c.impressions+1,updated_at=now()
@@ -101,7 +101,7 @@ async function advertising(req,res,sql){
     const id=clean(b.campaign_id,36);
     if(!/^[0-9a-f-]{36}$/i.test(id))return send(res,400,{error:"Invalid campaign."});
     const rows=await sql\`update public.advertiser_campaigns set clicks=clicks+1,updated_at=now()
-      where id=\${id}::uuid and status='active' and (starts_at is null or starts_at<=now()) and (ends_at is null or ends_at>now())
+      where id=${id}::uuid and status='active' and (starts_at is null or starts_at<=now()) and (ends_at is null or ends_at>now())
       returning destination_url\`;
     if(!rows[0])return send(res,404,{error:"This campaign is no longer active."});
     return send(res,200,{tracked:true,destination_url:rows[0].destination_url});
@@ -111,7 +111,7 @@ async function advertising(req,res,sql){
   if(company.length<2||contact.length<2||!emailOk(email)||!phoneOk(phone)||!["homepage","business-directory","jobs","services","marketplace"].includes(placement)||headline.length<5||description.length<20||!urlOk(destination)||!urlOk(image,true))return send(res,400,{error:"Complete the advertiser contact, placement, creative and valid destination URL."});
   if(budget!==null&&(!Number.isSafeInteger(budget)||budget<1000))return send(res,400,{error:"Enter an advertising budget of at least ₦1,000 or leave it blank for a quote."});
   const rows=await sql\`insert into public.advertiser_campaigns(company_name,contact_name,email,phone,placement,headline,description,image_url,destination_url,budget_ngn)
-    values(\${company},\${contact},\${email},\${phone},\${placement},\${headline},\${description},\${image||null},\${destination},\${budget})
+    values(${company},${contact},${email},${phone},${placement},${headline},${description},${image||null},${destination},${budget})
     returning id,placement,headline,status,created_at\`;
   return send(res,201,{campaign:rows[0],message:"Your advertising request is pending review. YSCMT will send a placement and payment quote."});
 }
@@ -165,7 +165,7 @@ async function events(req,res,sql){
   if(date&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(date))return send(res,400,{error:"Enter a valid event date or leave it blank."});
   if(budget!==null&&(!Number.isSafeInteger(budget)||budget<0))return send(res,400,{error:"Enter a valid budget or leave it blank."});
   const rows=await sql\`insert into public.events_sponsorship_requests(request_type,organisation_name,contact_name,email,phone,event_title,event_type,event_date,budget_ngn,description)
-    values(\${kind},\${org},\${contact},\${email},\${phone},\${title},\${type},\${date},\${budget},\${description}) returning id,status,created_at\`;
+    values(${kind},${org},${contact},${email},${phone},${title},${type},${date},${budget},${description}) returning id,status,created_at\`;
   return send(res,201,{request:rows[0],message:"Your event or sponsorship enquiry has been received. YSCMT will contact you after review."});
 }
 
@@ -210,28 +210,28 @@ async function adminModules(req,res,sql){
   };
   if(!allowed[module].includes(status))return send(res,400,{error:"Invalid status for this module."});
   let updated;
-  if(module==="services")updated=await sql\`update public.digital_service_inquiries set status=\${status},admin_notes=\${notes||null},updated_at=now() where id=\${id}::uuid returning id,status\`;
-  if(module==="marketplace"&&b.record_type==="provider")updated=await sql\`update public.service_provider_profiles set status=\${status},admin_notes=\${notes||null},approved_at=case when \${status}='approved' then coalesce(approved_at,now()) else approved_at end,updated_at=now() where id=\${id}::uuid returning id,status\`;
-  if(module==="marketplace"&&b.record_type==="request")updated=await sql\`update public.service_marketplace_requests set status=\${status},admin_notes=\${notes||null},updated_at=now() where id=\${id}::uuid returning id,status\`;
-  if(module==="advertising")updated=await sql\`update public.advertiser_campaigns set status=\${status},admin_notes=\${notes||null},starts_at=case when \${status}='active' then coalesce(starts_at,now()) else starts_at end,updated_at=now() where id=\${id}::uuid returning id,status\`;
+  if(module==="services")updated=await sql\`update public.digital_service_inquiries set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status\`;
+  if(module==="marketplace"&&b.record_type==="provider")updated=await sql\`update public.service_provider_profiles set status=${status},admin_notes=${notes||null},approved_at=case when ${status}='approved' then coalesce(approved_at,now()) else approved_at end,updated_at=now() where id=${id}::uuid returning id,status\`;
+  if(module==="marketplace"&&b.record_type==="request")updated=await sql\`update public.service_marketplace_requests set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status\`;
+  if(module==="advertising")updated=await sql\`update public.advertiser_campaigns set status=${status},admin_notes=${notes||null},starts_at=case when ${status}='active' then coalesce(starts_at,now()) else starts_at end,updated_at=now() where id=${id}::uuid returning id,status\`;
   if(module==="affiliates"&&b.record_type==="partner"){
     const rate=b.commission_rate===undefined||b.commission_rate===null||b.commission_rate===""?null:Number(b.commission_rate);
     if(rate!==null&&(!Number.isFinite(rate)||rate<0||rate>100))return send(res,400,{error:"Commission rate must be between 0 and 100 percent."});
-    updated=await sql\`update public.affiliate_partners set status=\${status},commission_rate=coalesce(\${rate===null?null:rate/100},commission_rate),admin_notes=\${notes||null},approved_at=case when \${status}='approved' then coalesce(approved_at,now()) else approved_at end,updated_at=now() where id=\${id}::uuid returning id,status,commission_rate\`;
+    updated=await sql\`update public.affiliate_partners set status=${status},commission_rate=coalesce(${rate===null?null:rate/100},commission_rate),admin_notes=${notes||null},approved_at=case when ${status}='approved' then coalesce(approved_at,now()) else approved_at end,updated_at=now() where id=${id}::uuid returning id,status,commission_rate\`;
   }
   if(module==="affiliates"&&b.record_type==="referral"){
     const sale=b.sale_amount_ngn===undefined||b.sale_amount_ngn===null||b.sale_amount_ngn===""?null:Number(b.sale_amount_ngn);
     if(status==="converted"&&(!Number.isSafeInteger(sale)||sale<=0))return send(res,400,{error:"Enter the verified sale amount in NGN to record a conversion."});
-    if(status==="paid")updated=await sql\`update public.affiliate_referrals set status='paid',paid_at=coalesce(paid_at,now()) where id=\${id}::uuid and status='approved' returning id,status,commission_amount_ngn\`;
-    else if(status==="approved")updated=await sql\`update public.affiliate_referrals set status='approved' where id=\${id}::uuid and status='converted' returning id,status,commission_amount_ngn\`;
-    else if(status==="converted")updated=await sql\`update public.affiliate_referrals r set status='converted',sale_amount_ngn=\${sale},commission_amount_ngn=round(\${sale}*p.commission_rate)::bigint,converted_at=coalesce(r.converted_at,now()) from public.affiliate_partners p where r.id=\${id}::uuid and p.id=r.partner_id and r.status='clicked' and p.status='approved' returning r.id,r.status,r.commission_amount_ngn\`;
-    else updated=await sql\`update public.affiliate_referrals set status=\${status} where id=\${id}::uuid and status in ('clicked','converted','approved') returning id,status,commission_amount_ngn\`;
+    if(status==="paid")updated=await sql\`update public.affiliate_referrals set status='paid',paid_at=coalesce(paid_at,now()) where id=${id}::uuid and status='approved' returning id,status,commission_amount_ngn\`;
+    else if(status==="approved")updated=await sql\`update public.affiliate_referrals set status='approved' where id=${id}::uuid and status='converted' returning id,status,commission_amount_ngn\`;
+    else if(status==="converted")updated=await sql\`update public.affiliate_referrals r set status='converted',sale_amount_ngn=${sale},commission_amount_ngn=round(${sale}*p.commission_rate)::bigint,converted_at=coalesce(r.converted_at,now()) from public.affiliate_partners p where r.id=${id}::uuid and p.id=r.partner_id and r.status='clicked' and p.status='approved' returning r.id,r.status,r.commission_amount_ngn\`;
+    else updated=await sql\`update public.affiliate_referrals set status=${status} where id=${id}::uuid and status in ('clicked','converted','approved') returning id,status,commission_amount_ngn\`;
   }
-  if(module==="communications")updated=await sql\`update public.communications_subscriptions set status=\${status},admin_notes=\${notes||null},updated_at=now() where id=\${id}::uuid returning id,status\`;
-  if(module==="events")updated=await sql\`update public.events_sponsorship_requests set status=\${status},admin_notes=\${notes||null},updated_at=now() where id=\${id}::uuid returning id,status\`;
+  if(module==="communications")updated=await sql\`update public.communications_subscriptions set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status\`;
+  if(module==="events")updated=await sql\`update public.events_sponsorship_requests set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status\`;
   if(!updated||!updated[0])return send(res,404,{error:"Record not found or record type missing, or the requested status transition is not allowed."});
   await sql\`insert into public.enterprise_module_audit_logs(actor_user_id,module,entity_id,action,details)
-    values(\${auth.user.id}::uuid,\${module},\${id}::uuid,\${"status_"+status},\${JSON.stringify({status,record_type:b.record_type||null,admin_notes:notes||null})}::jsonb)\`;
+    values(${auth.user.id}::uuid,${module},${id}::uuid,${"status_"+status},${JSON.stringify({status,record_type:b.record_type||null,admin_notes:notes||null})}::jsonb)\`;
   return send(res,200,{record:updated[0]});
 }
 
