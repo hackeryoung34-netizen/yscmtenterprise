@@ -109,6 +109,18 @@
       "destination": "/api/revenue?route=admin-enterprise-modules"
     },
     {
+      "source": "/api/admin/billing",
+      "destination": "/api/revenue?route=admin-billing"
+    },
+    {
+      "source": "/api/invoice-payment/webhook",
+      "destination": "/api/revenue?route=invoice-webhook"
+    },
+    {
+      "source": "/api/invoice-payment",
+      "destination": "/api/revenue?route=invoice"
+    },
+    {
       "source": "/api/events-sponsorship",
       "destination": "/api/revenue?route=events"
     }
