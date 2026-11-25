@@ -212,7 +212,21 @@ async function adminModules(req,res,sql){
   let updated;
   if(module==="services")updated=await sql`update public.digital_service_inquiries set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status`;
   if(module==="marketplace"&&b.record_type==="provider")updated=await sql`update public.service_provider_profiles set status=${status},admin_notes=${notes||null},approved_at=case when ${status}='approved' then coalesce(approved_at,now()) else approved_at end,updated_at=now() where id=${id}::uuid returning id,status`;
-  if(module==="marketplace"&&b.record_type==="request")updated=await sql`update public.service_marketplace_requests set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status`;
+  if(module==="marketplace"&&b.record_type==="request"){
+    const rate=b.commission_rate===undefined||b.commission_rate===null||b.commission_rate===""?null:Number(b.commission_rate);
+    const value=b.service_value_ngn===undefined||b.service_value_ngn===null||b.service_value_ngn===""?null:Number(b.service_value_ngn);
+    if(rate!==null&&(!Number.isFinite(rate)||rate<0||rate>100))return send(res,400,{error:"Commission rate must be between 0 and 100 percent."});
+    if(value!==null&&(!Number.isSafeInteger(value)||value<0))return send(res,400,{error:"Enter a valid completed service value in NGN."});
+    if(status==="completed"&&(!Number.isSafeInteger(value)||value<=0))return send(res,400,{error:"Enter the completed service value in NGN before marking the request completed."});
+    updated=await sql`update public.service_marketplace_requests
+      set status=${status},service_value_ngn=coalesce(${value},service_value_ngn),
+          commission_rate=coalesce(${rate===null?null:rate/100},commission_rate),
+          commission_amount_ngn=case when coalesce(${value},service_value_ngn) is not null
+            then round(coalesce(${value},service_value_ngn)*coalesce(${rate===null?null:rate/100},commission_rate))::bigint
+            else commission_amount_ngn end,
+          admin_notes=${notes||null},updated_at=now()
+      where id=${id}::uuid returning id,status,service_value_ngn,commission_rate,commission_amount_ngn`;
+  }
   if(module==="advertising")updated=await sql`update public.advertiser_campaigns set status=${status},admin_notes=${notes||null},starts_at=case when ${status}='active' then coalesce(starts_at,now()) else starts_at end,updated_at=now() where id=${id}::uuid returning id,status`;
   if(module==="affiliates"&&b.record_type==="partner"){
     const rate=b.commission_rate===undefined||b.commission_rate===null||b.commission_rate===""?null:Number(b.commission_rate);
