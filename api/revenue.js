@@ -6,6 +6,7 @@ const adminProducts = require("./_lib/admin-products");
 const adminSiteContent = require("./_lib/admin-site-content");
 const adminSystemSettings = require("./_lib/admin-system-settings");
 const enterpriseModules = require("./_lib/enterprise-modules");
+const billing = require("./_lib/billing");
 
 function send(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
@@ -552,6 +553,9 @@ module.exports=async function handler(req,res){
     if(route==="communications")return await enterpriseModules.communications(req,res,getRevenueSql());
     if(route==="events")return await enterpriseModules.events(req,res,getRevenueSql());
     if(route==="admin-enterprise-modules")return await enterpriseModules.adminModules(req,res,getRevenueSql());
+    if(route==="admin-billing")return await billing.adminBilling(req,res,getRevenueSql());
+    if(route==="invoice")return await billing.publicInvoice(req,res,getRevenueSql());
+    if(route==="invoice-webhook")return await billing.invoiceWebhook(req,res,getRevenueSql());
     if(route==="directory")return await directory(req,res,getRevenueSql());
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
     if(route==="health")return await health(req,res);
