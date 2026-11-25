@@ -295,6 +295,7 @@ async function featuredPaymentWebhook(req,res,sql){
   try{event=JSON.parse(raw.toString("utf8"));}catch{return send(res,400,{error:"Invalid webhook payload."});}
   const eventType=clean(event&&event.event,80)||"unknown";
   const reference=clean(event&&event.data&&event.data.reference,100)||null;
+  if(reference&&reference.startsWith("YSCMTINV"))return await billing.invoiceWebhook(req,res,sql);
   const txid=Number.isSafeInteger(Number(event&&event.data&&event.data.id))?Number(event.data.id):null;
   const payloadHash=createHash("sha256").update(raw).digest("hex");
   const inserted=await sql`insert into public.featured_business_payment_webhook_events(payload_hash,event_type,reference,transaction_id,processing_status)
