@@ -5,7 +5,7 @@ const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 const roots = ["api", "scripts"];
-const htmlRoots = ["index.html", "admin", "business-directory", "jobs", "revenue-admin", "services", "marketplace", "advertising", "affiliates", "communications", "events", "templates"];
+const htmlRoots = ["index.html", "admin", "business-directory", "jobs", "revenue-admin", "services", "marketplace", "advertising", "affiliates", "communications", "events", "templates", "invoice"];
 const files = [];
 
 function walk(dir) {
@@ -49,7 +49,10 @@ try {
     ["/api/affiliate-click", "/api/revenue?route=affiliate-click"],
     ["/api/communications", "/api/revenue?route=communications"],
     ["/api/admin/enterprise-modules", "/api/revenue?route=admin-enterprise-modules"],
-    ["/api/events-sponsorship", "/api/revenue?route=events"]
+    ["/api/events-sponsorship", "/api/revenue?route=events"],
+    ["/api/admin/billing", "/api/revenue?route=admin-billing"],
+    ["/api/invoice-payment/webhook", "/api/revenue?route=invoice-webhook"],
+    ["/api/invoice-payment", "/api/revenue?route=invoice"]
   ]);
   for (const [source, destination] of requiredRoutes) {
     const rule = rewrites.find((item) => item.source === source);

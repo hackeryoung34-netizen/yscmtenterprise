@@ -6,6 +6,7 @@ const adminProducts = require("./_lib/admin-products");
 const adminSiteContent = require("./_lib/admin-site-content");
 const adminSystemSettings = require("./_lib/admin-system-settings");
 const enterpriseModules = require("./_lib/enterprise-modules");
+const billing = require("./_lib/billing");
 
 function send(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
@@ -294,6 +295,7 @@ async function featuredPaymentWebhook(req,res,sql){
   try{event=JSON.parse(raw.toString("utf8"));}catch{return send(res,400,{error:"Invalid webhook payload."});}
   const eventType=clean(event&&event.event,80)||"unknown";
   const reference=clean(event&&event.data&&event.data.reference,100)||null;
+  if(reference&&reference.startsWith("YSCMTINV"))return await billing.invoiceWebhook(req,res,sql);
   const txid=Number.isSafeInteger(Number(event&&event.data&&event.data.id))?Number(event.data.id):null;
   const payloadHash=createHash("sha256").update(raw).digest("hex");
   const inserted=await sql`insert into public.featured_business_payment_webhook_events(payload_hash,event_type,reference,transaction_id,processing_status)
@@ -408,7 +410,7 @@ async function centralAdminReports(req,res,sql){
   const auth=await centralAdminAuth(req,sql);
   if(auth.error)return send(res,auth.status,{error:auth.error});
   if(!hasCentralPermission(auth,"reports.read"))return send(res,403,{error:"You do not have permission to view revenue reports."});
-  const [businesses,jobs,payments,marketplace,affiliates,advertising,communications,services,events]=await Promise.all([
+  const [businesses,jobs,payments,marketplace,affiliates,advertising,communications,services,events,invoices,expenses,settlements]=await Promise.all([
     sql`select count(*)::int as total,
       count(*) filter(where status='pending')::int as pending,
       count(*) filter(where status='approved')::int as approved,
@@ -452,7 +454,10 @@ async function centralAdminReports(req,res,sql){
     sql`select count(*)::int as total_requests,
       count(*) filter(where status='approved')::int as approved,
       coalesce(sum(budget_ngn),0)::bigint as customer_declared_budget_ngn
-      from public.events_sponsorship_requests`
+      from public.events_sponsorship_requests`,
+    sql`select count(*)::int as total_invoices,count(*) filter(where status='paid')::int as paid_invoices,count(*) filter(where status in ('issued','pending') and due_at<current_date)::int as overdue_invoices,coalesce(sum(amount_ngn) filter(where status='paid'),0)::bigint as paid_invoice_ngn from public.enterprise_invoices`,
+    sql`select coalesce(sum(amount_ngn) filter(where status='paid'),0)::bigint as paid_expenses_ngn,count(*) filter(where status='paid')::int as paid_expense_count from public.enterprise_expenses`,
+    sql`select coalesce(sum(amount_ngn) filter(where status='paid'),0)::bigint as paid_settlements_ngn,coalesce(sum(amount_ngn) filter(where status='pending'),0)::bigint as pending_settlements_ngn from public.enterprise_settlements`
   ]);
   return send(res,200,{
     generated_at:new Date().toISOString(),
@@ -465,12 +470,16 @@ async function centralAdminReports(req,res,sql){
     communications:communications[0]||{},
     digital_services:services[0]||{},
     events_sponsorship:events[0]||{},
+    invoice_payments:invoices[0]||{},
+    expenses:expenses[0]||{},
+    settlements:settlements[0]||{},
+    cash_summary:{gross_collected_ngn:Number(invoices[0]?.paid_invoice_ngn||0)+Number(payments[0]?.gross_kobo||0)/100,paid_expenses_ngn:Number(expenses[0]?.paid_expenses_ngn||0),paid_settlements_ngn:Number(settlements[0]?.paid_settlements_ngn||0),net_cash_before_gateway_fees_ngn:Number(invoices[0]?.paid_invoice_ngn||0)+Number(payments[0]?.gross_kobo||0)/100-Number(expenses[0]?.paid_expenses_ngn||0)-Number(settlements[0]?.paid_settlements_ngn||0)},
     currency:"NGN",
     financial_definitions:{
-      confirmed_cash:"Featured Business Directory payments only. Other module workflows do not yet collect payment through this report.",
+      confirmed_cash:"Verified paid featured-listing orders plus verified paid enterprise invoices.",
       commissions:"Marketplace commissions are receivables; affiliate commission payable excludes referrals marked paid.",
       pipeline:"Campaign budgets, customer-declared event budgets and communications plan value are pipeline indicators, not collected revenue.",
-      profit:"Net profit is not calculated because operating costs, gateway charges and settlement expenses are not yet recorded."
+      profit:"Net cash before gateway fees is gross verified cash collected less recorded paid expenses and paid settlements. It is not statutory net profit; gateway fees, tax and unrecorded costs are excluded."
     }
   });
 }
@@ -552,6 +561,9 @@ module.exports=async function handler(req,res){
     if(route==="communications")return await enterpriseModules.communications(req,res,getRevenueSql());
     if(route==="events")return await enterpriseModules.events(req,res,getRevenueSql());
     if(route==="admin-enterprise-modules")return await enterpriseModules.adminModules(req,res,getRevenueSql());
+    if(route==="admin-billing")return await billing.adminBilling(req,res,getRevenueSql());
+    if(route==="invoice")return await billing.publicInvoice(req,res,getRevenueSql());
+    if(route==="invoice-webhook")return await billing.invoiceWebhook(req,res,getRevenueSql());
     if(route==="directory")return await directory(req,res,getRevenueSql());
     if(route==="admin-directory")return await admin(req,res,getRevenueSql());
     if(route==="health")return await health(req,res);
