@@ -408,7 +408,7 @@ async function centralAdminReports(req,res,sql){
   const auth=await centralAdminAuth(req,sql);
   if(auth.error)return send(res,auth.status,{error:auth.error});
   if(!hasCentralPermission(auth,"reports.read"))return send(res,403,{error:"You do not have permission to view revenue reports."});
-  const [businesses,jobs,payments]=await Promise.all([
+  const [businesses,jobs,payments,marketplace,affiliates,advertising,communications,services,events]=await Promise.all([
     sql`select count(*)::int as total,
       count(*) filter(where status='pending')::int as pending,
       count(*) filter(where status='approved')::int as approved,
@@ -425,9 +425,54 @@ async function centralAdminReports(req,res,sql){
       from public.job_ads`,
     sql`select count(*)::int as paid_orders,
       coalesce(sum(amount_kobo),0)::bigint as gross_kobo
-      from public.featured_business_payment_orders where status='paid'`
+      from public.featured_business_payment_orders where status='paid'`,
+    sql`select count(*) filter(where status='completed')::int as completed_requests,
+      coalesce(sum(commission_amount_ngn) filter(where status='completed'),0)::bigint as commission_receivable_ngn
+      from public.service_marketplace_requests`,
+    sql`select count(*) filter(where status='clicked')::int as clicks,
+      count(*) filter(where status='converted')::int as converted,
+      count(*) filter(where status='approved')::int as approved,
+      count(*) filter(where status='paid')::int as paid,
+      coalesce(sum(commission_amount_ngn) filter(where status in ('converted','approved')),0)::bigint as commission_payable_ngn,
+      coalesce(sum(commission_amount_ngn) filter(where status='paid'),0)::bigint as commission_paid_ngn
+      from public.affiliate_referrals`,
+    sql`select count(*) filter(where status='active')::int as active_campaigns,
+      count(*) filter(where status='pending')::int as pending_campaigns,
+      coalesce(sum(budget_ngn) filter(where status in ('approved','active')),0)::bigint as declared_campaign_budget_ngn,
+      coalesce(sum(impressions),0)::bigint as impressions,
+      coalesce(sum(clicks),0)::bigint as clicks
+      from public.advertiser_campaigns`,
+    sql`select count(*) filter(where s.status='active')::int as active_subscriptions,
+      coalesce(sum(p.monthly_price_ngn) filter(where s.status='active'),0)::bigint as plan_value_mrr_ngn
+      from public.communications_subscriptions s join public.communications_plans p on p.id=s.plan_id`,
+    sql`select count(*)::int as total_inquiries,
+      count(*) filter(where status='quoted')::int as quoted,
+      count(*) filter(where status='completed')::int as completed
+      from public.digital_service_inquiries`,
+    sql`select count(*)::int as total_requests,
+      count(*) filter(where status='approved')::int as approved,
+      coalesce(sum(budget_ngn),0)::bigint as customer_declared_budget_ngn
+      from public.events_sponsorship_requests`
   ]);
-  return send(res,200,{generated_at:new Date().toISOString(),business_directory:businesses[0]||{},job_ads:jobs[0]||{},featured_business_payments:payments[0]||{paid_orders:0,gross_kobo:0},currency:"NGN",scope:"Business Directory featured-listing payments only; excludes Template Store and other services."});
+  return send(res,200,{
+    generated_at:new Date().toISOString(),
+    business_directory:businesses[0]||{},
+    job_ads:jobs[0]||{},
+    featured_business_payments:payments[0]||{paid_orders:0,gross_kobo:0},
+    marketplace_commissions:marketplace[0]||{},
+    affiliate_commissions:affiliates[0]||{},
+    advertising:advertising[0]||{},
+    communications:communications[0]||{},
+    digital_services:services[0]||{},
+    events_sponsorship:events[0]||{},
+    currency:"NGN",
+    financial_definitions:{
+      confirmed_cash:"Featured Business Directory payments only. Other module workflows do not yet collect payment through this report.",
+      commissions:"Marketplace commissions are receivables; affiliate commission payable excludes referrals marked paid.",
+      pipeline:"Campaign budgets, customer-declared event budgets and communications plan value are pipeline indicators, not collected revenue.",
+      profit:"Net profit is not calculated because operating costs, gateway charges and settlement expenses are not yet recorded."
+    }
+  });
 }
 async function centralAdminActivity(req,res,sql){
   if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
