@@ -10,7 +10,7 @@
 <script>
 const $=id=>document.getElementById(id),sessionKey="yscmt_store_session";let active="services",busy=false;
 const labels={services:"Digital Services",marketplace:"Marketplace",advertising:"Advertising",affiliates:"Affiliate Partners",communications:"Communications",events:"Events & Sponsorship"};
-const options={services:["new","contacted","quoted","in_progress","completed","cancelled"],provider:["pending","approved","rejected","suspended"],request:["new","contacted","accepted","completed","cancelled","rejected"],advertising:["pending","approved","active","paused","completed","rejected"],affiliates:["pending","approved","rejected","suspended"],communications:["requested","quoted","pending_payment","active","past_due","cancelled"],events:["new","contacted","quoted","approved","completed","cancelled"]};
+const options={services:["new","contacted","quoted","in_progress","completed","cancelled"],provider:["pending","approved","rejected","suspended"],request:["new","contacted","accepted","completed","cancelled","rejected"],advertising:["pending","approved","active","paused","completed","rejected"],affiliates:["pending","approved","rejected","suspended"],referral:["clicked","converted","approved","paid","void"],communications:["requested","quoted","pending_payment","active","past_due","cancelled"],events:["new","contacted","quoted","approved","completed","cancelled"]};
 function session(){try{return JSON.parse(sessionStorage.getItem(sessionKey)||"null")}catch{return null}}
 function say(message,error=false){$("status").textContent=message;$("status").className=error?"status error":"status"}
 function el(tag,text,cls){const n=document.createElement(tag);n.textContent=text||"";if(cls)n.className=cls;return n}
@@ -33,7 +33,7 @@ function actionCard(record,module,type){
  let rateInput=null,saleInput=null;
  if(module==="affiliates"&&type==="partner"){rateInput=document.createElement("input");rateInput.type="number";rateInput.min="0";rateInput.max="100";rateInput.step="0.5";rateInput.value=String(Number(record.commission_rate)*100);rateInput.placeholder="Commission percent";card.append(el("p","Commission rate (%)"));card.append(rateInput);}
  if(module==="affiliates"&&type==="referral"){saleInput=document.createElement("input");saleInput.type="number";saleInput.min="1";saleInput.step="1";saleInput.placeholder="Verified sale amount in NGN (required to mark converted)";card.append(saleInput);}
- const row=el("div","","actions"),select=document.createElement("select");const key=module==="marketplace"?type:module;options[key].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v.replace(/_/g," ");if(v===record.status)o.selected=true;select.append(o)});row.append(select);
+ const row=el("div","","actions"),select=document.createElement("select");const key=module==="marketplace"?type:module==="affiliates"?(type==="referral"?"referral":"affiliates"):module;options[key].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v.replace(/_/g," ");if(v===record.status)o.selected=true;select.append(o)});row.append(select);
  const save=el("button","Save status");save.type="button";save.addEventListener("click",()=>updateRecord(record.id,module,type,select.value,notes.value,save,{commission_rate:rateInput?rateInput.value:undefined,sale_amount_ngn:saleInput?saleInput.value:undefined}));row.append(save);card.append(row);return card;
 }
 function render(data){
