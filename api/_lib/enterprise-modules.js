@@ -225,7 +225,7 @@ async function adminModules(req,res,sql){
             then round(coalesce(${value},service_value_ngn)*coalesce(${rate===null?null:rate/100},commission_rate))::bigint
             else commission_amount_ngn end,
           admin_notes=${notes||null},updated_at=now()
-      where id=${id}::uuid returning id,status,service_value_ngn,commission_rate,commission_amount_ngn`;
+      where id=${id}::uuid returning id,status,provider_id,service_value_ngn,commission_rate,commission_amount_ngn`;
   }
   if(module==="advertising")updated=await sql`update public.advertiser_campaigns set status=${status},admin_notes=${notes||null},starts_at=case when ${status}='active' then coalesce(starts_at,now()) else starts_at end,updated_at=now() where id=${id}::uuid returning id,status`;
   if(module==="affiliates"&&b.record_type==="partner"){
@@ -243,6 +243,15 @@ async function adminModules(req,res,sql){
   }
   if(module==="communications")updated=await sql`update public.communications_subscriptions set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status`;
   if(module==="events")updated=await sql`update public.events_sponsorship_requests set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status`;
+  if(module==="marketplace"&&b.record_type==="request"&&status==="completed"&&updated[0].provider_id){
+    const provider=await sql`select business_name from public.service_provider_profiles where id=${updated[0].provider_id}::uuid limit 1`;
+    const gross=Number(updated[0].service_value_ngn||0),commission=Number(updated[0].commission_amount_ngn||0),net=gross-commission;
+    if(provider[0]&&net>0){
+      await sql`insert into public.enterprise_settlements(beneficiary_type,beneficiary_id,beneficiary_name,amount_ngn,notes,created_by,source_module,source_entity_id)
+        values('provider',${updated[0].provider_id}::uuid,${provider[0].business_name},${net},${"Marketplace request "+id+" · gross ₦"+gross+" · YSCMT commission ₦"+commission},${auth.user.id}::uuid,'marketplace',${id}::uuid)
+        on conflict(source_module,source_entity_id) where source_module is not null and source_entity_id is not null do nothing`;
+    }
+  }
   if(!updated||!updated[0])return send(res,404,{error:"Record not found or record type missing, or the requested status transition is not allowed."});
   await sql`insert into public.enterprise_module_audit_logs(actor_user_id,module,entity_id,action,details)
     values(${auth.user.id}::uuid,${module},${id}::uuid,${"status_"+status},${JSON.stringify({status,record_type:b.record_type||null,admin_notes:notes||null})}::jsonb)`;
