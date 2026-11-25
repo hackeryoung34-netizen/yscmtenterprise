@@ -114,6 +114,13 @@
         <a href="/">Home</a>
         <a href="/#about">About</a>
         <a href="/services/" aria-current="page">Services</a>
+        <a href="/marketplace/">Marketplace</a>
+        <a href="/jobs/">Jobs</a>
+        <a href="/business-directory/">Directory</a>
+        <a href="/advertising/">Advertise</a>
+        <a href="/communications/">Communications</a>
+        <a href="/affiliates/">Affiliates</a>
+        <a href="/events/">Events</a>
         <a href="/#training">Training</a>
         <a href="/#projects">Projects</a>
         <a href="/#contact">Contact</a>
@@ -172,6 +179,22 @@
       <h2>Clear scope, no invented promises</h2>
       <p>Every project is different. Service scope, timing and cost should be discussed and confirmed for the actual requirements. This page does not claim guaranteed rankings, certifications, results or fixed prices.</p>
     </aside>
+    <section class="note" aria-labelledby="service-request-title">
+      <h2 id="service-request-title">Request a digital service quote</h2>
+      <p>Send your project requirements to YSCMT Enterprise. We will review the scope and contact you to discuss the next steps and pricing.</p>
+      <form id="serviceRequestForm" style="background:#fff;border:1px solid #dce5ed;border-radius:8px;padding:20px;margin-top:18px">
+        <label>Your name<input name="customer_name" required maxlength="120" style="display:block;width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:6px"></label>
+        <label>Email<input name="email" type="email" required style="display:block;width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:6px"></label>
+        <label>Phone / WhatsApp<input name="phone" required style="display:block;width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:6px"></label>
+        <label>Service<select name="service_key" required style="display:block;width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:6px">
+          <option value="">Choose a service</option><option value="website-development">Website & Web App Development</option><option value="graphic-design">Graphic Design & Branding</option><option value="cybersecurity">Cybersecurity Consultation</option><option value="it-support">IT Support & Computer Maintenance</option><option value="cloud-email">Cloud, Domain & Business Email</option><option value="social-media">Social Media Management</option>
+        </select></label>
+        <label>Project details<textarea name="project_description" required minlength="20" maxlength="3000" style="display:block;width:100%;min-height:110px;padding:11px;border:1px solid #cbd5e1;border-radius:6px"></textarea></label>
+        <label>Budget in NGN (optional)<input name="budget_ngn" type="number" min="0" style="display:block;width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:6px"></label>
+        <button class="btn" type="submit" style="border:0;cursor:pointer">Submit project enquiry</button>
+        <p id="serviceRequestStatus" role="status" style="min-height:24px;color:#087da8"></p>
+      </form>
+    </section>
     <section class="cta" aria-labelledby="contact-title">
       <h2 id="contact-title">Discuss a project or training enquiry</h2>
       <p>Contact YSCMT Enterprise and describe the service you need.</p>
@@ -182,5 +205,10 @@
     </section>
   </main>
   <footer><div class="wrap">© YSCMT Enterprise. Learn. Build. Innovate.</div></footer>
+<script>
+const serviceForm=document.getElementById("serviceRequestForm");
+if(serviceForm)serviceForm.addEventListener("submit",async function(event){event.preventDefault();const status=document.getElementById("serviceRequestStatus"),payload=Object.fromEntries(new FormData(serviceForm));status.textContent="Sending enquiry…";try{const response=await fetch("/api/digital-services",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}),data=await response.json();if(!response.ok)throw new Error(data.error||"Unable to send enquiry");status.textContent=data.message;serviceForm.reset();}catch(error){status.textContent=error.message;}});
+</script><script src="/affiliate-tracking.js" defer></script>
+<script src="/advertising-widget.js" defer></script>
 </body>
 </html>

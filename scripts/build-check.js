@@ -5,7 +5,7 @@ const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 const roots = ["api", "scripts"];
-const htmlRoots = ["index.html", "admin", "business-directory", "jobs", "revenue-admin"];
+const htmlRoots = ["index.html", "admin", "business-directory", "jobs", "revenue-admin", "services", "marketplace", "advertising", "affiliates", "communications", "events", "templates"];
 const files = [];
 
 function walk(dir) {
@@ -41,7 +41,15 @@ try {
     ["/api/admin/revenue-health", "/api/revenue?route=admin-health"],
     ["/api/featured-payment", "/api/revenue?route=featured-init"],
     ["/api/featured-payment/verify", "/api/revenue?route=featured-verify"],
-    ["/api/featured-payment/webhook", "/api/revenue?route=featured-webhook"]
+    ["/api/featured-payment/webhook", "/api/revenue?route=featured-webhook"],
+    ["/api/digital-services", "/api/revenue?route=digital-services"],
+    ["/api/marketplace", "/api/revenue?route=marketplace"],
+    ["/api/advertising", "/api/revenue?route=advertising"],
+    ["/api/affiliates", "/api/revenue?route=affiliates"],
+    ["/api/affiliate-click", "/api/revenue?route=affiliate-click"],
+    ["/api/communications", "/api/revenue?route=communications"],
+    ["/api/admin/enterprise-modules", "/api/revenue?route=admin-enterprise-modules"],
+    ["/api/events-sponsorship", "/api/revenue?route=events"]
   ]);
   for (const [source, destination] of requiredRoutes) {
     const rule = rewrites.find((item) => item.source === source);

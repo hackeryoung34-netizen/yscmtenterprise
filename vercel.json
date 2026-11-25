@@ -79,6 +79,38 @@
     {
       "source": "/api/featured-payment/webhook",
       "destination": "/api/revenue?route=featured-webhook"
+    },
+    {
+      "source": "/api/digital-services",
+      "destination": "/api/revenue?route=digital-services"
+    },
+    {
+      "source": "/api/marketplace",
+      "destination": "/api/revenue?route=marketplace"
+    },
+    {
+      "source": "/api/advertising",
+      "destination": "/api/revenue?route=advertising"
+    },
+    {
+      "source": "/api/affiliates",
+      "destination": "/api/revenue?route=affiliates"
+    },
+    {
+      "source": "/api/affiliate-click",
+      "destination": "/api/revenue?route=affiliate-click"
+    },
+    {
+      "source": "/api/communications",
+      "destination": "/api/revenue?route=communications"
+    },
+    {
+      "source": "/api/admin/enterprise-modules",
+      "destination": "/api/revenue?route=admin-enterprise-modules"
+    },
+    {
+      "source": "/api/events-sponsorship",
+      "destination": "/api/revenue?route=events"
     }
   ]
 }

@@ -94,7 +94,7 @@
         if(p.installation_price_ngn!==null&&p.installation_price_ngn!==undefined)body.append(element('div','product-price','With installation: '+money(p.installation_price_ngn)));
         const links=element('div','product-links');
         if(p.demo_url){const a=element('a','', 'View live demo ');a.href=p.demo_url;a.target='_blank';a.rel='noopener noreferrer';links.append(a);}
-        function checkoutButton(label,type){const button=element('button','',label);button.type='button';button.addEventListener('click',async()=>{let session;try{session=JSON.parse(sessionStorage.getItem('yscmt_store_session')||'null')}catch{}if(!session||!session.access_token){location.href='/templates/account.html';return;}button.disabled=true;button.textContent='Preparing checkout…';try{const response=await fetch('/api/create-order',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({product_id:p.id,purchase_type:type})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Unable to start checkout.');if(!data.authorization_url)throw new Error('Paystack did not return a checkout link.');location.href=data.authorization_url;}catch(error){alert(error.message);button.disabled=false;button.textContent=label;}});links.append(button);}
+        function checkoutButton(label,type){const button=element('button','',label);button.type='button';button.addEventListener('click',async()=>{let session;try{session=JSON.parse(sessionStorage.getItem('yscmt_store_session')||'null')}catch{}if(!session||!session.access_token){location.href='/templates/account.html';return;}button.disabled=true;button.textContent='Preparing checkout…';try{const response=await fetch('/api/create-order',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({product_id:p.id,purchase_type:type,affiliate_referral_id:sessionStorage.getItem('yscmt_affiliate_referral_id')||null})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Unable to start checkout.');if(!data.authorization_url)throw new Error('Paystack did not return a checkout link.');location.href=data.authorization_url;}catch(error){alert(error.message);button.disabled=false;button.textContent=label;}});links.append(button);}
         checkoutButton('Buy source code','source_code');
         if(p.installation_price_ngn!==null&&p.installation_price_ngn!==undefined)checkoutButton('Buy with installation','installation');
         body.append(links);
@@ -128,5 +128,6 @@
     document.getElementById('year').textContent=new Date().getFullYear();
     loadCatalogue();
   </script>
+<script src="/affiliate-tracking.js" defer></script>
 </body>
 </html>

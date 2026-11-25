@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { getRevenueSql } = require("./_lib/revenue-db");
 function send(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json; charset=utf-8").send(JSON.stringify(body));
 }
@@ -10,6 +11,8 @@ module.exports = async function handler(req, res) {
   const authorization = req.headers.authorization || "", accessToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   const body = req.body && typeof req.body === "object" ? req.body : {};
   const productId = typeof body.product_id === "string" ? body.product_id : "", purchaseType = body.purchase_type;
+  const submittedReferralId=typeof body.affiliate_referral_id==="string"?body.affiliate_referral_id:"";
+  let affiliateReferralId=null;
   if (!accessToken || !/^[0-9a-f-]{36}$/i.test(productId) || !["source_code","installation"].includes(purchaseType)) return send(res, 400, { error: "Sign in and provide a valid product and purchase type." });
   const headers = { apikey: anonKey, Authorization: "Bearer " + accessToken, "Content-Type": "application/json" };
   try {
@@ -51,11 +54,18 @@ module.exports = async function handler(req, res) {
     if (!orderResponse.ok) return send(res,502,{error:"Unable to create your pending order."});
     const orders=await orderResponse.json(),order=orders[0];
     if(!order)return send(res,502,{error:"The order service returned no order record."});
+    if(/^[0-9a-f-]{36}$/i.test(submittedReferralId)){
+      try{
+        const sql=getRevenueSql();
+        const referrals=await sql`select r.id from public.affiliate_referrals r join public.affiliate_partners p on p.id=r.partner_id where r.id=${submittedReferralId}::uuid and r.status='clicked' and p.status='approved' limit 1`;
+        if(referrals[0])affiliateReferralId=referrals[0].id;
+      }catch(error){console.warn("[affiliate attribution] Referral lookup skipped.");}
+    }
     const reference="yscmt-"+crypto.randomUUID();
     const origin=process.env.STORE_PAYMENT_CALLBACK_URL || (process.env.VERCEL_ENV==="production"?"https://yscmtenterprise.ng/templates/payment-callback.html":(process.env.VERCEL_URL?"https://"+process.env.VERCEL_URL+"/templates/payment-callback.html":"https://yscmtenterprise.ng/templates/payment-callback.html"));
     const initResponse=await fetch("https://api.paystack.co/transaction/initialize",{
       method:"POST",headers:{Authorization:"Bearer "+paystackSecret,"Content-Type":"application/json",Accept:"application/json"},
-      body:JSON.stringify({email:user.email,amount:amount*100,currency:"NGN",reference,callback_url:origin,metadata:{order_id:order.id,product_id:product.id,purchase_type:purchaseType,custom_fields:[{display_name:"YSCMT Order",variable_name:"yscmt_order_id",value:order.id}]}})
+      body:JSON.stringify({email:user.email,amount:amount*100,currency:"NGN",reference,callback_url:origin,metadata:{order_id:order.id,product_id:product.id,purchase_type:purchaseType,affiliate_referral_id:affiliateReferralId,custom_fields:[{display_name:"YSCMT Order",variable_name:"yscmt_order_id",value:order.id}]}})
     });
     const initialized=await initResponse.json();
     if(!initResponse.ok||!initialized.status||!initialized.data||!initialized.data.authorization_url||initialized.data.reference!==reference) return send(res,502,{error:"Paystack could not initialize this payment. No paid access has been granted."});
