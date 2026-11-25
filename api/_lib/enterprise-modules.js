@@ -162,7 +162,7 @@ async function events(req,res,sql){
   if(await rateLimit(sql,req,"events_sponsorship"))return send(res,429,{error:"Too many submissions. Please try again later."});
   const b=bodyOf(req),kind=clean(b.request_type,20),org=clean(b.organisation_name,160),contact=clean(b.contact_name,120),email=clean(b.email,254).toLowerCase(),phone=clean(b.phone,24).replace(/[\s()-]/g,""),title=clean(b.event_title,180),type=clean(b.event_type,30),date=clean(b.event_date,10)||null,description=clean(b.description,2500),budget=b.budget_ngn===""||b.budget_ngn==null?null:Number(b.budget_ngn);
   if(!["host_event","sponsor_event"].includes(kind)||org.length<2||contact.length<2||!emailOk(email)||!phoneOk(phone)||title.length<3||!["webinar","conference","workshop","training","exhibition","community","other"].includes(type)||description.length<30)return send(res,400,{error:"Complete the organisation, contact, event type, title and description."});
-  if(date&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(date))return send(res,400,{error:"Enter a valid event date or leave it blank."});
+  if(date&&(!/^\d{4}-\d{2}-\d{2}$/.test(date)||new Date(date+"T00:00:00.000Z").toISOString().slice(0,10)!==date))return send(res,400,{error:"Enter a valid event date or leave it blank."});
   if(budget!==null&&(!Number.isSafeInteger(budget)||budget<0))return send(res,400,{error:"Enter a valid budget or leave it blank."});
   const rows=await sql`insert into public.events_sponsorship_requests(request_type,organisation_name,contact_name,email,phone,event_title,event_type,event_date,budget_ngn,description)
     values(${kind},${org},${contact},${email},${phone},${title},${type},${date},${budget},${description}) returning id,status,created_at`;
