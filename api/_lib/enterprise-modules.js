@@ -136,9 +136,9 @@ async function affiliateClick(req,res,sql){
   if(!partner[0])return send(res,404,{error:"This referral link is not active."});
   const secret=process.env.REVENUE_RATE_LIMIT_SECRET||"";
   const ipHash=secret?createHmac("sha256",secret).update(ipOf(req)).digest("hex"):null;
-  await sql`insert into public.affiliate_referrals(partner_id,referral_code,ip_hash,referrer,landing_path)
-    values(${partner[0].id},${code},${ipHash},${referrer||null},${path||null})`;
-  return send(res,200,{tracked:true});
+  const inserted=await sql`insert into public.affiliate_referrals(partner_id,referral_code,ip_hash,referrer,landing_path)
+    values(${partner[0].id},${code},${ipHash},${referrer||null},${path||null}) returning id`;
+  return send(res,200,{tracked:true,referral_id:inserted[0].id,referral_code:code});
 }
 
 async function communications(req,res,sql){
