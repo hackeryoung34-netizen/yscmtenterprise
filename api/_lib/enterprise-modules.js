@@ -204,7 +204,7 @@ async function adminModules(req,res,sql){
     services:["new","contacted","quoted","in_progress","completed","cancelled"],
     marketplace:["pending","approved","rejected","suspended","new","contacted","accepted","completed","cancelled"],
     advertising:["pending","approved","active","paused","completed","rejected"],
-    affiliates:["pending","approved","rejected","suspended","clicked","converted","paid","void"],
+    affiliates:["pending","approved","rejected","suspended","clicked","converted","void"],
     communications:["requested","quoted","pending_payment","active","past_due","cancelled"],
     events:["new","contacted","quoted","approved","completed","cancelled"]
   };
