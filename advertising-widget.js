@@ -5,7 +5,7 @@
   function mount(){
     if(document.getElementById("yscmt-sponsored-slot"))return document.getElementById("yscmt-sponsored-slot");
     const slot=document.createElement("section");slot.id="yscmt-sponsored-slot";slot.setAttribute("aria-label","Sponsored placement");slot.style.cssText="display:none;max-width:1120px;margin:18px auto;padding:0 16px";
-    const anchor=document.querySelector(".hero,.slides,main");
+    const anchor=document.querySelector(".hero,.slides,main > .intro,main > section,main");
     if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(slot,anchor.nextSibling);else document.body.insertBefore(slot,document.body.firstChild);
     return slot;
   }
