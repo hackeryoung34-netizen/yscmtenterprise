@@ -1,4 +1,5 @@
 const { confirmPaidOrder } = require("./_lib/paystack");
+const { getRevenueSql } = require("./_lib/revenue-db");
 function send(res,status,body){res.status(status).setHeader("Content-Type","application/json; charset=utf-8").send(JSON.stringify(body));}
 module.exports=async function handler(req,res){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
@@ -22,6 +23,18 @@ module.exports=async function handler(req,res){
     if(order.status==="paid")return send(res,200,{status:"paid",order_id:order.id,message:"Payment already confirmed."});
     const payment=await confirmPaidOrder(reference);
     if(payment.amount!==order.amount_ngn*100||payment.currency!==order.currency)return send(res,409,{error:"The verified payment amount does not match your order."});
+    const referralId=payment.metadata&&typeof payment.metadata.affiliate_referral_id==="string"?payment.metadata.affiliate_referral_id:"";
+    if(/^[0-9a-f-]{36}$/i.test(referralId)){
+      try{
+        const sql=getRevenueSql();
+        await sql`update public.affiliate_referrals r
+          set status='converted',order_reference=${reference},sale_amount_ngn=${order.amount_ngn},
+              commission_amount_ngn=round(${order.amount_ngn}*p.commission_rate)::bigint,
+              converted_at=coalesce(r.converted_at,now())
+          from public.affiliate_partners p
+          where r.id=${referralId}::uuid and p.id=r.partner_id and r.status='clicked' and p.status='approved'`;
+      }catch(error){console.error("[affiliate conversion tracking] Could not record verified referral conversion.");}
+    }
     return send(res,200,{status:"paid",order_id:order.id,message:"Payment verified. Your purchase is now available in your account."});
   }catch(e){return send(res,502,{error:e.message||"Payment verification failed. Please try again."});}
 };
