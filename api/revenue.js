@@ -563,6 +563,7 @@ module.exports=async function handler(req,res){
     if(route==="admin-enterprise-modules")return await enterpriseModules.adminModules(req,res,getRevenueSql());
     if(route==="admin-billing")return await billing.adminBilling(req,res,getRevenueSql());
     if(route==="customer-portal")return await billing.customerPortal(req,res,getRevenueSql());
+    if(route==="customer-reviews")return await billing.customerReviews(req,res,getRevenueSql());
     if(route==="invoice")return await billing.publicInvoice(req,res,getRevenueSql());
     if(route==="invoice-webhook")return await billing.invoiceWebhook(req,res,getRevenueSql());
     if(route==="directory")return await directory(req,res,getRevenueSql());
