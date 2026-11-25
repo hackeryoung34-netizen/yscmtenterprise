@@ -107,6 +107,10 @@
     {
       "source": "/api/admin/enterprise-modules",
       "destination": "/api/revenue?route=admin-enterprise-modules"
+    },
+    {
+      "source": "/api/events-sponsorship",
+      "destination": "/api/revenue?route=events"
     }
   ]
 }
