@@ -206,5 +206,6 @@
 const serviceForm=document.getElementById("serviceRequestForm");
 if(serviceForm)serviceForm.addEventListener("submit",async function(event){event.preventDefault();const status=document.getElementById("serviceRequestStatus"),payload=Object.fromEntries(new FormData(serviceForm));status.textContent="Sending enquiry…";try{const response=await fetch("/api/digital-services",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}),data=await response.json();if(!response.ok)throw new Error(data.error||"Unable to send enquiry");status.textContent=data.message;serviceForm.reset();}catch(error){status.textContent=error.message;}});
 </script><script src="/affiliate-tracking.js" defer></script>
+<script src="/advertising-widget.js" defer></script>
 </body>
 </html>
