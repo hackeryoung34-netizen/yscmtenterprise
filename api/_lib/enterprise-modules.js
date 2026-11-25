@@ -171,30 +171,31 @@ async function events(req,res,sql){
 
 async function adminModules(req,res,sql){
   const module=clean(req.query&&req.query.module,30);
-  const permissions={services:"services.manage",marketplace:"marketplace.manage",advertising:"advertising.manage",affiliates:"affiliates.manage",communications:"communications.manage"};
+  const permissions={services:"services.manage",marketplace:"marketplace.manage",advertising:"advertising.manage",affiliates:"affiliates.manage",communications:"communications.manage",events:"events.manage"};
   if(!permissions[module])return send(res,400,{error:"Choose a valid module."});
   if(!["GET","PATCH"].includes(req.method)){res.setHeader("Allow","GET, PATCH");return send(res,405,{error:"Method not allowed"});}
   const auth=await requireCentralAdmin(req,permissions[module]);
   if(auth.error)return send(res,auth.status,{error:auth.error});
   if(req.method==="GET"){
     let rows=[];
-    if(module==="services")rows=await sql`select * from public.digital_service_inquiries order by created_at desc limit 200`;
+    if(module==="services")rows=await sql\`select * from public.digital_service_inquiries order by created_at desc limit 200\`;
     if(module==="marketplace"){
       const [providers,requests]=await Promise.all([
-        sql`select * from public.service_provider_profiles order by created_at desc limit 200`,
-        sql`select * from public.service_marketplace_requests order by created_at desc limit 200`
+        sql\`select * from public.service_provider_profiles order by created_at desc limit 200\`,
+        sql\`select * from public.service_marketplace_requests order by created_at desc limit 200\`
       ]);
       return send(res,200,{providers,requests});
     }
-    if(module==="advertising")rows=await sql`select * from public.advertiser_campaigns order by created_at desc limit 200`;
+    if(module==="advertising")rows=await sql\`select * from public.advertiser_campaigns order by created_at desc limit 200\`;
     if(module==="affiliates"){
       const [partners,referrals]=await Promise.all([
-        sql`select * from public.affiliate_partners order by created_at desc limit 200`,
-        sql`select * from public.affiliate_referrals order by clicked_at desc limit 500`
+        sql\`select * from public.affiliate_partners order by created_at desc limit 200\`,
+        sql\`select r.*,p.full_name as partner_name,p.commission_rate from public.affiliate_referrals r join public.affiliate_partners p on p.id=r.partner_id order by r.clicked_at desc limit 500\`
       ]);
       return send(res,200,{partners,referrals});
     }
-    if(module==="communications")rows=await sql`select s.*,p.slug as plan_slug,p.name as plan_name from public.communications_subscriptions s join public.communications_plans p on p.id=s.plan_id order by s.created_at desc limit 200`;
+    if(module==="communications")rows=await sql\`select s.*,p.slug as plan_slug,p.name as plan_name from public.communications_subscriptions s join public.communications_plans p on p.id=s.plan_id order by s.created_at desc limit 200\`;
+    if(module==="events")rows=await sql\`select * from public.events_sponsorship_requests order by created_at desc limit 200\`;
     return send(res,200,{items:rows});
   }
   const b=bodyOf(req),id=clean(b.id,36),status=clean(b.status,30),notes=clean(b.admin_notes,2000);
@@ -203,21 +204,35 @@ async function adminModules(req,res,sql){
     services:["new","contacted","quoted","in_progress","completed","cancelled"],
     marketplace:["pending","approved","rejected","suspended","new","contacted","accepted","completed","cancelled"],
     advertising:["pending","approved","active","paused","completed","rejected"],
-    affiliates:["pending","approved","rejected","suspended"],
-    communications:["requested","quoted","pending_payment","active","past_due","cancelled"]
+    affiliates:["pending","approved","rejected","suspended","clicked","converted","paid","void"],
+    communications:["requested","quoted","pending_payment","active","past_due","cancelled"],
+    events:["new","contacted","quoted","approved","completed","cancelled"]
   };
   if(!allowed[module].includes(status))return send(res,400,{error:"Invalid status for this module."});
   let updated;
-  if(module==="services")updated=await sql`update public.digital_service_inquiries set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status`;
-  if(module==="marketplace"&&b.record_type==="provider")updated=await sql`update public.service_provider_profiles set status=${status},admin_notes=${notes||null},approved_at=case when ${status}='approved' then coalesce(approved_at,now()) else approved_at end,updated_at=now() where id=${id}::uuid returning id,status`;
-  if(module==="marketplace"&&b.record_type==="request")updated=await sql`update public.service_marketplace_requests set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status`;
-  if(module==="advertising")updated=await sql`update public.advertiser_campaigns set status=${status},admin_notes=${notes||null},starts_at=case when ${status}='active' then coalesce(starts_at,now()) else starts_at end,updated_at=now() where id=${id}::uuid returning id,status`;
-  if(module==="affiliates")updated=await sql`update public.affiliate_partners set status=${status},admin_notes=${notes||null},approved_at=case when ${status}='approved' then coalesce(approved_at,now()) else approved_at end,updated_at=now() where id=${id}::uuid returning id,status`;
-  if(module==="communications")updated=await sql`update public.communications_subscriptions set status=${status},admin_notes=${notes||null},updated_at=now() where id=${id}::uuid returning id,status`;
-  if(!updated||!updated[0])return send(res,404,{error:"Record not found or record type missing."});
-  await sql`insert into public.enterprise_module_audit_logs(actor_user_id,module,entity_id,action,details)
-    values(${auth.user.id}::uuid,${module},${id}::uuid,${"status_"+status},${JSON.stringify({status,record_type:b.record_type||null,admin_notes:notes||null})}::jsonb)`;
+  if(module==="services")updated=await sql\`update public.digital_service_inquiries set status=\${status},admin_notes=\${notes||null},updated_at=now() where id=\${id}::uuid returning id,status\`;
+  if(module==="marketplace"&&b.record_type==="provider")updated=await sql\`update public.service_provider_profiles set status=\${status},admin_notes=\${notes||null},approved_at=case when \${status}='approved' then coalesce(approved_at,now()) else approved_at end,updated_at=now() where id=\${id}::uuid returning id,status\`;
+  if(module==="marketplace"&&b.record_type==="request")updated=await sql\`update public.service_marketplace_requests set status=\${status},admin_notes=\${notes||null},updated_at=now() where id=\${id}::uuid returning id,status\`;
+  if(module==="advertising")updated=await sql\`update public.advertiser_campaigns set status=\${status},admin_notes=\${notes||null},starts_at=case when \${status}='active' then coalesce(starts_at,now()) else starts_at end,updated_at=now() where id=\${id}::uuid returning id,status\`;
+  if(module==="affiliates"&&b.record_type==="partner"){
+    const rate=b.commission_rate===undefined||b.commission_rate===null||b.commission_rate===""?null:Number(b.commission_rate);
+    if(rate!==null&&(!Number.isFinite(rate)||rate<0||rate>100))return send(res,400,{error:"Commission rate must be between 0 and 100 percent."});
+    updated=await sql\`update public.affiliate_partners set status=\${status},commission_rate=coalesce(\${rate===null?null:rate/100},commission_rate),admin_notes=\${notes||null},approved_at=case when \${status}='approved' then coalesce(approved_at,now()) else approved_at end,updated_at=now() where id=\${id}::uuid returning id,status,commission_rate\`;
+  }
+  if(module==="affiliates"&&b.record_type==="referral"){
+    const sale=b.sale_amount_ngn===undefined||b.sale_amount_ngn===null||b.sale_amount_ngn===""?null:Number(b.sale_amount_ngn);
+    if(status==="converted"&&(!Number.isSafeInteger(sale)||sale<=0))return send(res,400,{error:"Enter the verified sale amount in NGN to record a conversion."});
+    if(status==="paid")updated=await sql\`update public.affiliate_referrals set status='paid',paid_at=coalesce(paid_at,now()) where id=\${id}::uuid and status='approved' returning id,status,commission_amount_ngn\`;
+    else if(status==="approved")updated=await sql\`update public.affiliate_referrals set status='approved' where id=\${id}::uuid and status='converted' returning id,status,commission_amount_ngn\`;
+    else if(status==="converted")updated=await sql\`update public.affiliate_referrals r set status='converted',sale_amount_ngn=\${sale},commission_amount_ngn=round(\${sale}*p.commission_rate)::bigint,converted_at=coalesce(r.converted_at,now()) from public.affiliate_partners p where r.id=\${id}::uuid and p.id=r.partner_id and r.status='clicked' and p.status='approved' returning r.id,r.status,r.commission_amount_ngn\`;
+    else updated=await sql\`update public.affiliate_referrals set status=\${status} where id=\${id}::uuid and status in ('clicked','converted','approved') returning id,status,commission_amount_ngn\`;
+  }
+  if(module==="communications")updated=await sql\`update public.communications_subscriptions set status=\${status},admin_notes=\${notes||null},updated_at=now() where id=\${id}::uuid returning id,status\`;
+  if(module==="events")updated=await sql\`update public.events_sponsorship_requests set status=\${status},admin_notes=\${notes||null},updated_at=now() where id=\${id}::uuid returning id,status\`;
+  if(!updated||!updated[0])return send(res,404,{error:"Record not found or record type missing, or the requested status transition is not allowed."});
+  await sql\`insert into public.enterprise_module_audit_logs(actor_user_id,module,entity_id,action,details)
+    values(\${auth.user.id}::uuid,\${module},\${id}::uuid,\${"status_"+status},\${JSON.stringify({status,record_type:b.record_type||null,admin_notes:notes||null})}::jsonb)\`;
   return send(res,200,{record:updated[0]});
 }
 
-module.exports={digitalServices,marketplace,advertising,affiliates,affiliateClick,communications,adminModules};
+module.exports={digitalServices,marketplace,advertising,affiliates,affiliateClick,communications,events,adminModules};
