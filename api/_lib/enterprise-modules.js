@@ -82,19 +82,37 @@ async function marketplace(req,res,sql){
 async function advertising(req,res,sql){
   if(req.method==="GET"){
     const placement=clean(req.query&&req.query.placement,30);
-    const rows=await sql`select id,placement,headline,description,image_url,destination_url from public.advertiser_campaigns
-      where status='active' and (starts_at is null or starts_at<=now()) and (ends_at is null or ends_at>now())
-      and (${placement||null}::text is null or placement=${placement||null}) order by created_at desc limit 12`;
+    const rows=await sql\`with shown as materialized (
+        select id from public.advertiser_campaigns
+        where status='active' and (starts_at is null or starts_at<=now()) and (ends_at is null or ends_at>now())
+          and (\${placement||null}::text is null or placement=\${placement||null})
+        order by created_at desc limit 12
+      ), bumped as (
+        update public.advertiser_campaigns c set impressions=c.impressions+1,updated_at=now()
+        from shown where c.id=shown.id returning c.id
+      )
+      select c.id,c.placement,c.headline,c.description,c.image_url,c.destination_url
+      from public.advertiser_campaigns c join bumped b on b.id=c.id order by c.created_at desc\`;
     return send(res,200,{campaigns:rows});
   }
   if(req.method!=="POST"){res.setHeader("Allow","GET, POST");return send(res,405,{error:"Method not allowed"});}
+  const b=bodyOf(req);
+  if(clean(b.action,20)==="click"){
+    const id=clean(b.campaign_id,36);
+    if(!/^[0-9a-f-]{36}$/i.test(id))return send(res,400,{error:"Invalid campaign."});
+    const rows=await sql\`update public.advertiser_campaigns set clicks=clicks+1,updated_at=now()
+      where id=\${id}::uuid and status='active' and (starts_at is null or starts_at<=now()) and (ends_at is null or ends_at>now())
+      returning destination_url\`;
+    if(!rows[0])return send(res,404,{error:"This campaign is no longer active."});
+    return send(res,200,{tracked:true,destination_url:rows[0].destination_url});
+  }
   if(await rateLimit(sql,req,"advertising_campaign"))return send(res,429,{error:"Too many submissions. Please try again later."});
-  const b=bodyOf(req),company=clean(b.company_name,160),contact=clean(b.contact_name,120),email=clean(b.email,254).toLowerCase(),phone=clean(b.phone,24).replace(/[\s()-]/g,""),placement=clean(b.placement,30),headline=clean(b.headline,140),description=clean(b.description,1200),image=clean(b.image_url,2048),destination=clean(b.destination_url,2048),budget=b.budget_ngn===""||b.budget_ngn==null?null:Number(b.budget_ngn);
+  const company=clean(b.company_name,160),contact=clean(b.contact_name,120),email=clean(b.email,254).toLowerCase(),phone=clean(b.phone,24).replace(/[\\s()-]/g,""),placement=clean(b.placement,30),headline=clean(b.headline,140),description=clean(b.description,1200),image=clean(b.image_url,2048),destination=clean(b.destination_url,2048),budget=b.budget_ngn===""||b.budget_ngn==null?null:Number(b.budget_ngn);
   if(company.length<2||contact.length<2||!emailOk(email)||!phoneOk(phone)||!["homepage","business-directory","jobs","services","marketplace"].includes(placement)||headline.length<5||description.length<20||!urlOk(destination)||!urlOk(image,true))return send(res,400,{error:"Complete the advertiser contact, placement, creative and valid destination URL."});
   if(budget!==null&&(!Number.isSafeInteger(budget)||budget<1000))return send(res,400,{error:"Enter an advertising budget of at least ₦1,000 or leave it blank for a quote."});
-  const rows=await sql`insert into public.advertiser_campaigns(company_name,contact_name,email,phone,placement,headline,description,image_url,destination_url,budget_ngn)
-    values(${company},${contact},${email},${phone},${placement},${headline},${description},${image||null},${destination},${budget})
-    returning id,placement,headline,status,created_at`;
+  const rows=await sql\`insert into public.advertiser_campaigns(company_name,contact_name,email,phone,placement,headline,description,image_url,destination_url,budget_ngn)
+    values(\${company},\${contact},\${email},\${phone},\${placement},\${headline},\${description},\${image||null},\${destination},\${budget})
+    returning id,placement,headline,status,created_at\`;
   return send(res,201,{campaign:rows[0],message:"Your advertising request is pending review. YSCMT will send a placement and payment quote."});
 }
 
@@ -137,6 +155,18 @@ async function communications(req,res,sql){
   const rows=await sql`insert into public.communications_subscriptions(plan_id,customer_name,business_name,email,phone,team_size,requirements)
     values(${plans[0].id},${name},${business},${email},${phone},${team},${requirements||null}) returning id,status,created_at`;
   return send(res,201,{subscription:rows[0],message:"Your communications subscription request has been received. YSCMT will contact you with a service and payment quote."});
+}
+
+async function events(req,res,sql){
+  if(req.method!=="POST"){res.setHeader("Allow","POST");return send(res,405,{error:"Method not allowed"});}
+  if(await rateLimit(sql,req,"events_sponsorship"))return send(res,429,{error:"Too many submissions. Please try again later."});
+  const b=bodyOf(req),kind=clean(b.request_type,20),org=clean(b.organisation_name,160),contact=clean(b.contact_name,120),email=clean(b.email,254).toLowerCase(),phone=clean(b.phone,24).replace(/[\\s()-]/g,""),title=clean(b.event_title,180),type=clean(b.event_type,30),date=clean(b.event_date,10)||null,description=clean(b.description,2500),budget=b.budget_ngn===""||b.budget_ngn==null?null:Number(b.budget_ngn);
+  if(!["host_event","sponsor_event"].includes(kind)||org.length<2||contact.length<2||!emailOk(email)||!phoneOk(phone)||title.length<3||!["webinar","conference","workshop","training","exhibition","community","other"].includes(type)||description.length<30)return send(res,400,{error:"Complete the organisation, contact, event type, title and description."});
+  if(date&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(date))return send(res,400,{error:"Enter a valid event date or leave it blank."});
+  if(budget!==null&&(!Number.isSafeInteger(budget)||budget<0))return send(res,400,{error:"Enter a valid budget or leave it blank."});
+  const rows=await sql\`insert into public.events_sponsorship_requests(request_type,organisation_name,contact_name,email,phone,event_title,event_type,event_date,budget_ngn,description)
+    values(\${kind},\${org},\${contact},\${email},\${phone},\${title},\${type},\${date},\${budget},\${description}) returning id,status,created_at\`;
+  return send(res,201,{request:rows[0],message:"Your event or sponsorship enquiry has been received. YSCMT will contact you after review."});
 }
 
 async function adminModules(req,res,sql){
