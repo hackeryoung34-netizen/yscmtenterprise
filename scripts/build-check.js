@@ -101,6 +101,34 @@ if (!revenueSource.includes('if(route==="admin-session")return await adminSessio
   process.stderr.write("Missing server-enforced central admin RBAC routes.\\n");
 }
 
+const billingSourcePath = path.join(root, "api", "_lib", "billing.js");
+const reviewMigrationPath = path.join(root, "migrations", "017_customer_reviews.sql");
+const reviewMigrationSource = fs.existsSync(reviewMigrationPath) ? fs.readFileSync(reviewMigrationPath, "utf8") : "";
+const billingSource = fs.existsSync(billingSourcePath) ? fs.readFileSync(billingSourcePath, "utf8") : "";
+const customerPortalPath = path.join(root, "customer-portal", "index.html");
+const customerPortalSource = fs.existsSync(customerPortalPath) ? fs.readFileSync(customerPortalPath, "utf8") : "";
+const adminBillingPath = path.join(root, "revenue-admin", "billing.html");
+const adminBillingSource = fs.existsSync(adminBillingPath) ? fs.readFileSync(adminBillingPath, "utf8") : "";
+const homeSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const reviewGuards = [
+  ["Public review route is dispatched", revenueSource.includes('if(route==="customer-reviews")return await billing.customerReviews(req,res,getRevenueSql());')],
+  ["Customer review endpoint only returns approved reviews", billingSource.includes("where r.status='approved'")],
+  ["Review submission is bound to the portal customer's email", billingSource.includes("lower(customer_email)=${access.customer_email}")],
+  ["Only closed support tickets may be reviewed", billingSource.includes('ticket[0].status!=="closed"')],
+  ["A ticket can only receive one review", reviewMigrationSource.includes("enterprise_customer_reviews_one_per_source")],
+  ["Admin review moderation is available", billingSource.includes('action==="moderate_customer_review"')],
+  ["Admin review moderation is audit logged", billingSource.includes("'customer_review_moderated'")],
+  ["Customer portal contains the review form", customerPortalSource.includes('action:"submit_review"')],
+  ["Admin dashboard contains review moderation controls", adminBillingSource.includes("moderate_customer_review")],
+  ["Homepage displays approved customer reviews", homeSource.includes("/api/revenue?route=customer-reviews")]
+];
+for (const [label, ok] of reviewGuards) {
+  if (!ok) {
+    failed = true;
+    process.stderr.write("Missing customer review safety check: " + label + "\\n");
+  }
+}
+
 const apiFunctionFiles = files.filter((file) => {
   const relative = path.relative(root, file).split(path.sep);
   return relative[0] === "api" && !relative.some((part) => part.startsWith("_"));
