@@ -1,0 +1,10 @@
+[ai]
+required = true
+description = "Used to generate advertising copy, creative concepts, variants, and image prompts."
+
+[auth]
+enabled = true
+providers = ["email"]
+
+[project]
+name = "AdForge AI"
