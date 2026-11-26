@@ -1,0 +1,335 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 4154 >>
+stream
+BT
+/F1 10 Tf
+/F1 16 Tf
+48 790 Td
+(COMPUTER FUNDAMENTALS) Tj
+-48 -790 Td
+/F1 10 Tf
+48 774 Td
+(Beginner Study Guide | YSCMT Enterprise) Tj
+-48 -774 Td
+/F1 10 Tf
+48 758 Td
+() Tj
+-48 -758 Td
+/F1 10 Tf
+48 742 Td
+(PURPOSE) Tj
+-48 -742 Td
+/F1 10 Tf
+48 726 Td
+(This guide supports the four Computer Fundamentals lessons. Read each section, try the) Tj
+-48 -726 Td
+/F1 10 Tf
+48 710 Td
+(practice tasks, and explain the ideas in your own words. This is a supplementary) Tj
+-48 -710 Td
+/F1 10 Tf
+48 694 Td
+(learning guide.) Tj
+-48 -694 Td
+/F1 10 Tf
+48 678 Td
+(LEARNING OUTCOMES) Tj
+-48 -678 Td
+/F1 10 Tf
+48 662 Td
+(- Explain input, processing, output, and storage.) Tj
+-48 -662 Td
+/F1 10 Tf
+48 646 Td
+(- Distinguish hardware, system software, and application software.) Tj
+-48 -646 Td
+/F1 10 Tf
+48 630 Td
+(- Describe CPU, RAM, storage, and operating-system roles.) Tj
+-48 -630 Td
+/F1 10 Tf
+48 614 Td
+(- Organise files safely and use online information carefully.) Tj
+-48 -614 Td
+/F1 10 Tf
+48 598 Td
+(1. THE INFORMATION-PROCESSING CYCLE) Tj
+-48 -598 Td
+/F1 10 Tf
+48 582 Td
+(Input is data entered into a system, such as a typed name or scanned barcode.) Tj
+-48 -582 Td
+/F1 10 Tf
+48 566 Td
+(Processing transforms data by following instructions. Output presents a result, such as) Tj
+-48 -566 Td
+/F1 10 Tf
+48 550 Td
+(a) Tj
+-48 -550 Td
+/F1 10 Tf
+48 534 Td
+(screen message, printed receipt, or sound. Storage keeps information for later use.) Tj
+-48 -534 Td
+/F1 10 Tf
+48 518 Td
+(A touchscreen can act as both an input and output device.) Tj
+-48 -518 Td
+/F1 10 Tf
+48 502 Td
+(EXAMPLE: A shop scans an item code \(input\), calculates the bill \(processing\), displays) Tj
+-48 -502 Td
+/F1 10 Tf
+48 486 Td
+(the) Tj
+-48 -486 Td
+/F1 10 Tf
+48 470 Td
+(total \(output\), and saves the transaction \(storage\).) Tj
+-48 -470 Td
+/F1 10 Tf
+48 454 Td
+(2. HARDWARE AND SOFTWARE) Tj
+-48 -454 Td
+/F1 10 Tf
+48 438 Td
+(Hardware is physical equipment: CPU, RAM, SSD, motherboard, keyboard, screen, and) Tj
+-48 -438 Td
+/F1 10 Tf
+48 422 Td
+(network) Tj
+-48 -422 Td
+/F1 10 Tf
+48 406 Td
+(adapter. The CPU executes instructions. RAM temporarily holds data in use. An SSD or) Tj
+-48 -406 Td
+/F1 10 Tf
+48 390 Td
+(hard) Tj
+-48 -390 Td
+/F1 10 Tf
+48 374 Td
+(drive stores files long-term. Software is the programs and instructions that use) Tj
+-48 -374 Td
+/F1 10 Tf
+48 358 Td
+(hardware.) Tj
+-48 -358 Td
+/F1 10 Tf
+48 342 Td
+(Operating systems manage hardware and applications; apps help users perform tasks.) Tj
+-48 -342 Td
+/F1 10 Tf
+48 326 Td
+(EXAMPLE: A photo editor loads from storage into RAM; the CPU processes changes; the) Tj
+-48 -326 Td
+/F1 10 Tf
+48 310 Td
+(screen) Tj
+-48 -310 Td
+/F1 10 Tf
+48 294 Td
+(shows the image; saving writes the result back to storage.) Tj
+-48 -294 Td
+/F1 10 Tf
+48 278 Td
+(3. OPERATING SYSTEMS AND FILES) Tj
+-48 -278 Td
+/F1 10 Tf
+48 262 Td
+(An operating system manages memory, files, devices, running programs, user accounts, and) Tj
+-48 -262 Td
+/F1 10 Tf
+48 246 Td
+(security settings. Use folders to group related files. Choose clear names and sensible) Tj
+-48 -246 Td
+/F1 10 Tf
+48 230 Td
+(folder structures. File extensions often suggest a format but do not prove a file is) Tj
+-48 -230 Td
+/F1 10 Tf
+48 214 Td
+(safe.) Tj
+-48 -214 Td
+/F1 10 Tf
+48 198 Td
+(Back up important work and check cloud-sharing permissions before making files public.) Tj
+-48 -198 Td
+/F1 10 Tf
+48 182 Td
+(PRACTICE: Create a Digital Skills folder with Documents, Images, and Practice) Tj
+-48 -182 Td
+/F1 10 Tf
+48 166 Td
+(subfolders.) Tj
+-48 -166 Td
+/F1 10 Tf
+48 150 Td
+(Save a test file, copy it, rename the copy, and practise restoring a deleted test file.) Tj
+-48 -150 Td
+/F1 10 Tf
+48 134 Td
+(4. INTERNET AND DIGITAL SAFETY) Tj
+-48 -134 Td
+/F1 10 Tf
+48 118 Td
+(A browser displays websites; a search engine helps find web pages. HTTPS encrypts) Tj
+-48 -118 Td
+/F1 10 Tf
+48 102 Td
+(information) Tj
+-48 -102 Td
+/F1 10 Tf
+48 86 Td
+(in transit but does not guarantee that a site or seller is honest. Check the author,) Tj
+-48 -86 Td
+/F1 10 Tf
+48 70 Td
+(date,) Tj
+-48 -70 Td
+/F1 10 Tf
+48 54 Td
+(evidence, and purpose of information before relying on it. Use unique passwords and MFA.) Tj
+-48 -54 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 2252 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+48 790 Td
+(Never share one-time codes. Open banking services through their official app or known) Tj
+-48 -790 Td
+/F1 10 Tf
+48 774 Td
+(URL.) Tj
+-48 -774 Td
+/F1 10 Tf
+48 758 Td
+(KEY TERMS) Tj
+-48 -758 Td
+/F1 10 Tf
+48 742 Td
+(CPU: Central processing unit; executes program instructions.) Tj
+-48 -742 Td
+/F1 10 Tf
+48 726 Td
+(RAM: Temporary working memory used while a device is running.) Tj
+-48 -726 Td
+/F1 10 Tf
+48 710 Td
+(SSD: Long-term storage for files and applications.) Tj
+-48 -710 Td
+/F1 10 Tf
+48 694 Td
+(Operating system: Core software that manages device resources and applications.) Tj
+-48 -694 Td
+/F1 10 Tf
+48 678 Td
+(Browser: Application used to open and interact with websites.) Tj
+-48 -678 Td
+/F1 10 Tf
+48 662 Td
+(Backup: A separate copy of important data that can be restored.) Tj
+-48 -662 Td
+/F1 10 Tf
+48 646 Td
+(PRACTICE EXERCISES) Tj
+-48 -646 Td
+/F1 10 Tf
+48 630 Td
+(1. Draw an input-process-output-storage diagram for an ATM or school system.) Tj
+-48 -630 Td
+/F1 10 Tf
+48 614 Td
+(2. List five hardware items and five software examples.) Tj
+-48 -614 Td
+/F1 10 Tf
+48 598 Td
+(3. Explain why RAM and storage are different.) Tj
+-48 -598 Td
+/F1 10 Tf
+48 582 Td
+(4. Design a folder structure and describe a backup plan.) Tj
+-48 -582 Td
+/F1 10 Tf
+48 566 Td
+(5. Write three warning signs of a suspicious message.) Tj
+-48 -566 Td
+/F1 10 Tf
+48 550 Td
+(REVIEW ANSWERS) Tj
+-48 -550 Td
+/F1 10 Tf
+48 534 Td
+(1. An ATM accepts a card/PIN, checks account information, displays or dispenses a) Tj
+-48 -534 Td
+/F1 10 Tf
+48 518 Td
+(result,) Tj
+-48 -518 Td
+/F1 10 Tf
+48 502 Td
+(and records the transaction.) Tj
+-48 -502 Td
+/F1 10 Tf
+48 486 Td
+(2. Hardware is physical; software is programs and instructions.) Tj
+-48 -486 Td
+/F1 10 Tf
+48 470 Td
+(3. RAM is temporary working memory; storage keeps files when power is off.) Tj
+-48 -470 Td
+/F1 10 Tf
+48 454 Td
+(4. Use clear folders and file names, then keep a separate secure backup.) Tj
+-48 -454 Td
+/F1 10 Tf
+48 438 Td
+(5. Unexpected urgency, requests for passwords or codes, unusual links, or payment) Tj
+-48 -438 Td
+/F1 10 Tf
+48 422 Td
+(demands.) Tj
+-48 -422 Td
+/F1 10 Tf
+48 406 Td
+(YSCMT Enterprise | Learn. Build. Innovate. | Original supplementary study material.) Tj
+-48 -406 Td
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000247 00000 n 
+0000004452 00000 n 
+0000004578 00000 n 
+0000006881 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+6951
+%%EOF
