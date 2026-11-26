@@ -36,6 +36,10 @@ Row counts match for every listed table at the time of verification. This valida
 
 These were created under the existing Neon Free organization. No paid plan was selected.
 
+## Student identity audit (2026-11-26)
+
+A read-only audit of the migrated Student Portal database found 5 legacy user records, all with verified email timestamps. The `users` table contains no password hash or session credential fields, so Hatchable passwords and sessions cannot be safely carried over as-is. The current migrated database has 0 student profile rows and 0 enrolment rows. Existing legacy user IDs must remain stable when a new identity provider is connected. See [Student Portal identity and authentication migration](STUDENT-PORTAL-AUTH-MIGRATION.md) for the required account-claim and authorization design. No accounts have been linked and no password resets have been sent.
+
 ## Not yet completed
 
 1. Replace Hatchable SDK/runtime bindings with a Vercel-compatible server layer.
