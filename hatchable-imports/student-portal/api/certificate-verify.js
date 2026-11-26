@@ -1,0 +1,4 @@
+import { db } from 'hatchable';
+export const access = 'public';
+export const methods = ['GET'];
+export default async function(req,res){const code=String(req.query?.code||'').trim().toUpperCase();if(!/^YSCMT-[0-9]{4}-[A-F0-9]{12}$/.test(code))return res.status(400).json({valid:false,error:'Enter a valid YSCMT certificate code.'});const {rows}=await db.query('SELECT certificate_code,student_name,course_title,issued_at FROM student_certificates WHERE certificate_code=$1',[code]);if(!rows.length)return res.status(404).json({valid:false,message:'No certificate matches this code.'});return res.json({valid:true,certificate:rows[0]});}
