@@ -1,0 +1,5 @@
+import { db } from 'hatchable';
+export const access = 'user';
+export const methods = ['GET'];
+const validId=v=>/^[0-9a-f-]{36}$/i.test(String(v||''));
+export default async function(req,res){const courseId=String(req.query?.course_id||'');if(!validId(courseId))return res.status(400).json({error:'A valid course_id is required.'});const enrol=await db.query("SELECT id FROM enrollments WHERE user_id=$1 AND course_id=$2 AND status IN ('approved','completed')",[req.user.id,courseId]);if(!enrol.rows.length)return res.status(403).json({error:'This course is not approved for your account.'});const {rows}=await db.query('SELECT e.id,e.title,e.instructions,e.duration_minutes,e.pass_mark,COUNT(q.id)::int AS question_count,(SELECT a.score FROM exam_attempts a WHERE a.exam_id=e.id AND a.user_id=$1 ORDER BY a.submitted_at DESC LIMIT 1) AS last_score,(SELECT a.passed FROM exam_attempts a WHERE a.exam_id=e.id AND a.user_id=$1 ORDER BY a.submitted_at DESC LIMIT 1) AS last_passed FROM course_exams e LEFT JOIN exam_questions q ON q.exam_id=e.id WHERE e.course_id=$2 AND e.active=true GROUP BY e.id ORDER BY e.created_at',[req.user.id,courseId]);return res.json({exams:rows});}
