@@ -33,6 +33,8 @@ try {
     process.stderr.write("Duplicate Vercel rewrite source detected.\n");
   }
   const requiredRoutes = new Map([
+    ["/api/student-portal/courses", "/api/revenue?route=student-courses"],
+    ["/api/student-portal/certificate-verify", "/api/revenue?route=student-certificate-verify"],
     ["/api/business-directory", "/api/revenue?route=directory"],
     ["/api/admin/business-directory", "/api/revenue?route=admin-directory"],
     ["/api/revenue/health", "/api/revenue?route=health"],
