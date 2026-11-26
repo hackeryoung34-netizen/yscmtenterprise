@@ -4,10 +4,10 @@ These serverless endpoints are the first Hatchable-independent Student Portal AP
 
 ## Routes
 
-- `GET /api/student-portal/courses` — public active course catalogue.
-- `GET /api/student-portal/certificate-verify?code=YSCMT-YYYY-XXXXXXXXXXXX` — public certificate verification.
+- `GET /api/student-portal/courses` (rewrite to shared `api/revenue.js` function) — public active course catalogue.
+- `GET /api/student-portal/certificate-verify?code=YSCMT-YYYY-XXXXXXXXXXXX` (rewrite to shared `api/revenue.js` function) — public certificate verification.
 
-Both use the dedicated Neon database through `@neondatabase/serverless`. They use parameterized SQL, do not expose database credentials, and return generic server errors rather than SQL details.
+Both are dispatched by the existing shared Vercel API function to avoid exceeding the Vercel Hobby 12-function limit. They use the dedicated Neon database through `@neondatabase/serverless`. They use parameterized SQL, do not expose database credentials, and return generic server errors rather than SQL details.
 
 ## Required encrypted environment variable
 
