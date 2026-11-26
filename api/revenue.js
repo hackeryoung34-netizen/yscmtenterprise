@@ -346,7 +346,6 @@ async function centralAdminAuth(req,sql){
 function centralRolePermissions(role){
   const permissions={
     super_admin:{"*":true},
-    finance:{"revenue.read":true,"revenue.manage":true,"orders.read":true,"reports.read":true},
     finance_manager:{"revenue.read":true,"reports.read":true,"billing.read":true,"billing.invoices.manage":true,"billing.invoices.verify":true,"billing.expenses.manage":true,"billing.settlements.request":true,"billing.notifications.manage":true,"billing.customers.manage":true,"billing.audit.read":true},
     finance_approver:{"revenue.read":true,"reports.read":true,"billing.read":true,"billing.settlements.approve":true,"billing.audit.read":true},
     payment_recorder:{"revenue.read":true,"reports.read":true,"billing.read":true,"billing.settlements.pay":true,"billing.audit.read":true},
