@@ -1,52 +1,54 @@
 # YSCMT Hatchable Migration Status
 
-Last checked: 2026-11-26 (UTC)
+Updated: 2026-11-26
 
-## Scope
+## Completed on migration branch
 
-The migration target is the YSCMT Enterprise-controlled platform:
-- Source control: GitHub `hackeryoung34-netizen/yscmtenterprise`
-- Web hosting: Vercel project `yscmtenterprise`
-- DNS/CDN/security: Cloudflare
-- PostgreSQL target under evaluation: Neon
+- Archived all 110 non-virtual source files from the three Hatchable projects under `hatchable-imports/`.
+- Created the three dedicated Neon databases and applied the application schemas.
+- Copied the current data from all 43 tables.
+- Verified that every source table row count matches its Neon target count.
+- Added a server-side Neon connectivity health endpoint at `/api/migration/neon-health`; it requires three encrypted Vercel environment variables and is not yet live.
+- Added detailed reports in `docs/HATCHABLE-MIGRATION-REPORT.md` and `docs/NEON-VERCEL-CONNECTIONS.md`.
 
-## Hatchable projects inventoried
+## Source archive counts
 
-| Project | Hatchable project ID | Source files | Database tables | Current state |
-|---|---|---:|---:|---|
-| YSCMT Student Portal | `proj_wtjM5VcpGROw` | 76 | 23 | Active; keep online until cutover |
-| YSCMT Connect | `proj_IIZ9xHDMs0jW` | 29 | 18 | Active; keep online until cutover |
-| AdForge AI | `proj_qOSxVPgmZGyw` | 8 | 2 | Active; keep online until cutover |
-| **Total** | | **113** | **43** | |
+| Application | Source files imported | Tables | Rows copied and count-verified |
+|---|---:|---:|---:|
+| YSCMT Student Portal | 75 | 23 | 106 |
+| YSCMT Connect | 28 | 18 | 3 |
+| AdForge AI | 7 | 2 | 1 |
+| **Total** | **110** | **43** | **110** |
 
-Counts are based on Hatchable project file/schema inventory. This is an inventory, not a completed source/data export.
+## Neon destinations
 
-## Neon assessment
+- Student Portal: project `rough-paper-00162484`, branch `br-super-queen-bh0pn704`, database `yscmt_student_portal`
+- Connect: project `odd-flower-59014209`, branch `br-noisy-hat-bhbccsa0`, database `yscmt_connect`
+- AdForge AI: project `round-term-16397339`, branch `br-blue-cherry-bhhyo0vp`, database `adforge_ai`
 
-Read-only inspection found:
-- Neon project `YSCMT-Student-Portal` (`rough-paper-00162484`), branch `development`, database `yscmt_student_portal`: no user tables visible.
-- Neon project `YSCMT-Revenue-Development` (`lingering-voice-52104737`), branch `production`, database `neondb`: no user tables visible.
-- The same Revenue project branches `revenue-production` and `revenue-development` contain 36 public tables. These appear to be YSCMT revenue/enterprise tables and are not evidence that the three Hatchable applications have been migrated.
+All three projects were created in the existing Neon Free organization. No paid plan was selected.
 
-Do not point production apps at an empty Neon branch. Confirm schema, data, access policies, and app compatibility before selecting a target branch.
+## GitHub review
 
-## Required migration gates
+- Branch: `migration/hatchable-source-import`
+- Pull request: [#54 — Hatchable source and Neon migration foundation](https://github.com/hackeryoung34-netizen/yscmtenterprise/pull/54)
+- PR is kept in **Draft** to prevent premature merge/deployment.
 
-1. Export and checksum every source file, including public assets and server functions.
-2. Export all 43 tables' schema and complete data; preserve IDs, timestamps, relationships, indexes, and constraints.
-3. Identify and migrate user authentication safely. Passwords/sessions may not be portable; plan secure account recovery where needed.
-4. Export media/storage objects and verify every referenced asset.
-5. Rebuild Hatchable-specific API/runtime integrations for the independent Vercel backend; do not blindly copy platform-specific SDK code.
-6. Configure secrets only in the destination's secret manager; never commit secrets.
-7. Verify student enrolment, courses, lessons, exams, certificates, Connect posts/messages/groups, AdForge history/generation, and payment webhook verification.
-8. Run acceptance checks against the YSCMT domain and confirm data counts/checksums.
-9. Obtain explicit user approval for production cutover.
-10. Deactivate Hatchable only after successful cutover and a verified rollback backup.
+## Remaining production work
 
-## Safety status
+1. Port Hatchable-specific runtime SDKs to Vercel-compatible API functions.
+2. Design and validate authentication, password reset, sessions and role-based access; password/session portability is not assumed.
+3. Verify every binary/media asset and migrate external storage objects.
+4. Integrate the apps into the main YSCMT website navigation and protected portal/admin routes.
+5. Add least-privilege database roles and encrypted Vercel Preview environment variables.
+6. Run end-to-end checks for student learning flows, Connect social functions, AdForge generation/history and Paystack verification.
+7. Verify the preview deployment and the production domain, then obtain explicit cutover approval.
 
-- No Hatchable project has been deleted, paused, or deactivated.
-- No Neon database has been reset or overwritten.
+## Safety and current limitations
+
+- Hatchable remains online as the rollback source.
 - No production DNS cutover has been performed.
+- No Hatchable project has been deleted or deactivated.
 - No live payment or settlement has been initiated.
-- Migration is **not complete**. Existing Hatchable services remain the rollback source until all gates pass.
+- Vercel deployment listing returned HTTP 403 (not authorized), so preview deployment and runtime verification could not be confirmed in this session.
+- This is a verified source-and-database foundation, **not yet a production-ready replacement**.
