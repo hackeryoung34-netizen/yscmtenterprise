@@ -53,3 +53,12 @@ These were created under the existing Neon Free organization. No paid plan was s
 - No Hatchable project has been deleted or deactivated.
 - No payment or settlement has been initiated.
 - This branch is an imported source archive and database foundation, not a completed production migration.
+
+## First Vercel-native Student Portal API ports
+
+The migration branch now contains two read-only endpoints dispatched through the existing shared `api/revenue.js` function, preserving the Vercel Hobby limit of 12 serverless functions:
+
+- `GET /api/student-portal/courses`
+- `GET /api/student-portal/certificate-verify?code=...`
+
+Both use the dedicated Student Portal Neon database, parameterized SQL, generic error responses, and server-side-only connection configuration. These endpoints are source changes in the Draft PR; they have not been deployed or runtime-verified because Vercel project access returned 403.
