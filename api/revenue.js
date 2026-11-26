@@ -1,3 +1,4 @@
+const { neon } = require("@neondatabase/serverless");
 const { timingSafeEqual, createHmac, createHash, randomUUID } = require("node:crypto");
 const { getRevenueSql } = require("./_lib/revenue-db");
 const { getRevenueStorage, HeadBucketCommand, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("./_lib/revenue-storage");
@@ -548,6 +549,34 @@ async function health(req,res){
   result.ok=result.postgres==="ok"&&result.object_storage==="ok";
   return send(res,result.ok?200:503,result);
 }
+
+async function studentPortalPublicRoute(req,res,route){
+  if(route==="student-courses"){
+    if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{error:"Method not allowed"});}
+    const connection=process.env.YSCMT_STUDENT_PORTAL_DATABASE_URL;
+    if(!connection)return send(res,503,{error:"Student Portal is not connected yet."});
+    try{
+      const sql=neon(connection);
+      const courses=await sql`select id,title,description,level,fee_amount,fee_currency from public.courses where active=true order by title asc`;
+      return send(res,200,{courses});
+    }catch{return send(res,503,{error:"Course catalogue is temporarily unavailable."});}
+  }
+  if(route==="student-certificate-verify"){
+    if(req.method!=="GET"){res.setHeader("Allow","GET");return send(res,405,{valid:false,error:"Method not allowed"});}
+    const code=String(req.query&&req.query.code||"").trim().toUpperCase();
+    if(!/^YSCMT-[0-9]{4}-[A-F0-9]{12}$/.test(code))return send(res,400,{valid:false,error:"Enter a valid YSCMT certificate code."});
+    const connection=process.env.YSCMT_STUDENT_PORTAL_DATABASE_URL;
+    if(!connection)return send(res,503,{valid:false,error:"Certificate verification is temporarily unavailable."});
+    try{
+      const sql=neon(connection);
+      const rows=await sql`select certificate_code,student_name,course_title,issued_at from public.student_certificates where certificate_code=${code} limit 1`;
+      if(!rows.length)return send(res,404,{valid:false,message:"No certificate matches this code."});
+      return send(res,200,{valid:true,certificate:rows[0]});
+    }catch{return send(res,503,{valid:false,error:"Certificate verification is temporarily unavailable."});}
+  }
+  return send(res,404,{error:"Student Portal route not found."});
+}
+
 module.exports=async function handler(req,res){
   try{if(req.method==="POST"||req.method==="PATCH")await readRawRequestBody(req);}catch{return send(res,400,{error:"Invalid or oversized request body."});}
   const route=clean(req.query&&req.query.route,30);
