@@ -129,6 +129,22 @@ for (const [label, ok] of reviewGuards) {
   }
 }
 
+const loyaltyMigrationPath = path.join(root, "migrations", "018_customer_loyalty.sql");
+const loyaltyMigrationSource = fs.existsSync(loyaltyMigrationPath) ? fs.readFileSync(loyaltyMigrationPath, "utf8") : "";
+const loyaltyGuards = [
+  ["Verified invoice payments award points idempotently", billingSource.includes("enterprise_customer_loyalty_ledger") && billingSource.includes("on conflict(source_type,source_id) do nothing")],
+  ["Customer portal exposes loyalty balance", billingSource.includes("loyalty_history") && billingSource.includes("enterprise_customer_loyalty_ledger")],
+  ["Admin billing exposes customer loyalty balances", billingSource.includes("group by customer_email,customer_name")],
+  ["Customer portal displays loyalty points", customerPortalSource.includes("YSCMT Rewards") && customerPortalSource.includes("points_balance")],
+  ["Admin dashboard displays loyalty balances", adminBillingSource.includes("renderLoyalty") && adminBillingSource.includes("Customer Loyalty & Rewards")],
+  ["Loyalty ledger has idempotent invoice source", loyaltyMigrationSource.includes("unique(source_type,source_id)")]
+];
+for (const [label, ok] of loyaltyGuards) {
+  if (!ok) {
+    failed = true;
+    process.stderr.write("Missing customer loyalty safety check: " + label + "\\n");
+  }
+}
 const apiFunctionFiles = files.filter((file) => {
   const relative = path.relative(root, file).split(path.sep);
   return relative[0] === "api" && !relative.some((part) => part.startsWith("_"));
