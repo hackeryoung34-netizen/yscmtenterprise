@@ -347,6 +347,9 @@ function centralRolePermissions(role){
   const permissions={
     super_admin:{"*":true},
     finance:{"revenue.read":true,"revenue.manage":true,"orders.read":true,"reports.read":true},
+    finance_manager:{"revenue.read":true,"reports.read":true,"billing.read":true,"billing.invoices.manage":true,"billing.invoices.verify":true,"billing.expenses.manage":true,"billing.settlements.request":true,"billing.notifications.manage":true,"billing.customers.manage":true,"billing.audit.read":true},
+    finance_approver:{"revenue.read":true,"reports.read":true,"billing.read":true,"billing.settlements.approve":true,"billing.audit.read":true},
+    payment_recorder:{"revenue.read":true,"reports.read":true,"billing.read":true,"billing.settlements.pay":true,"billing.audit.read":true},
     content_manager:{"directory.read":true,"directory.manage":true,"jobs.read":true,"jobs.manage":true,"templates.read":true,"templates.manage":true,"content.manage":true},
     support_staff:{"chat.read":true,"chat.reply":true,"orders.lookup":true}
   };
@@ -367,7 +370,7 @@ async function centralAdminRoles(req,res,sql){
   if(req.method==="POST"){
     const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
     const userId=clean(body.user_id,36),role=clean(body.role,30);
-    if(!/^[0-9a-f-]{36}$/i.test(userId)||!["finance","content_manager","support_staff"].includes(role))return send(res,400,{error:"Enter a valid Supabase user ID and an assignable staff role."});
+    if(!/^[0-9a-f-]{36}$/i.test(userId)||!["finance_manager","finance_approver","payment_recorder","content_manager","support_staff"].includes(role))return send(res,400,{error:"Enter a valid Supabase user ID and an assignable staff role."});
     if(userId===auth.user.id)return send(res,400,{error:"You cannot add yourself as another staff account."});
     const serviceKey=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
     const root=(process.env.SUPABASE_URL||"").replace(/\/$/,"");
@@ -387,7 +390,7 @@ async function centralAdminRoles(req,res,sql){
     const body=req.body&&typeof req.body==="object"&&!Array.isArray(req.body)?req.body:{};
     const userId=clean(body.user_id,36),role=body.role===undefined?null:clean(body.role,30),active=body.is_active;
     if(!/^[0-9a-f-]{36}$/i.test(userId)||userId===auth.user.id)return send(res,400,{error:"A valid staff user ID other than your own is required."});
-    if(role!==null&&!["finance","content_manager","support_staff"].includes(role))return send(res,400,{error:"Only Finance, Content Manager or Support Staff can be assigned here. Super Admin access must be provisioned separately."});
+    if(role!==null&&!["finance_manager","finance_approver","payment_recorder","content_manager","support_staff"].includes(role))return send(res,400,{error:"Choose Finance Manager, Finance Approver, Payment Recorder, Content Manager or Support Staff. Super Admin access must be provisioned separately."});
     if(role===null&&typeof active!=="boolean")return send(res,400,{error:"Choose a valid role or active status change."});
     const existing=await sql`select role,is_active from public.central_admin_roles where user_id=${userId}::uuid limit 1`;
     if(!existing[0])return send(res,404,{error:"Staff account not found."});
