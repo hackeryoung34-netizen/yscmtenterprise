@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "YSCMT Connect",
+  "short_name": "YSCMT Connect",
+  "description": "Learn. Share. Grow. A community by YSCMT Enterprise.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f7f3",
+  "theme_color": "#0c352b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
