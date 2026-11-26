@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="YSCMT Enterprise Online Classroom — distance learning for enrolled students.">
+  <title>Online Classroom — YSCMT Enterprise</title>
+  <link rel="stylesheet" href="/theme.css">
+  <style>
+    .classroom-wrap{max-width:1120px;margin:0 auto;padding:24px 18px 60px}
+    .classroom-nav{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 0 24px}
+    .classroom-brand{font-weight:800;letter-spacing:.04em}.classroom-brand span{display:block;font-size:11px;letter-spacing:.18em;opacity:.7}
+    .classroom-hero{padding:30px;border-radius:22px;background:linear-gradient(135deg,#102b46,#176b66);color:#fff;margin-bottom:22px}
+    .classroom-hero p{color:#dcebe9;max-width:680px}.classroom-kicker{font-size:11px;letter-spacing:.18em;font-weight:800;opacity:.8}
+    .classroom-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+    .classroom-panel{background:var(--surface, #fff);border:1px solid var(--border,#e5e7eb);border-radius:16px;padding:20px;margin-bottom:18px}
+    .classroom-panel h2{margin:0 0 8px}.classroom-muted{opacity:.72}.classroom-status{display:inline-flex;padding:5px 10px;border-radius:999px;background:#edf5f2;color:#176b55;font-size:12px;font-weight:700}
+    .classroom-btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 15px;border-radius:10px;text-decoration:none;background:#176b66;color:white;font-weight:700;border:0;cursor:pointer}
+    .classroom-btn.secondary{background:transparent;color:inherit;border:1px solid var(--border,#d1d5db)}
+    .course-card{border:1px solid var(--border,#e5e7eb);border-radius:15px;padding:18px;background:var(--surface,#fff)}
+    .lesson-row{border-top:1px solid var(--border,#e5e7eb);padding:14px 0}.lesson-row:first-of-type{margin-top:12px}
+    .lesson-content{white-space:pre-wrap;line-height:1.65;margin:10px 0;color:var(--text,#334155)}
+    .classroom-error{color:#a52a2a}.classroom-small{font-size:13px}.classroom-empty{padding:18px;border:1px dashed var(--border,#cbd5e1);border-radius:12px}
+    .classroom-footer{padding-top:26px;text-align:center;font-size:13px;opacity:.7}
+  </style>
+</head>
+<body>
+  <div class="classroom-wrap">
+    <header class="classroom-nav">
+      <a href="/" class="classroom-brand" style="text-decoration:none;color:inherit">YSCMT <span>ONLINE CLASSROOM</span></a>
+      <nav style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="classroom-btn secondary" href="/">Student Portal</a>
+        <a class="classroom-btn secondary" href="/resources.html">Learning Resources</a>\n        <a class="classroom-btn secondary" href="/office.html">LibreOffice Workspace</a>
+      </nav>
+    </header>
+
+    <section class="classroom-hero">
+      <div class="classroom-kicker">LEARN. BUILD. INNOVATE.</div>
+      <h1 style="font-size:clamp(30px,5vw,46px);margin:12px 0">Your classroom, wherever you are.</h1>
+      <p>Study online from home, follow your course lessons, open learning materials and access published live-class information from one place.</p>
+      <span class="classroom-status">Distance learning · Student access</span>
+    </section>
+
+    <section id="loginNotice" class="classroom-panel" hidden>
+      <h2>Student sign-in required</h2>
+      <p class="classroom-muted">Please sign in with your existing YSCMT student account. Your account and course enrolments remain unchanged.</p>
+      <a class="classroom-btn" href="/login">Go to Student Login</a>
+    </section>
+
+    <div id="classroomApp" hidden>
+      <section class="classroom-panel">
+        <div class="classroom-kicker">LIVE LEARNING</div>
+        <h2>Live Online Classes</h2>
+        <p class="classroom-muted">Your approved course timetable and meeting links appear here when an instructor publishes a class.</p>
+        <div id="studentSessions" class="classroom-empty" aria-live="polite">No live classes have been scheduled for your approved courses yet.</div>
+      </section>
+
+      <section class="classroom-panel">
+        <div class="classroom-kicker">YOUR PROGRAMMES</div>
+        <h2>My Online Courses</h2>
+        <p class="classroom-muted">Only courses approved for your signed-in student account are shown below.</p>
+        <div id="courseList" class="classroom-grid" aria-live="polite"><p>Loading your courses…</p></div>
+      </section>
+    </div>
+
+    <section id="classroomMessage" class="classroom-panel" aria-live="polite">
+      <p class="classroom-muted">Checking your student session…</p>
+    </section>
+
+    <footer class="classroom-footer">© 2026 YSCMT Enterprise · Learn. Build. Innovate.</footer>
+  </div>
+  <script src="/classroom.js" defer></script>
+</body>
+</html>
