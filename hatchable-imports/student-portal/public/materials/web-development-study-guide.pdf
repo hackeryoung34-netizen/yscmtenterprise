@@ -1,0 +1,335 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 3985 >>
+stream
+BT
+/F1 10 Tf
+/F1 16 Tf
+48 790 Td
+(WEB DEVELOPMENT) Tj
+-48 -790 Td
+/F1 10 Tf
+48 774 Td
+(Beginner Study Guide | YSCMT Enterprise) Tj
+-48 -774 Td
+/F1 10 Tf
+48 758 Td
+() Tj
+-48 -758 Td
+/F1 10 Tf
+48 742 Td
+(PURPOSE) Tj
+-48 -742 Td
+/F1 10 Tf
+48 726 Td
+(This guide supports the four Web Development lessons. It covers browser-server requests,) Tj
+-48 -726 Td
+/F1 10 Tf
+48 710 Td
+(semantic HTML, CSS, JavaScript, responsive design, accessibility, and pre-publishing) Tj
+-48 -710 Td
+/F1 10 Tf
+48 694 Td
+(checks.) Tj
+-48 -694 Td
+/F1 10 Tf
+48 678 Td
+(LEARNING OUTCOMES) Tj
+-48 -678 Td
+/F1 10 Tf
+48 662 Td
+(- Describe a basic browser-server request.) Tj
+-48 -662 Td
+/F1 10 Tf
+48 646 Td
+(- Build a simple semantic HTML page.) Tj
+-48 -646 Td
+/F1 10 Tf
+48 630 Td
+(- Style a page using CSS and the box model.) Tj
+-48 -630 Td
+/F1 10 Tf
+48 614 Td
+(- Use JavaScript events and update text safely.) Tj
+-48 -614 Td
+/F1 10 Tf
+48 598 Td
+(- Apply responsive design and accessibility checks.) Tj
+-48 -598 Td
+/F1 10 Tf
+48 582 Td
+(1. HOW THE WEB WORKS AND HTML) Tj
+-48 -582 Td
+/F1 10 Tf
+48 566 Td
+(A browser requests a resource from a server using HTTP or HTTPS. The server responds) Tj
+-48 -566 Td
+/F1 10 Tf
+48 550 Td
+(with) Tj
+-48 -550 Td
+/F1 10 Tf
+48 534 Td
+(a status and resources such as HTML, CSS, JavaScript, images, or data. HTML describes) Tj
+-48 -534 Td
+/F1 10 Tf
+48 518 Td
+(the) Tj
+-48 -518 Td
+/F1 10 Tf
+48 502 Td
+(structure and meaning of page content. Use headings in a logical order.) Tj
+-48 -502 Td
+/F1 10 Tf
+48 486 Td
+(Semantic elements such as header, nav, main, section, article, and footer communicate) Tj
+-48 -486 Td
+/F1 10 Tf
+48 470 Td
+(page) Tj
+-48 -470 Td
+/F1 10 Tf
+48 454 Td
+(structure. Use a meaningful title, language attribute, character encoding, and viewport) Tj
+-48 -454 Td
+/F1 10 Tf
+48 438 Td
+(tag.) Tj
+-48 -438 Td
+/F1 10 Tf
+48 422 Td
+(2. CSS AND LAYOUT) Tj
+-48 -422 Td
+/F1 10 Tf
+48 406 Td
+(A CSS rule has a selector and declarations. A class selector begins with a dot; an ID) Tj
+-48 -406 Td
+/F1 10 Tf
+48 390 Td
+(selector begins with #. The box model includes content, padding, border, and margin.) Tj
+-48 -390 Td
+/F1 10 Tf
+48 374 Td
+(Padding is inside the border; margin is outside. Flexbox is useful for one-dimensional) Tj
+-48 -374 Td
+/F1 10 Tf
+48 358 Td
+(arrangements; Grid is useful for rows and columns. Use flexible widths and sufficient) Tj
+-48 -358 Td
+/F1 10 Tf
+48 342 Td
+(colour contrast.) Tj
+-48 -342 Td
+/F1 10 Tf
+48 326 Td
+(3. JAVASCRIPT IN THE BROWSER) Tj
+-48 -326 Td
+/F1 10 Tf
+48 310 Td
+(JavaScript can select elements, update text, and respond to events. Use const when a) Tj
+-48 -310 Td
+/F1 10 Tf
+48 294 Td
+(binding) Tj
+-48 -294 Td
+/F1 10 Tf
+48 278 Td
+(is not reassigned and let when reassignment is needed. Use addEventListener\(\) for) Tj
+-48 -278 Td
+/F1 10 Tf
+48 262 Td
+(actions.) Tj
+-48 -262 Td
+/F1 10 Tf
+48 246 Td
+(Use textContent to display untrusted text. Inserting untrusted input with innerHTML can) Tj
+-48 -246 Td
+/F1 10 Tf
+48 230 Td
+(create cross-site scripting risks. Client-side validation helps users, but important) Tj
+-48 -230 Td
+/F1 10 Tf
+48 214 Td
+(data) Tj
+-48 -214 Td
+/F1 10 Tf
+48 198 Td
+(must also be validated on the server. Never put secret keys in browser code.) Tj
+-48 -198 Td
+/F1 10 Tf
+48 182 Td
+(EXAMPLE CODE) Tj
+-48 -182 Td
+/F1 10 Tf
+48 166 Td
+(const button = document.querySelector\('#greetButton'\);) Tj
+-48 -166 Td
+/F1 10 Tf
+48 150 Td
+(const message = document.querySelector\('#message'\);) Tj
+-48 -150 Td
+/F1 10 Tf
+48 134 Td
+(button.addEventListener\('click', \(\) => {) Tj
+-48 -134 Td
+/F1 10 Tf
+48 118 Td
+(  message.textContent = 'Welcome to YSCMT!';) Tj
+-48 -118 Td
+/F1 10 Tf
+48 102 Td
+(}\);) Tj
+-48 -102 Td
+/F1 10 Tf
+48 86 Td
+(4. RESPONSIVE DESIGN AND ACCESSIBILITY) Tj
+-48 -86 Td
+/F1 10 Tf
+48 70 Td
+(Responsive design adapts content to different screen sizes. Start with a mobile-friendly) Tj
+-48 -70 Td
+/F1 10 Tf
+48 54 Td
+(layout and use media queries when needed. Give meaningful images alternative text and) Tj
+-48 -54 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 2452 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+48 790 Td
+(associate form controls with clear labels. Make controls keyboard-accessible and keep) Tj
+-48 -790 Td
+/F1 10 Tf
+48 774 Td
+(focus indicators visible. Check titles, headings, contrast, keyboard navigation, forms,) Tj
+-48 -774 Td
+/F1 10 Tf
+48 758 Td
+(links, and images before publishing.) Tj
+-48 -758 Td
+/F1 10 Tf
+48 742 Td
+(PRACTICAL TASK: Test a page at phone width, navigate using only the keyboard, and record) Tj
+-48 -742 Td
+/F1 10 Tf
+48 726 Td
+(at least three improvements before publishing.) Tj
+-48 -726 Td
+/F1 10 Tf
+48 710 Td
+(KEY TERMS) Tj
+-48 -710 Td
+/F1 10 Tf
+48 694 Td
+(HTML: Markup language for structuring web content.) Tj
+-48 -694 Td
+/F1 10 Tf
+48 678 Td
+(CSS: Style language for presentation and layout.) Tj
+-48 -678 Td
+/F1 10 Tf
+48 662 Td
+(JavaScript: Programming language used to add browser interactivity.) Tj
+-48 -662 Td
+/F1 10 Tf
+48 646 Td
+(DOM: Browser representation of a page and its elements.) Tj
+-48 -646 Td
+/F1 10 Tf
+48 630 Td
+(Responsive design: Layouts that adapt to different screen sizes.) Tj
+-48 -630 Td
+/F1 10 Tf
+48 614 Td
+(Accessibility: Making web content usable by people with different needs and devices.) Tj
+-48 -614 Td
+/F1 10 Tf
+48 598 Td
+(PRACTICE EXERCISES) Tj
+-48 -598 Td
+/F1 10 Tf
+48 582 Td
+(1. Create an HTML page with a title, h1, two paragraphs, and a link.) Tj
+-48 -582 Td
+/F1 10 Tf
+48 566 Td
+(2. Style a card and arrange two cards with CSS Grid.) Tj
+-48 -566 Td
+/F1 10 Tf
+48 550 Td
+(3. Add a button that changes paragraph text using textContent.) Tj
+-48 -550 Td
+/F1 10 Tf
+48 534 Td
+(4. Test the page at a narrow phone width.) Tj
+-48 -534 Td
+/F1 10 Tf
+48 518 Td
+(5. Navigate with a keyboard and identify accessibility improvements.) Tj
+-48 -518 Td
+/F1 10 Tf
+48 502 Td
+(REVIEW ANSWERS) Tj
+-48 -502 Td
+/F1 10 Tf
+48 486 Td
+(1. Use a valid HTML document structure and semantic elements.) Tj
+-48 -486 Td
+/F1 10 Tf
+48 470 Td
+(2. Use display:grid with flexible columns such as repeat\(2, minmax\(0, 1fr\)\).) Tj
+-48 -470 Td
+/F1 10 Tf
+48 454 Td
+(3. Select the button and paragraph, then attach a click event listener.) Tj
+-48 -454 Td
+/F1 10 Tf
+48 438 Td
+(4. Check that text and controls fit without horizontal scrolling.) Tj
+-48 -438 Td
+/F1 10 Tf
+48 422 Td
+(5. Check labels, visible focus, heading order, link meaning, and image alternatives.) Tj
+-48 -422 Td
+/F1 10 Tf
+48 406 Td
+(YSCMT Enterprise | Learn. Build. Innovate. | Original supplementary study material.) Tj
+-48 -406 Td
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000247 00000 n 
+0000004283 00000 n 
+0000004409 00000 n 
+0000006912 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+6982
+%%EOF
