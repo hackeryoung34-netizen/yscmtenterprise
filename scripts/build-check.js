@@ -145,6 +145,17 @@ for (const [label, ok] of loyaltyGuards) {
     process.stderr.write("Missing customer loyalty safety check: " + label + "\\n");
   }
 }
+const retentionGuards = [
+  ["Retention segments are derived from verified paid invoices and subscription activity", billingSource.includes("last_paid_at") && billingSource.includes("last_subscription_update") && billingSource.includes("as segment")],
+  ["Admin retention dashboard is present", adminBillingSource.includes("Customer Retention & Win-back") && adminBillingSource.includes("renderRetention")],
+  ["Win-back outreach is manual and not automatically sent", adminBillingSource.includes("Copy follow-up message") && adminBillingSource.includes("nothing is sent automatically")]
+];
+for (const [label, ok] of retentionGuards) {
+  if (!ok) {
+    failed = true;
+    process.stderr.write("Missing customer retention safety check: " + label + "\\n");
+  }
+}
 const apiFunctionFiles = files.filter((file) => {
   const relative = path.relative(root, file).split(path.sep);
   return relative[0] === "api" && !relative.some((part) => part.startsWith("_"));
