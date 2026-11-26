@@ -1,0 +1,24 @@
+(function(){
+ const $=id=>document.getElementById(id);
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const date=s=>s?new Date(s).toLocaleString():'—';
+ const money=(v,c)=>{try{return new Intl.NumberFormat('en-NG',{style:'currency',currency:c||'NGN',maximumFractionDigits:2}).format(Number(v||0));}catch{return (c||'NGN')+' '+v;}};
+ async function api(body){const r=await fetch('/api/admin/payments',{method:body?'POST':'GET',headers:{'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const d=await r.json().catch(()=>({}));if(r.status===401||r.status===403)throw new Error('Administrator sign-in is required.');if(!r.ok)throw new Error(d.error||'Payment request failed.');return d;}
+ async function load(){
+  if(!$('paymentList'))return;
+  $('paymentList').textContent='Loading payment submissions…';
+  try{
+   const d=await api();const b=d.bank||{};
+   $('bankName').value=b.bank_name||'';$('accountName').value=b.account_name||'';$('accountNumber').value=b.account_number||'';$('bankInstructions').value=b.instructions||'';
+   $('feeCourse').innerHTML='<option value="">Choose course</option>'+(d.courses||[]).map(c=>'<option value="'+esc(c.id)+'">'+esc(c.title)+' — '+money(c.fee_amount,c.fee_currency)+'</option>').join('');
+   $('paymentList').innerHTML=(d.payments||[]).length?'<table><thead><tr><th>Student / Course</th><th>Amount</th><th>Transfer reference</th><th>Receipt</th><th>Submitted</th><th>Status / Review</th></tr></thead><tbody>'+(d.payments||[]).map(p=>'<tr><td><strong>'+esc(p.student_name)+'</strong><br><small>'+esc(p.email)+'</small><br>'+esc(p.course_title)+'</td><td>'+money(p.amount,p.currency)+'</td><td>'+esc(p.transfer_reference)+'</td><td><a href="'+esc(p.receipt_url)+'" target="_blank" rel="noopener">View receipt ↗</a><br><small>'+esc(p.file_name)+'</small></td><td>'+esc(date(p.submitted_at))+'</td><td><span class="pill">'+esc(p.status)+'</span>'+(p.status==='pending'?'<label for="note-'+esc(p.id)+'">Admin note (if rejecting)</label><input id="note-'+esc(p.id)+'" placeholder="Optional note"><div class="actions"><button class="small-btn" data-review="'+esc(p.id)+'" data-status="verified">Verify & approve</button><button class="small-btn secondary" data-review="'+esc(p.id)+'" data-status="rejected">Reject</button></div>':'<br><small>'+esc(p.admin_note||'Reviewed')+'</small>')+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">No payment receipts have been submitted yet.</p>';
+   const online=d.paystack_payments||[];
+   $('paymentList').insertAdjacentHTML('beforeend','<h3 style="margin-top:28px">Paystack online payments</h3>'+(online.length?'<table><thead><tr><th>Student / Course</th><th>Amount</th><th>Reference</th><th>Date</th><th>Status</th></tr></thead><tbody>'+online.map(p=>'<tr><td><strong>'+esc(p.student_name)+'</strong><br><small>'+esc(p.email)+'</small><br>'+esc(p.course_title)+'</td><td>'+money(Number(p.amount_kobo)/100,p.currency)+'</td><td>'+esc(p.reference)+'</td><td>'+esc(date(p.verified_at||p.created_at))+'</td><td><span class="pill">'+esc(p.status)+'</span></td></tr>').join('')+'</tbody></table>':'<p class="muted">No Paystack online payments yet.</p>'));
+   document.querySelectorAll('[data-review]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.review,status=btn.dataset.status;btn.disabled=true;try{const note=$('note-'+id)?.value||'';const result=await api({action:'review',payment_id:id,status,admin_note:note});alert(result.message);await load();}catch(e){alert(e.message);btn.disabled=false;}});
+  }catch(e){$('paymentList').textContent=e.message;}
+ }
+ $('bankSettingsForm').onsubmit=async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;$('bankSettingsMsg').textContent='Saving…';try{await api({action:'save_bank',bank_name:$('bankName').value,account_name:$('accountName').value,account_number:$('accountNumber').value,instructions:$('bankInstructions').value});$('bankSettingsMsg').textContent='Bank transfer details saved.';}catch(err){$('bankSettingsMsg').textContent=err.message;}finally{b.disabled=false;}};
+ $('courseFeeForm').onsubmit=async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;$('courseFeeMsg').textContent='Saving…';try{await api({action:'set_fee',course_id:$('feeCourse').value,fee_amount:$('feeAmount').value,fee_currency:$('feeCurrency').value});$('courseFeeMsg').textContent='Course fee saved.';await load();}catch(err){$('courseFeeMsg').textContent=err.message;}finally{b.disabled=false;}};
+ $('refreshPayments').onclick=load;
+ window.YSCMTAdminPayments={load};
+})();
