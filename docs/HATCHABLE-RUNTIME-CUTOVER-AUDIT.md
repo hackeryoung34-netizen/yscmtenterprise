@@ -39,7 +39,7 @@ The generation endpoint calls Hatchable's managed AI service with model `sonnet`
 
 - Neon databases for all three apps exist and contain the verified source table/row copies.
 - The existing Supabase `YSCMT-Community` project is currently `ACTIVE_HEALTHY`; the separate `YSCMT-Student-Portal` Supabase project is `INACTIVE`. No paused project was restored and no paid upgrade was requested.
-- Vercel production deployment `dpl_DNfaVqWwBEGMJP8qucmK8GdHUiiV` is now confirmed `READY` from commit `cd6be4ad3c5b46745a99cb36c88661ea446399ee` on `migration/hatchable-source-import`. Vercel reports aliases for both `yscmtenterprise.ng` and `www.yscmtenterprise.ng`; this confirms deployment and domain attachment, not end-to-end application health. Runtime API checks, destination environment-variable validation, portal routing, and full workflow acceptance remain outstanding.
+- Vercel production deployment `dpl_DNfaVqWwBEGMJP8qucmK8GdHUiiV` is confirmed `READY` from commit `cd6be4ad3c5b46745a99cb36c88661ea446399ee` on `migration/hatchable-source-import`; Vercel reports aliases for `yscmtenterprise.ng` and `www.yscmtenterprise.ng`. The separate `yscmt-react` production deployment is also `READY` and has the `yscmt-react.vercel.app` alias, which is the current `/portal` rewrite target. These deployment states and aliases do not prove end-to-end application health. Runtime API checks, destination environment-variable validation, portal route behavior, and full workflow acceptance remain outstanding.
 
 ## Cutover checklist — all required before disabling Hatchable
 
