@@ -1,0 +1,371 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 3759 >>
+stream
+BT
+/F1 10 Tf
+/F1 16 Tf
+48 790 Td
+(PYTHON PROGRAMMING) Tj
+-48 -790 Td
+/F1 10 Tf
+48 774 Td
+(Beginner Study Guide | YSCMT Enterprise) Tj
+-48 -774 Td
+/F1 10 Tf
+48 758 Td
+() Tj
+-48 -758 Td
+/F1 10 Tf
+48 742 Td
+(PURPOSE) Tj
+-48 -742 Td
+/F1 10 Tf
+48 726 Td
+(This guide supports the four Python Programming lessons. It covers first programs,) Tj
+-48 -726 Td
+/F1 10 Tf
+48 710 Td
+(variables, input, conditions, loops, functions, collections, and basic error handling.) Tj
+-48 -710 Td
+/F1 10 Tf
+48 694 Td
+(LEARNING OUTCOMES) Tj
+-48 -694 Td
+/F1 10 Tf
+48 678 Td
+(- Run a simple Python 3 program and read basic errors.) Tj
+-48 -678 Td
+/F1 10 Tf
+48 662 Td
+(- Use variables, common data types, input, and conversion.) Tj
+-48 -662 Td
+/F1 10 Tf
+48 646 Td
+(- Write conditional statements and loops.) Tj
+-48 -646 Td
+/F1 10 Tf
+48 630 Td
+(- Create functions and use lists and dictionaries.) Tj
+-48 -630 Td
+/F1 10 Tf
+48 614 Td
+(- Test programs with normal and unexpected input.) Tj
+-48 -614 Td
+/F1 10 Tf
+48 598 Td
+(1. START WITH PYTHON) Tj
+-48 -598 Td
+/F1 10 Tf
+48 582 Td
+(Python statements normally execute from top to bottom. Python is case-sensitive. print\(\)) Tj
+-48 -582 Td
+/F1 10 Tf
+48 566 Td
+(displays information. Text values are strings and are written inside quotes. A comment) Tj
+-48 -566 Td
+/F1 10 Tf
+48 550 Td
+(begins with # and explains code to a human reader.) Tj
+-48 -550 Td
+/F1 10 Tf
+48 534 Td
+(EXAMPLE CODE) Tj
+-48 -534 Td
+/F1 10 Tf
+48 518 Td
+(print\('Hello, YSCMT!'\)) Tj
+-48 -518 Td
+/F1 10 Tf
+48 502 Td
+(print\('I am learning Python.'\)) Tj
+-48 -502 Td
+/F1 10 Tf
+48 486 Td
+(A syntax error means Python cannot understand the structure. Read the traceback) Tj
+-48 -486 Td
+/F1 10 Tf
+48 470 Td
+(carefully.) Tj
+-48 -470 Td
+/F1 10 Tf
+48 454 Td
+(Check the line number, quotes, parentheses, colons, and indentation.) Tj
+-48 -454 Td
+/F1 10 Tf
+48 438 Td
+(2. VARIABLES, TYPES, AND INPUT) Tj
+-48 -438 Td
+/F1 10 Tf
+48 422 Td
+(A variable is a descriptive name that refers to a value. Common types include str) Tj
+-48 -422 Td
+/F1 10 Tf
+48 406 Td
+(\(text\),) Tj
+-48 -406 Td
+/F1 10 Tf
+48 390 Td
+(int \(whole number\), float \(decimal number\), and bool \(True/False\). input\(\) returns text.) Tj
+-48 -390 Td
+/F1 10 Tf
+48 374 Td
+(Convert it with int\(\) or float\(\) before numeric calculations. Use try/except when a) Tj
+-48 -374 Td
+/F1 10 Tf
+48 358 Td
+(program) Tj
+-48 -358 Td
+/F1 10 Tf
+48 342 Td
+(must handle invalid input without stopping unexpectedly.) Tj
+-48 -342 Td
+/F1 10 Tf
+48 326 Td
+(EXAMPLE CODE) Tj
+-48 -326 Td
+/F1 10 Tf
+48 310 Td
+(age_text = input\('Enter your age: '\)) Tj
+-48 -310 Td
+/F1 10 Tf
+48 294 Td
+(age = int\(age_text\)) Tj
+-48 -294 Td
+/F1 10 Tf
+48 278 Td
+(print\('Next year:', age + 1\)) Tj
+-48 -278 Td
+/F1 10 Tf
+48 262 Td
+(This example assumes a whole number was entered. Add error handling for real users.) Tj
+-48 -262 Td
+/F1 10 Tf
+48 246 Td
+(3. CONDITIONS AND LOOPS) Tj
+-48 -246 Td
+/F1 10 Tf
+48 230 Td
+(Use if, elif, and else to choose which code runs. Use == to compare; = assigns a value.) Tj
+-48 -230 Td
+/F1 10 Tf
+48 214 Td
+(Comparison operators include ==, !=, <, >, <=, and >=. Logical operators include and,) Tj
+-48 -214 Td
+/F1 10 Tf
+48 198 Td
+(or,) Tj
+-48 -198 Td
+/F1 10 Tf
+48 182 Td
+(and not. A for loop processes items or repeats a known sequence. range\(3\) produces 0, 1,) Tj
+-48 -182 Td
+/F1 10 Tf
+48 166 Td
+(2.) Tj
+-48 -166 Td
+/F1 10 Tf
+48 150 Td
+(A while loop repeats while its condition is true. Ensure it can reach a stopping) Tj
+-48 -150 Td
+/F1 10 Tf
+48 134 Td
+(condition.) Tj
+-48 -134 Td
+/F1 10 Tf
+48 118 Td
+(EXAMPLE CODE) Tj
+-48 -118 Td
+/F1 10 Tf
+48 102 Td
+(score = 68) Tj
+-48 -102 Td
+/F1 10 Tf
+48 86 Td
+(if score >= 50:) Tj
+-48 -86 Td
+/F1 10 Tf
+48 70 Td
+(    print\('Pass'\)) Tj
+-48 -70 Td
+/F1 10 Tf
+48 54 Td
+(else:) Tj
+-48 -54 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 2841 >>
+stream
+BT
+/F1 10 Tf
+/F1 10 Tf
+48 790 Td
+(    print\('Try again'\)) Tj
+-48 -790 Td
+/F1 10 Tf
+48 774 Td
+(4. FUNCTIONS AND COLLECTIONS) Tj
+-48 -774 Td
+/F1 10 Tf
+48 758 Td
+(A function is a reusable block of code defined with def. Parameters receive values;) Tj
+-48 -758 Td
+/F1 10 Tf
+48 742 Td
+(return) Tj
+-48 -742 Td
+/F1 10 Tf
+48 726 Td
+(sends a result to the caller. A list stores ordered items and can be changed. List) Tj
+-48 -726 Td
+/F1 10 Tf
+48 710 Td
+(indexes) Tj
+-48 -710 Td
+/F1 10 Tf
+48 694 Td
+(begin at zero. A dictionary stores key-value pairs and is useful when values have) Tj
+-48 -694 Td
+/F1 10 Tf
+48 678 Td
+(labels.) Tj
+-48 -678 Td
+/F1 10 Tf
+48 662 Td
+(Test functions with typical values, boundary values, and empty collections.) Tj
+-48 -662 Td
+/F1 10 Tf
+48 646 Td
+(EXAMPLE CODE) Tj
+-48 -646 Td
+/F1 10 Tf
+48 630 Td
+(def calculate_average\(scores\):) Tj
+-48 -630 Td
+/F1 10 Tf
+48 614 Td
+(    if len\(scores\) == 0:) Tj
+-48 -614 Td
+/F1 10 Tf
+48 598 Td
+(        return 0) Tj
+-48 -598 Td
+/F1 10 Tf
+48 582 Td
+(    return sum\(scores\) / len\(scores\)) Tj
+-48 -582 Td
+/F1 10 Tf
+48 566 Td
+(KEY TERMS) Tj
+-48 -566 Td
+/F1 10 Tf
+48 550 Td
+(Variable: A name referring to a value.) Tj
+-48 -550 Td
+/F1 10 Tf
+48 534 Td
+(String: A text value. Integer: A whole-number value. Boolean: True or False.) Tj
+-48 -534 Td
+/F1 10 Tf
+48 518 Td
+(Condition: An expression evaluated as True or False.) Tj
+-48 -518 Td
+/F1 10 Tf
+48 502 Td
+(Loop: A structure that repeats instructions.) Tj
+-48 -502 Td
+/F1 10 Tf
+48 486 Td
+(Function: A named reusable block of code.) Tj
+-48 -486 Td
+/F1 10 Tf
+48 470 Td
+(List: An ordered collection of items. Dictionary: A collection of key-value pairs.) Tj
+-48 -470 Td
+/F1 10 Tf
+48 454 Td
+(PRACTICE EXERCISES) Tj
+-48 -454 Td
+/F1 10 Tf
+48 438 Td
+(1. Print your name and one learning goal.) Tj
+-48 -438 Td
+/F1 10 Tf
+48 422 Td
+(2. Ask for a name and age, then display a greeting and age next year.) Tj
+-48 -422 Td
+/F1 10 Tf
+48 406 Td
+(3. Display Pass for scores of 50 or more.) Tj
+-48 -406 Td
+/F1 10 Tf
+48 390 Td
+(4. Use a for loop to print five course names.) Tj
+-48 -390 Td
+/F1 10 Tf
+48 374 Td
+(5. Write a function that averages a list and handles an empty list.) Tj
+-48 -374 Td
+/F1 10 Tf
+48 358 Td
+(REVIEW ANSWERS) Tj
+-48 -358 Td
+/F1 10 Tf
+48 342 Td
+(1. Use print\(\) with strings or variables.) Tj
+-48 -342 Td
+/F1 10 Tf
+48 326 Td
+(2. Use input\(\); convert age with int\(\) and consider try/except.) Tj
+-48 -326 Td
+/F1 10 Tf
+48 310 Td
+(3. Use if score >= 50: followed by else:.) Tj
+-48 -310 Td
+/F1 10 Tf
+48 294 Td
+(4. Store names in a list and loop with for name in courses:.) Tj
+-48 -294 Td
+/F1 10 Tf
+48 278 Td
+(5. Check len\(scores\) before dividing; return a suitable result for an empty list.) Tj
+-48 -278 Td
+/F1 10 Tf
+48 262 Td
+(YSCMT Enterprise | Learn. Build. Innovate. | Original supplementary study material.) Tj
+-48 -262 Td
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000247 00000 n 
+0000004057 00000 n 
+0000004183 00000 n 
+0000007075 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+7145
+%%EOF

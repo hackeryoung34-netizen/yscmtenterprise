@@ -1,0 +1,5 @@
+import { db } from 'hatchable';
+export const access = 'user';
+export const methods = ['POST'];
+const validId=v=>/^[0-9a-f-]{36}$/i.test(String(v||''));
+export default async function(req,res){const id=String(req.body?.exam_id||'');if(!validId(id))return res.status(400).json({error:'A valid exam_id is required.'});const e=await db.query("SELECT e.id,e.duration_minutes FROM course_exams e JOIN enrollments n ON n.course_id=e.course_id WHERE e.id=$1 AND e.active=true AND n.user_id=$2 AND n.status IN ('approved','completed')",[id,req.user.id]);if(!e.rows.length)return res.status(403).json({error:'This exam is not available to your account.'});const q=await db.query('SELECT COUNT(*)::int AS n FROM exam_questions WHERE exam_id=$1',[id]);if(!q.rows[0].n)return res.status(400).json({error:'This exam has no questions.'});const {rows}=await db.query('INSERT INTO exam_sessions(exam_id,user_id) VALUES($1,$2) RETURNING id,started_at',[id,req.user.id]);return res.status(201).json({session:rows[0],duration_minutes:e.rows[0].duration_minutes});}

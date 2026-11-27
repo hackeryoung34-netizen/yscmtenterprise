@@ -1,0 +1,57 @@
+name = "YSCMT Community"
+
+[auth]
+enabled = true
+providers = ["email"]
+
+# Social content is readable by community members, but only its owner can write.
+[db.tables.community_profiles]
+read = "public"
+write = "own"
+
+[db.tables.community_posts]
+read = "public"
+write = "own"
+
+[db.tables.community_post_likes]
+read = "public"
+write = "own"
+
+[db.tables.community_post_comments]
+read = "public"
+write = "own"
+
+[db.tables.community_follows]
+read = "public"
+write = "own"
+owner_column = "follower_id"
+
+[db.tables.community_media]
+read = "public"
+write = "public"
+
+[db.tables.community_group_members]
+read = "public"
+write = "public"
+
+[db.tables.community_notifications]
+read = "own"
+write = "public"
+
+# Messaging/group/stories are multi-member records. Access is checked in their
+# authenticated API handlers before every read or write.
+[db.tables.community_conversation_members]
+read = "public"
+write = "public"
+
+[db.tables.community_messages]
+read = "public"
+write = "public"
+
+[db.tables.community_group_posts]
+read = "public"
+write = "own"
+
+[db.tables.community_stories]
+read = "public"
+write = "public"

@@ -1,0 +1,4 @@
+import { db } from 'hatchable';
+export const access = 'admin';
+export const methods = ['GET'];
+export default async function(req,res){const q=String(req.query?.q||'').trim().slice(0,100);const {rows}=await db.query("SELECT u.id,u.email,u.name,u.email_verified_at,u.created_at,COALESCE(NULLIF(BTRIM(p.full_name),''),NULLIF(BTRIM(u.name),''),'') AS full_name,COALESCE(NULLIF(BTRIM(p.phone),''),'') AS phone,(SELECT COUNT(*)::int FROM enrollments e WHERE e.user_id=u.id) AS enrolment_count FROM users u LEFT JOIN student_profiles p ON p.user_id=u.id WHERE u.email NOT LIKE '%@test.invalid' AND ($1='' OR u.email ILIKE '%'||$1||'%' OR COALESCE(p.full_name,u.name,'') ILIKE '%'||$1||'%') ORDER BY u.created_at DESC LIMIT 200",[q]);res.json({students:rows});}

@@ -21,6 +21,14 @@
   "outputDirectory": ".",
   "rewrites": [
     {
+      "source": "/api/student-portal/courses",
+      "destination": "/api/revenue?route=student-courses"
+    },
+    {
+      "source": "/api/student-portal/certificate-verify",
+      "destination": "/api/revenue?route=student-certificate-verify"
+    },
+    {
       "source": "/api/admin/operations",
       "destination": "/api/revenue?route=admin-operations"
     },

@@ -1,0 +1,4 @@
+import { db } from 'hatchable';
+export const access = 'user';
+export const methods = ['GET','POST'];
+export default async function(req,res){const user=req.user;if(req.method==='GET'){const {rows}=await db.query('SELECT full_name,phone,created_at FROM student_profiles WHERE user_id=$1',[user.id]);const saved=rows[0]||null;return res.json({profile:saved||{full_name:String(user.name||''),phone:'',created_at:null},profile_saved:Boolean(saved),email:user.email});}const full=String(req.body?.full_name||'').trim().slice(0,160);const phone=String(req.body?.phone||'').trim().slice(0,40);if(!full)return res.status(400).json({error:'Full name is required.'});const {rows}=await db.query('INSERT INTO student_profiles(user_id,full_name,phone,updated_at) VALUES($1,$2,$3,now()) ON CONFLICT(user_id) DO UPDATE SET full_name=EXCLUDED.full_name,phone=EXCLUDED.phone,updated_at=now() RETURNING full_name,phone',[user.id,full,phone]);res.json({profile:rows[0]});}

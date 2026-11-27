@@ -1,0 +1,66 @@
+name = "YSCMT Student Portal"
+
+[auth]
+enabled = true
+providers = ["email"]
+
+[db.tables.student_profiles]
+read = "own"
+write = "own"
+
+[db.tables.enrollments]
+read = "own"
+write = "own"
+
+[db.tables.courses]
+read = "public"
+write = "member"
+
+[db.tables.lesson_progress]
+read = "own"
+write = "own"
+
+[db.tables.exam_attempts]
+read = "own"
+write = "own"
+
+[db.tables.exam_sessions]
+read = "own"
+write = "own"
+
+[db.tables.student_certificates]
+read = "own"
+write = "member"
+
+[db.tables.payment_submissions]
+read = "own"
+write = "own"
+
+[db.tables.practice_submissions]
+read = "own"
+write = "own"
+
+[[secret]]
+name = "PAYSTACK_SECRET_KEY"
+required = true
+description = "Paystack secret API key for server-side transaction initialization and verification. Use the LIVE key for real customer payments; never share it in chat."
+
+[[secret]]
+name = "PAYSTACK_WEBHOOK_SECRET"
+required = true
+description = "Paystack webhook signing secret (whsec_...) for verifying incoming payment notifications."
+[db.tables.classroom_attendance]
+read = "public"
+write = "own"
+
+[db.tables.classroom_messages]
+read = "public"
+write = "own"
+
+[db.tables.classroom_teacher_replies]
+read = "public"
+write = "member"
+
+[db.tables.paystack_payments]
+read = "own"
+write = "own"
